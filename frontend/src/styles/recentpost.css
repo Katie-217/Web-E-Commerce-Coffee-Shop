@@ -1,0 +1,156 @@
+.recent-posts {
+  background: #fff;
+  width: 100%;
+  padding: 60px 20px;
+  text-align: center;
+  font-family: "Segoe UI", sans-serif;
+}
+
+.recent-posts .container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Tiêu đề */
+.header-post {
+  text-align: center;
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+.recent-posts .header-post h2 {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: #1f1f1f;
+  position: relative;
+  z-index: 1;
+}
+.pc-eyebrow {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: #a06a3b;
+  display: block;
+  margin-bottom: 12px;
+  position: relative;
+  z-index: 1;
+}
+.line {
+  width: 60px;
+  height: 2px;
+  background: #c08457;
+  margin: 0.75rem auto 0;
+  position: relative;
+  z-index: 1;
+}
+
+/* Chữ nền mờ phía sau */
+.header-post h1.bg-text {
+  position: absolute;
+  top: 30%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 120px;
+  font-weight: 800;
+  color: rgba(82, 79, 76, 0.08);
+  z-index: 0;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* .recent-posts .header h2 span {
+  color: #b5853f; 
+}
+
+.recent-posts .header p {
+  max-width: 900px;
+  margin: auto;
+  color: #555;
+  line-height: 1.6;
+  margin-bottom: 40px;
+} */
+
+/* Grid bài viết */
+.posts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.post-card {
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  transition: transform 0.3s ease;
+  text-align: left;
+}
+
+.post-card:hover {
+  transform: translateY(-5px);
+}
+
+.post-card img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
+
+.post-content {
+  padding: 16px;
+}
+
+.post-meta {
+  display: flex;
+  gap: 16px;
+  font-size: 14px;
+  color: #8a6d45;
+  margin-bottom: 10px;
+}
+
+.post-content h3 {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.post-content p {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 12px;
+}
+
+.post-content a {
+  font-size: 14px;
+  font-weight: 600;
+  color: #b5853f;
+  text-decoration: none;
+}
+
+.post-content a:hover {
+  text-decoration: underline;
+}
+
+/* Nút xem thêm */
+.see-more {
+  margin-top: 30px;
+}
+
+.see-more button {
+  background: #3b1d0f;
+  color: #fff;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 24px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  /* transition: background 0.3s; */
+}
+
+.see-more button:hover {
+  background: #c49b63;
+}

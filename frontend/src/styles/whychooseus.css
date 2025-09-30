@@ -1,0 +1,86 @@
+.why-container {
+  width: 100%;
+  padding: 12% 8%;
+  background: #fff;
+  height: 80vh;
+}
+
+.why-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 50px;
+}
+
+.why-text {
+  flex: 1;
+}
+
+.subtitle {
+  color: #873d1d;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+
+.title {
+  font-size: 42px;
+  font-weight: 700;
+  color: #222;
+  margin-bottom: 20px;
+  line-height: 1.2;
+}
+
+.desc {
+  font-size: 16px;
+  color: #555;
+  margin-bottom: 30px;
+  max-width: 650px;
+}
+
+.features {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.feature-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+}
+
+.feature-item .icon {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  /* align-items: center;
+  justify-content: center; */
+  flex-shrink: 0;
+}
+
+.feature-item h4 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #138a4c;
+  margin-bottom: 5px;
+}
+
+.feature-item p {
+  font-size: 16px;
+  color: #555;
+  line-height: 1.4;
+}
+
+.why-image {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.why-image img {
+  max-width: 100%;
+  height: 40vh;
+}

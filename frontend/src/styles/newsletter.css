@@ -1,68 +1,75 @@
 .newsletter {
   width: 100%;
-  padding: 60px 20px;
-  background: #fff;
+  padding: 32px 20px;
+  background: #0f0f0f;
   font-family: "Segoe UI", sans-serif;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
 }
 
 .newsletter-container {
   max-width: 1200px;
   margin: auto;
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto;
   align-items: center;
-  justify-content: space-between;
-  gap: 40px;
-  flex-wrap: wrap;
+  gap: 24px;
 }
 
 .newsletter-text h2 {
-  font-size: 28px;
+  font-size: 36px;
   font-weight: 800;
-  margin-bottom: 10px;
-  color: #111;
+  margin-bottom: 6px;
+  color: #fff;
 }
 
 .newsletter-text p {
-  font-size: 16px;
-  color: #444;
-  margin-bottom: 6px;
+  font-size: 15px;
+  color: rgba(255,255,255,0.75);
 }
 
 .newsletter-form {
-  display: flex;
-  align-items: center;
-  border: 1.5px solid #7a3e1d; /* nâu */
-  border-radius: 8px;
+  display: grid;
+  grid-template-columns: 420px 160px;
+  border-radius: 12px;
   overflow: hidden;
-  width: 100%;
-  max-width: 500px;
 }
 
 .newsletter-form input {
-  flex: 1;
-  padding: 14px 16px;
-  border: none;
+  padding: 16px 20px;
+  border: 1.5px solid rgba(255,255,255,0.2);
+  border-right: none;
   outline: none;
   font-size: 15px;
-  color: #333;
+  color: #fff;
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(2px);
 }
 
 .newsletter-form input::placeholder {
-  color: #888;
+  color: rgba(255,255,255,0.7);
 }
 
 .newsletter-form button {
-  background: #1a1414; /* đen/nâu sậm */
-  color: #fff;
-  border: none;
-  padding: 14px 20px;
-  font-weight: 700;
-  font-size: 14px;
+  background: #c49b63;
+  color: #1b1b1b;
+  border: 1.5px solid #c49b63;
+  padding: 16px 24px;
+  font-weight: 800;
+  font-size: 15px;
   cursor: pointer;
-  transition: 0.3s;
-  border-radius: 0 8px 8px 0;
+  transition: 0.25s ease;
+  border-radius: 0 10px 10px 0;
 }
 
 .newsletter-form button:hover {
-  background: #7a3e1d; /* nâu khi hover */
+  filter: brightness(0.92);
+}
+
+@media (max-width: 768px) {
+  .newsletter-container { grid-template-columns: 1fr; }
+  .newsletter-text h2 { font-size: 28px; }
+  .newsletter-form { grid-template-columns: 1fr; }
+  .newsletter-form input { border-right: 1.5px solid rgba(255,255,255,0.2); border-radius: 10px; margin-bottom: 10px; }
+  .newsletter-form button { border-radius: 10px; width: 100%; }
 }

@@ -6,7 +6,7 @@
   justify-content: space-between;
   padding: 0 8%;
   color: white;
-  margin-bottom: -50px; /* loại bỏ khoảng cách với section tiếp theo */
+  margin-bottom: -50px; 
 }
 
 .hero-content {

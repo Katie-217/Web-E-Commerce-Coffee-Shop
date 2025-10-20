@@ -25,6 +25,8 @@
   align-items: center;
   text-align: center;
   color: var(--cream-white);
+  margin: 0;
+  position: relative;
   /* outline: 1px solid var(--light-brown); */
 }
 

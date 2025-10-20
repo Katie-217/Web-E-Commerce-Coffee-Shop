@@ -1,23 +1,32 @@
 import React from 'react';
-import {HeroBanner} from '../components/HeroBanner';
-import {AboutSection} from '../components/AboutSection';
-import {HighLightSection} from '../components/HighLightSection';
-import {MenuSection} from '../components/MenuSection';
-import {InformationSection} from '../components/InformationSection';
-import {TestimonialFooterSection} from '../components/TestimonialFooterSection';
-import {FooterSection} from '../components/FooterSection';
+import HeroBanner from '../components/HeroBanner';
+import SalePoints from '../components/landing/SalePoints';
+import WhyChooseUs from '../components/landing/Whychooseus';
+import VoucherList from '../components/landing/VoucherList';
+import ProductCarousel from '../components/landing/ProductCarousel';
+import Menu from '../components/landing/Menu';
+import TestimonialFooterSection from '../components/landing/TestimonialFooterSection';
+import Process from '../components/landing/Process';
+import RecentPosts from '../components/landing/RecentPosts';
+import Newsletter from '../components/landing/Newsletter';
+import Footer from '../components/Footer';
+import '../styles/style.css';
 import '../styles/home.css';
 
 const HomePage = () => {
   return (
     <div className="home-page">
       <HeroBanner />
-      <AboutSection />
-      <HighLightSection />
-      <MenuSection />
-      <InformationSection />
+      <SalePoints />
+      <Process />
+      <ProductCarousel />
+      <VoucherList/>
+      <Menu />
       <TestimonialFooterSection />
-      <FooterSection />
+      <WhyChooseUs />
+      <RecentPosts />
+      <Newsletter />
+      <Footer />
     </div>
   );
 };

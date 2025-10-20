@@ -1,0 +1,22 @@
+/* Import all existing CSS files to maintain all effects and styles */
+@import './variables.css';
+@import './reset.css';
+@import './navbar.css';
+@import './hero.css';
+@import './landing.css';
+@import './footer.css';
+@import './process.css';
+@import './salepoint.css';
+@import './whychooseus.css';
+@import './product-carousel.css';
+@import './menu.css';
+@import './testimonial.css';
+@import './newsletter.css';
+@import './recentpost.css';
+@import './responsive.css';
+
+/* Home Page Container - Minimal styling to avoid conflicts */
+.home-page {
+  /* Only add essential container styles without overriding existing section styles */
+  position: relative;
+}

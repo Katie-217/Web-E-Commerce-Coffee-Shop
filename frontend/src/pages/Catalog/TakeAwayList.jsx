@@ -98,60 +98,170 @@ const TakeAwayList = () => {
          </div>
        </section>
 
-      <div className=" wrapper">
-        {/* Menu bên trái */}
-        <div className="order-menu">
-          <ul className="links">
-            <li className="active">◆ Take Away</li>
-            <li><a>◆ Beans</a></li>
-            <li><a>◆ Roast</a></li>
-          </ul>
+      <div className="catalog-wrapper">
+        {/* Filter sidebar bên trái */}
+        <div className="filter-sidebar">
+          <h3>Filters</h3>
+          
+          {/* AVAILABILITY Filter */}
+          <div className="filter-section">
+            <div className="filter-header">
+              <h4>AVAILABILITY</h4>
+              <span>0 selected</span>
+              <button className="reset-btn">Reset</button>
+            </div>
+            <div className="filter-options">
+              <label>
+                <input type="checkbox" />
+                In stock (4)
+              </label>
+              <label>
+                <input type="checkbox" />
+                Out of stock (1)
+              </label>
+            </div>
+          </div>
 
-          <div className="note-box">
-            <p>◆ Sau khi đặt hàng sẽ có nhân viên liên hệ xác nhận</p>
-            <p>◆ Tùy vào số lượng đơn hàng mà thời gian chuẩn bị có thể khác nhau</p>
-            <p>◆ Quý khách vui lòng kiểm tra sản phẩm trước khi nhận</p>
+          {/* PRICE Filter */}
+          <div className="filter-section">
+            <div className="filter-header">
+              <h4>PRICE</h4>
+              <button className="reset-btn">Reset</button>
+            </div>
+            <p className="price-info">The highest price is 59,000đ</p>
+            <div className="price-inputs">
+              <div>
+                <label>Min price:</label>
+                <input type="number" placeholder="0" />
+              </div>
+              <div>
+                <label>Max price:</label>
+                <input type="number" placeholder="59000" />
+              </div>
+            </div>
+          </div>
+
+          {/* PRODUCT TYPE Filter */}
+          <div className="filter-section">
+            <div className="filter-header">
+              <h4>PRODUCT TYPE</h4>
+              <span>0 selected</span>
+              <button className="reset-btn">Reset</button>
+            </div>
+            <div className="filter-options">
+              <label>
+                <input type="checkbox" />
+                Coffee (8)
+              </label>
+            </div>
+          </div>
+
+          {/* BRAND Filter */}
+          <div className="filter-section">
+            <div className="filter-header">
+              <h4>BRAND</h4>
+              <span>0 selected</span>
+              <button className="reset-btn">Reset</button>
+            </div>
+            <div className="filter-options">
+              <label>
+                <input type="checkbox" />
+                Coffee Shop (8)
+              </label>
+            </div>
+          </div>
+
+          {/* SIZE Filter */}
+          <div className="filter-section">
+            <div className="filter-header">
+              <h4>SIZE</h4>
+              <span>0 selected</span>
+              <button className="reset-btn">Reset</button>
+            </div>
+            <div className="filter-options">
+              <label>
+                <input type="checkbox" />
+                Small (2)
+              </label>
+              <label>
+                <input type="checkbox" />
+                Medium (4)
+              </label>
+              <label>
+                <input type="checkbox" />
+                Large (2)
+              </label>
+            </div>
           </div>
         </div>
 
-        {/* Danh sách món */}
-        <div className="order-list">
-          
-          {products.map((p) => (
-            <div key={p.id} className="order-item">
-              <div className="item-info">
-                <h4>{p.name}</h4>
-                <p>{p.desc}</p>
-              </div>
-              <span>{p.price ? p.price.toLocaleString() + "đ" : "Liên hệ"}</span>
-              <button onClick={() => handleOpenModal(p)}>+</button>
-              {showModal && (
-                <OrderModal
-                  selectedProduct={selectedProduct}
-                  tempQty={tempQty}
-                  setTempQty={setTempQty}
-                  tempSize={tempSize}
-                  setTempSize={setTempSize}
-                  onAdd={() => {
-                    setCart([...cart, { ...selectedProduct, size: tempSize, qty: tempQty }]);
-                    setShowModal(false);
-                  }}
-                  onClose={() => setShowModal(false)}
-                />
-              )}
-
+        {/* Main content area */}
+        <div className="main-content">
+          {/* Breadcrumb và Sort */}
+          <div className="catalog-header">
+            <div className="breadcrumb">
+              <span>Home / Coffee Menu</span>
             </div>
-          ))}
-        </div>
+            <div className="sort-section">
+              <span>Sort by:</span>
+              <select className="sort-select">
+                <option>Best selling</option>
+                <option>Price: Low to High</option>
+                <option>Price: High to Low</option>
+                <option>Newest</option>
+              </select>
+            </div>
+          </div>
 
-        {/* Giỏ hàng */}
-        <Cart
-          cart={cart}
-          removeFromCart={removeFromCart}
-          decreaseQty={decreaseQty}
-          increaseQty={increaseQty}
-          total={total}
-        />
+          {/* Product Grid */}
+          <div className="product-grid">
+            {products.map((p) => (
+              <div key={p.id} className="product-card">
+                <div className="product-image">
+                  <img src="/images/coffee1.jpg" alt={p.name} />
+                  <div className="product-badges">
+                    <span className="discount-badge">-20%</span>
+                    <span className="new-badge">New</span>
+                  </div>
+                  <div className="product-actions">
+                    <button className="action-btn">♡</button>
+                    <button className="action-btn">⇄</button>
+                    <button className="action-btn">👁</button>
+                  </div>
+                </div>
+                <div className="product-info">
+                  <h3 className="product-title">{p.name}</h3>
+                  <p className="product-desc">{p.desc}</p>
+                  <select className="variant-select">
+                    <option>Medium</option>
+                    <option>Large</option>
+                  </select>
+                  <div className="product-price">
+                    <span className="current-price">{p.price ? p.price.toLocaleString() + "đ" : "Liên hệ"}</span>
+                    {p.price && <span className="old-price">75,000đ</span>}
+                  </div>
+                  <button className="add-to-cart" onClick={() => handleOpenModal(p)}>
+                    + ADD TO CART
+                  </button>
+                </div>
+                {showModal && (
+                  <OrderModal
+                    selectedProduct={selectedProduct}
+                    tempQty={tempQty}
+                    setTempQty={setTempQty}
+                    tempSize={tempSize}
+                    setTempSize={setTempSize}
+                    onAdd={() => {
+                      setCart([...cart, { ...selectedProduct, size: tempSize, qty: tempQty }]);
+                      setShowModal(false);
+                    }}
+                    onClose={() => setShowModal(false)}
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
 

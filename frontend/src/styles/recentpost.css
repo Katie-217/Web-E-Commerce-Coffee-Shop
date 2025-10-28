@@ -1,11 +1,8 @@
 .recent-posts {
-  background: #fff;
+  background: #f5f5f5;
   width: 100%;
   padding: 60px 20px;
-  text-align: center;
   font-family: "Segoe UI", sans-serif;
-  margin-top: 0;
-  position: relative;
 }
 
 .recent-posts .container {
@@ -13,72 +10,121 @@
   margin: 0 auto;
 }
 
-/* Tiêu đề */
-.header-post {
-  text-align: center;
-  margin-bottom: 2rem;
+/* New layout structure */
+.blog-layout {
+  display: flex;
+  min-height: 500px;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* Left section - Dark background */
+.blog-intro {
+  flex: 1;
+  background: #000;
+  padding: 60px 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+}
+
+.intro-content {
+  z-index: 2;
   position: relative;
 }
 
-.recent-posts .header-post h2 {
-  font-size: 2rem;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  color: #1f1f1f;
-  position: relative;
-  z-index: 1;
-}
-.pc-eyebrow {
-  font-size: 13px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  color: #a06a3b;
-  display: block;
-  margin-bottom: 12px;
-  position: relative;
-  z-index: 1;
-}
-.line {
-  width: 60px;
-  height: 2px;
-  background: #c08457;
-  margin: 0.75rem auto 0;
-  position: relative;
-  z-index: 1;
-}
-
-/* Chữ nền mờ phía sau */
-.header-post h1.bg-text {
+.intro-content h1.bg-text {
   position: absolute;
-  top: 30%;
-  left: 50%;
+  top: 15%;
+  left: 30%;
   transform: translate(-50%, -50%);
-  font-size: 120px;
+  font-size: 150px;
   font-weight: 800;
-  color: rgba(82, 79, 76, 0.08);
+  color: rgba(255, 255, 255, 0.09);
   z-index: 0;
   white-space: nowrap;
-  pointer-events: none;
 }
 
-/* .recent-posts .header h2 span {
-  color: #b5853f; 
+.intro-label {
+  color: #fff;
+  font-size: 16px;
+  font-weight: 400;
+  margin-bottom: 20px;
+  display: block;
 }
 
-.recent-posts .header p {
-  max-width: 900px;
-  margin: auto;
-  color: #555;
+.blog-intro h2 {
+  font-size: 48px;
+  font-weight: 600;
+  color: #d4a574;
+  margin-bottom: 20px;
+  line-height: 1.2;
+}
+
+.blog-intro p {
+  color: #fff;
+  font-size: 16px;
   line-height: 1.6;
-  margin-bottom: 40px;
-} */
+  margin-bottom: 30px;
+  max-width: 400px;
+}
 
-/* Grid bài viết */
-.posts-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 24px;
+.show-blogs {
+  color: #fff;
+  text-decoration: underline;
+  font-size: 16px;
+  font-weight: 400;
+}
+
+.intro-decoration {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 200px;
+  z-index: 1;
+}
+
+/* Right section - Light background with blog cards */
+.blog-cards {
+  flex: 1;
+  background: transparent;
+  padding: 40px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  position: relative;
+}
+
+.nav-arrow {
+  background: #8b4513;
+  color: #fff;
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.3s ease;
+  flex-shrink: 0;
+}
+
+.nav-arrow:hover {
+  background: #a0522d;
+}
+
+.cards-container {
+  display: flex;
+  gap: 30px;
+  flex: 1;
+  justify-content: center;
 }
 
 .post-card {
@@ -88,71 +134,91 @@
   box-shadow: 0 2px 10px rgba(0,0,0,0.08);
   transition: transform 0.3s ease;
   text-align: left;
+  width: 300px;
+  flex-shrink: 0;
 }
 
 .post-card:hover {
   transform: translateY(-5px);
 }
 
+.post-image {
+  position: relative;
+  height: 200px;
+  overflow: hidden;
+}
+
 .post-card img {
   width: 100%;
-  height: 200px;
+  height: 100%;
   object-fit: cover;
 }
 
-.post-content {
-  padding: 16px;
+.date-badge {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  background: #fff;
+  color: #333;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-.post-meta {
-  display: flex;
-  gap: 16px;
+.post-content {
+  padding: 20px;
+}
+
+.post-author {
   font-size: 14px;
-  color: #8a6d45;
-  margin-bottom: 10px;
+  color: #333;
+  font-weight: 500;
+  margin-bottom: 8px;
+  display: block;
 }
 
 .post-content h3 {
   font-size: 18px;
-  font-weight: bold;
-  margin-bottom: 10px;
+  font-weight: 700;
+  margin-bottom: 12px;
   color: #333;
+  line-height: 1.3;
 }
 
 .post-content p {
   font-size: 14px;
   color: #666;
-  margin-bottom: 12px;
+  margin-bottom: 15px;
+  line-height: 1.5;
 }
 
-.post-content a {
+.read-more {
   font-size: 14px;
-  font-weight: 600;
-  color: #b5853f;
-  text-decoration: none;
-}
-
-.post-content a:hover {
+  font-weight: 700;
+  color: #333;
   text-decoration: underline;
+  text-transform: uppercase;
 }
 
-/* Nút xem thêm */
-.see-more {
-  margin-top: 30px;
-}
 
-.see-more button {
-  background: #3b1d0f;
-  color: #fff;
-  border: none;
-  padding: 12px 28px;
-  border-radius: 24px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-  /* transition: background 0.3s; */
-}
-
-.see-more button:hover {
-  background: #c49b63;
+/* Responsive design */
+@media (max-width: 768px) {
+  .blog-layout {
+    flex-direction: column;
+  }
+  
+  .blog-cards {
+    flex-direction: column;
+    padding: 20px;
+  }
+  
+  .blog-intro {
+    padding: 40px 20px;
+  }
+  
+  .blog-intro h2 {
+    font-size: 36px;
+  }
 }

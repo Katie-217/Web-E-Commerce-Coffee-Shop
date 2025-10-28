@@ -1,9 +1,10 @@
 import React from 'react';
+import ProductCarousel from '../../components/landing/ProductCarousel';
 
 const ProductList = () => {
   return (
-    <div className="container">
-      <h1>Danh sách sản phẩm</h1>
+    <div className="product-list-page">
+      <ProductCarousel />
     </div>
   );
 };

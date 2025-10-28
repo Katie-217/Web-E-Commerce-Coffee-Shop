@@ -20,16 +20,16 @@ const Navbar = () => {
             <a>MENU ▾</a>
             {openMenu && (
               <ul className="dropdown-menu">
-                <li>Coffee Beans</li>
-                <li>Coffee Roast</li>
-                <li><Link to = "/menu/takeaway">Take Away</Link></li>
-                <li>Combo</li>
+                <li>Coffee Sets</li>
+                <li>Cup & Mugs</li>
+                <li><Link to = "/menu/takeaway">Roast Coffee</Link></li>
+                <li>Coffee Makers & Grinders</li>
               </ul>
             )}
             
           </li>
             <li><Link to="/contact">CONTACT US</Link></li>
-            <li><Link to="/blog">BLOG</Link></li>           
+                 
           </ul>
         </nav>
 

@@ -17,6 +17,12 @@
 
 /* Home Page Container - Minimal styling to avoid conflicts */
 .home-page {
-  /* Only add essential container styles without overriding existing section styles */
   position: relative;
+  background: #000; /* nền đen toàn trang */
+}
+
+/* Mặc định các section bên trong trong suốt để nổi trên nền đen,
+   trừ những section đã có background riêng (image/video) sẽ giữ nguyên */
+.home-page > section {
+  background-color: transparent;
 }

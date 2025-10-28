@@ -1,7 +1,7 @@
 
 .header {
   width: 100%;
-  height: 9vh;
+  height: 10vh;
   position: absolute;
   top: 0;
   left: 0;
@@ -85,6 +85,13 @@
   gap: 30px;
 }
 
+.nav-links li {
+  position: relative;
+  cursor: pointer;
+  padding: 6px 10px;
+  transition: 0.3s;
+}
+
 .nav-links li a {
   text-decoration: none;
   color: #fff;
@@ -96,7 +103,31 @@
   color: #c49b63;
 }
 
-/* nav-right styles moved to .nav-right above */
+
+/* Dropdown */
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: black;
+  color: white;
+  list-style: none;
+  min-width: 160px;
+  border-radius: 6px;
+  box-shadow: 0px 4px 8px rgba(0,0,0,0.15);
+  overflow: hidden;
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+.dropdown-menu li {
+  padding: 10px 15px;
+  transition: 0.2s;
+}
+
+.dropdown-menu li:hover {
+  background: #f4b350 ;
+  color: white;
+}
 
 
 /* Search */ 

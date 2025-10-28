@@ -1,26 +1,36 @@
 import React from "react";
 import "../../styles/newsletter.css";
 
+const BG_IMAGE_URL = "/images/contact-newletter.png";
+
 const Newsletter = () => {
   return (
-    <section className="newsletter">
+    <section className="newsletter"
+      style={{ 
+        backgroundImage: `url('${BG_IMAGE_URL}')`,
+        backgroundRepeat: 'no-repeat',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center'
+      }}>
       <div className="newsletter-container">
         <div className="newsletter-text">
-          <h2>Get the Latest Deals & Updates!</h2>
-          <p>We are committed to keeping your information safe and secure.</p>
-          <p>
-           Enjoy an instant <strong>5% discount</strong>when you subscribe today.
+          <h2 className="main-heading">
+            Subscribe newsletter
+            <span className="discount-text">and get -20% off</span>
+          </h2>
+          <p className="description">
+            It is the most popular hot drink in the world. Seeds of the Coffea plant's fruits are separated to produce unroasted green coffee beans.
           </p>
+          <form className="newsletter-form">
+            <input
+              type="email"
+              placeholder="Enter email address..."
+              aria-label="Enter email address"
+              required
+            />
+            <button type="submit">SUBSCRIBE</button>
+          </form>
         </div>
-
-        <form className="newsletter-form">
-          <input
-            type="email"
-            placeholder="Enter your email address..."
-            required
-          />
-          <button type="submit">SUBSCRIBE NOW</button>
-        </form>
       </div>
     </section>
   );

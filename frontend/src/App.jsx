@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import './styles/style.css';
 // Public pages
+import HomePage from './pages/HomePage';
 import CategoryList from './pages/Catalog/CategoryList';
 import ProductList from './pages/Catalog/ProductList';
 import ProductDetail from './pages/Catalog/ProductDetail';
@@ -18,47 +18,18 @@ import Orders from './pages/Admin/Orders';
 import Users from './pages/Admin/Users';
 import NotFound from './pages/NotFound';
 import AboutPage from './pages/AboutPage';
-// Landing sections
-import Menu from './components/landing/Menu';
-import SalePoints from './components/landing/SalePoints';
-import Partners from './components/landing/Partners';
-import Discount from './components/landing/Discount';
-import RecentPosts from './components/landing/RecentPosts';
-import Newsletter from './components/landing/Newsletter';
-import ProductCarousel from './components/landing/ProductCarousel';
-import Footer from './components/Footer';
-import Process from './components/landing/Process';
+import ContactPage from './pages/ContactPage';
+import Menu from './pages/Menu';
 import Navbar from './components/NavBar';
-import HeroBanner from './components/HeroBanner';
-import TestimonialFooterSection from './components/landing/TestimonialFooterSection';
-import WhyChooseUs from './components/landing/Whychooseus';
+import TakeAwayList from './pages/Catalog/TakeAwayList';
 
 function App() {
   return (
     <Router>
       <Navbar />
       <Routes>
-        {/* Catalog */}
-        <Route path="/" element={
-          <>
-            <HeroBanner />
-            <SalePoints />
-            <WhyChooseUs/>
-            
-            <ProductCarousel />
-            <Menu />
-            
-           
-            <TestimonialFooterSection />
-            {/* <Partners />
-            <Discount /> */}
-            <Process />
-           
-            <RecentPosts />
-            <Newsletter />
-            <Footer />
-          </>
-        } />
+        {/* Home Page */}
+        <Route path="/" element={<HomePage />} />
         <Route path="/category/:categoryId" element={<ProductList />} />
         <Route path="/product/:productId" element={<ProductDetail />} />
 
@@ -71,6 +42,9 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/account" element={<AccountPage />} />
         <Route path="/about" element={<AboutPage />} />
+        {/* <Route path="/menu" element={<Menu/>} /> */}
+        <Route path = "/menu/takeaway" element={<TakeAwayList/>}/>
+        <Route path="/contact" element={<ContactPage />} />
 
         {/* Orders */}
         <Route path="/orders" element={<OrderHistory />} />

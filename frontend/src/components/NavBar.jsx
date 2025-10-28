@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import '../styles/navbar.css';
 
 const Navbar = () => {
+  const [openMenu, setOpenMenu] = useState(false);
   return (
     <header className="header">
       <div className="header-container">
@@ -11,10 +12,24 @@ const Navbar = () => {
           <ul className="nav-links">
             <li><Link to="/">HOME</Link></li>
             <li><Link to="/about">ABOUT US</Link></li>
-            <li><a href="#services">SERVICES</a></li>
-            <li><a href="#portfolio">MENU</a></li>
-            <li><a href="#contact">CONTACT US</a></li>
-            <li><a href="#blog">PROFILE</a></li>           
+            <li 
+            className="dropdown" 
+            onMouseEnter={() => setOpenMenu(true)} 
+            onMouseLeave={() => setOpenMenu(false)}
+          >
+            <a>MENU ▾</a>
+            {openMenu && (
+              <ul className="dropdown-menu">
+                <li>Coffee Sets</li>
+                <li>Cup & Mugs</li>
+                <li><Link to = "/menu/takeaway">Roast Coffee</Link></li>
+                <li>Coffee Makers & Grinders</li>
+              </ul>
+            )}
+            
+          </li>
+            <li><Link to="/contact">CONTACT US</Link></li>
+                 
           </ul>
         </nav>
 

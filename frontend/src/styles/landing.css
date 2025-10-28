@@ -20,7 +20,7 @@
 .landing .thumb { background: #dedede; border-radius: 10px; height: 160px; margin-bottom: 12px; }
 .landing .price { font-weight: 800; margin: 8px 0 12px; color: #1d1d1d; } */
 
-.landing.sale-points { background: #1a1a1a; color: #fff; }
+.landing.sale-points { background: transparent; color: #fff; }
 .landing.sale-points .points { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; list-style: none; padding: 0; margin: 0; }
 .landing.sale-points li { background: rgba(255,255,255,0.06); padding: 16px; border-radius: 8px; text-align: center; border: 1px solid rgba(255,255,255,0.08); }
 

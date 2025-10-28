@@ -1,16 +1,16 @@
 .voucher-container {
-  background: var(--cream-white);
+  background: transparent;
   display: flex;
   flex-wrap: wrap;
-  gap: 30px;
-  padding: 40px 5%;
+  gap: 50px;
+  padding: 30px 5%;
 }
 
 /* Wrapper có svg ticket */
 .voucher-ticket {
   position: relative;
   width: 350px;
-  height: 110px;
+  height: 100px;
 }
 
 .ticket-bg {
@@ -32,9 +32,8 @@
 
 /* Bên trái icon */
 .ticket-left {
-
-  min-width: 70px;
-  height: 100%;
+  min-width: 60px;
+  height: 60%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -42,29 +41,34 @@
 }
 
 .ticket-left img {
-  width: 55px;
-  height: 55px;
+  width: 45px;
+  height: 45px;
 }
 
 /* Bên phải nội dung */
 .ticket-right {
   flex: 1;
   padding-left: 16px;
-  font-size: 15px;
+  font-size: 12px;
   color: #444;
   position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .ticket-right h4 {
   margin: 0;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: bold;
   color: #333;
 }
 
 .ticket-right p {
-  margin: 2px 0;
-  font-size: 11px;
+  margin: 1px 0;
+  font-size: 10px;
+  line-height: 1.2;
 }
 
 /* Nút sao chép */
@@ -74,7 +78,7 @@
   border: none;
   padding: 6px 12px;
   border-radius: 6px;
-  font-size: 13px;
+  font-size: 12px;
   cursor: pointer;
   position: absolute;
   right: 0;
@@ -90,7 +94,7 @@
   position: absolute;
   right: 0;
   bottom: 0;
-  font-size: 12px;
+  font-size: 10px;
   color: #999;
   border: 1px solid #ccc;
   padding: 2px 6px;

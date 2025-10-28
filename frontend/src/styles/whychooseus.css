@@ -1,15 +1,71 @@
 .why-container {
-  width: 100%;
-  padding: 5% 8%;
-  background: #fff;
-  height: 70vh;
+  position: relative;
+  width: 65%;
+  margin: 0 auto 80px auto;
+  padding: 40px 60px;
+  height: 30vh;
+  overflow: hidden;
+  border-radius: 20px;
 }
 
+.bg-video {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: translate(-50%, -50%);
+  z-index: 0; /* trên nền trang */
+}
+
+.why-container::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0.9) 0%,
+    rgba(0, 0, 0, 0.8) 15%,
+    rgba(0, 0, 0, 0.6) 30%,
+    rgba(0, 0, 0, 0.3) 50%,
+    rgba(0, 0, 0, 0.15) 70%,
+    rgba(0, 0, 0, 0.05) 90%,
+    transparent 100%
+  );
+  z-index: 1;
+}
+
+.why-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    to left,
+    rgba(0, 0, 0, 0.9) 0%,
+    rgba(0, 0, 0, 0.8) 15%,
+    rgba(0, 0, 0, 0.6) 30%,
+    rgba(0, 0, 0, 0.3) 50%,
+    rgba(0, 0, 0, 0.15) 70%,
+    rgba(0, 0, 0, 0.05) 90%,
+    transparent 100%
+  );
+  z-index: 1;
+}
 .why-content {
+  position: relative;
+  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 50px;
+  gap: 40px;
+  height: 100%;
 }
 
 .why-text {
@@ -28,16 +84,18 @@
 .title {
   font-size: 42px;
   font-weight: 700;
-  color: #222;
+  color: white;
   margin-bottom: 20px;
   line-height: 1.2;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .desc {
   font-size: 16px;
-  color: #555;
+  color: white;
   margin-bottom: 30px;
   max-width: 650px;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .features {
@@ -64,23 +122,27 @@
 .feature-item h4 {
   font-size: 18px;
   font-weight: 600;
-  color: #138a4c;
+  color: white;
   margin-bottom: 5px;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .feature-item p {
   font-size: 16px;
-  color: #555;
+  color: white;
   line-height: 1.4;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .why-image {
   flex: 1;
   display: flex;
   justify-content: center;
+  align-items: center;
 }
 
 .why-image img {
   max-width: 100%;
-  height: 40vh;
+  max-height: 35vh;
+  object-fit: contain;
 }

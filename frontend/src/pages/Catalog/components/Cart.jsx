@@ -44,11 +44,25 @@ const Cart = ({ cart, removeFromCart, decreaseQty, increaseQty, total }) => {
         <p>{total.toLocaleString()}đ</p>
       </div>
       <button className="order-btn">ĐẶT HÀNG</button>
+      
+      {/* Note box moved here */}
+      <div className="note-box">
+        <p>◆ Sau khi đặt hàng sẽ có nhân viên liên hệ xác nhận</p>
+        <p>◆ Tùy vào số lượng đơn hàng mà thời gian chuẩn bị có thể khác nhau</p>
+        <p>◆ Quý khách vui lòng kiểm tra sản phẩm trước khi nhận</p>
+      </div>
     </div>
   );
 };
 
 export default Cart;
+
+
+
+
+
+
+
 
 
 

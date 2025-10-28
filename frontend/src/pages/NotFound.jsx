@@ -66,7 +66,6 @@ const NotFound = () => {
 }
 
 const StyledWrapper = styled.div`
-  /* From Uiverse.io by Praashoo7 Design Inspired by Stefan Devai's Design on Dribble */
 
   .text_404 {
     position: absolute;

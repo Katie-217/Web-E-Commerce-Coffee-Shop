@@ -1,46 +1,104 @@
 .hero {
   position: relative;
-  height: 100vh;
+  height: 90vh;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   padding: 0 8%;
   color: white;
   margin-bottom: -50px; 
+  overflow: hidden;
+}
+
+.hero-video {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transform: translate(-50%, -50%);
+  z-index: 0; /* đặt trên nền trang */
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 1; /* overlay trên video */
+}
+
+.hero::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 200px;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(0, 0, 0, 0.05) 5%,
+    rgba(0, 0, 0, 0.15) 30%,
+    rgba(0, 0, 0, 0.3) 50%,
+    rgba(0, 0, 0, 0.6) 70%,
+    rgba(0, 0, 0, 0.8) 85%,
+    rgba(0, 0, 0, 0.9) 100%,
+    #000000 100%
+  );
+  z-index: 1;
 }
 
 .hero-content {
   max-width: 600px;
+  position: relative;
+  z-index: 2;
+  text-align: center;
 }
 
 .hero-content .subtitle {
-  font-size: 14px;
-  letter-spacing: 2px;
-  margin-bottom: 10px;
+  font-size: 16px;
+  letter-spacing: 3px;
+  margin-bottom: 20px;
   color: #c49a6c;
   text-transform: uppercase;
+  font-weight: 600;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .hero-content h1 {
-  font-size: 56px;
-  line-height: 1.2;
-  margin-bottom: 20px;
+  font-size: 64px;
+  line-height: 1.1;
+  margin-bottom: 30px;
+  font-weight: 800;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  letter-spacing: -1px;
 }
 
 .btn-buy {
-  padding: 12px 32px;
+  padding: 16px 40px;
   background: white;
   border: none;
-  border-radius: 30px;
+  border-radius: 35px;
   color: #333;
-  font-weight: bold;
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 1px;
   cursor: pointer;
-  transition: 0.3s;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  text-transform: uppercase;
 }
 
 .btn-buy:hover {
   background: #c49a6c;
   color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
 }
 
 .hero-image {
@@ -53,7 +111,7 @@
 }
 
 .hero-image img {
-  width: 38%;
+  width: 33%;
   height: auto;
   position: absolute;
   right: -2%;          

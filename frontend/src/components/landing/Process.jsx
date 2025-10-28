@@ -64,7 +64,7 @@ export default function Process() {
 
           {/* Center image */}
           <div className="coffee-center">
-            <img src="/images/coffee-beans.png" alt="Coffee beans" />
+            <img src="/images/coffee-cup.png" alt="Coffee cup" />
           </div>
 
           {/* Right side */}

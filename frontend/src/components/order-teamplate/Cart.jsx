@@ -6,7 +6,7 @@ import {
   TrailingActions,
 } from "react-swipeable-list";
 import "react-swipeable-list/dist/styles.css";
-import "../../styles/order-teamplate/cart.css";
+import "./styles/cart.css";
 
 const Cart = ({ cart, removeFromCart, decreaseQty, increaseQty, total }) => {
   return (

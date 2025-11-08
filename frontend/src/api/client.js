@@ -6,23 +6,23 @@
 const DEFAULT_TIMEOUT_MS = 15000;
 
 function buildUrl(path) {
-  const base = import.meta?.env?.VITE_API_BASE_URL || '';
-  if (!base) return path;
+  // Default API base URL if not set in env
+  // Backend chạy trên port 3001, frontend trên port 3000
+  const base = import.meta?.env?.VITE_API_BASE_URL || 'http://localhost:3001/api';
   if (path.startsWith('http://') || path.startsWith('https://')) return path;
   return `${base.replace(/\/$/, '')}/${path.replace(/^\//, '')}`;
 }
 
 function applyQuery(url, params) {
   if (!params) return url;
-  const u = new URL(url, 'http://dummy');
+  // Expect an absolute URL here; preserve origin and pathname
+  const u = new URL(url);
   Object.entries(params).forEach(([k, v]) => {
     if (v === undefined || v === null) return;
     if (Array.isArray(v)) v.forEach((item) => u.searchParams.append(k, String(item)));
     else u.searchParams.set(k, String(v));
   });
-  const path = u.pathname + (u.search ? `?${u.searchParams.toString()}` : '');
-  // rebuild against real base in buildUrl
-  return path.startsWith('/') ? path : `/${path}`;
+  return u.toString();
 }
 
 let authTokenProvider = null; // optional callback to get token
@@ -50,7 +50,8 @@ async function request(path, { method = 'GET', headers, body, params, signal, ti
       },
       body: body && !(body instanceof FormData) ? JSON.stringify(body) : body,
       signal: mergedSignal ? mergedSignal.signal : controller.signal,
-      credentials: 'include',
+      // No cookies required for this API; avoid CORS credential issues
+      credentials: 'omit',
     });
 
     const contentType = res.headers.get('content-type') || '';

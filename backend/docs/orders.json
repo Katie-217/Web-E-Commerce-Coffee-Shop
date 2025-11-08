@@ -1,0 +1,101 @@
+[
+  {
+    "id": "ORD-2025-0001",
+    "customerEmail": "vana@example.com",
+    "items": [
+      { "productId": 2, "name": "Cà phê Cầu Đất Arabica Premium", "sku": "CF-CD-AR002", "price": 129000, "qty": 1 },
+      { "productId": 7, "name": "Cà phê Cold Brew Cầu Đất", "sku": "CF-CD-CB007", "price": 59000, "qty": 2 }
+    ],
+    "subtotal": 247000,
+    "shippingFee": 20000,
+    "discount": 0,
+    "total": 267000,
+    "currency": "VND",
+    "status": "processing",
+    "paymentStatus": "paid",
+    "paymentMethod": "cod",
+    "shippingAddress": {
+      "fullName": "Nguyen Van A",
+      "phone": "0905123456",
+      "addressLine1": "123 Đường Lý Thường Kiệt",
+      "district": "Quận 10",
+      "city": "TP. Hồ Chí Minh",
+      "provinceCode": "SG",
+      "country": "VN"
+    },
+    "createdAt": "2025-11-03T12:00:00.000Z",
+    "updatedAt": "2025-11-03T12:10:00.000Z"
+  },
+  {
+    "id": "ORD-2025-0002",
+    "customerEmail": "quynhpham@example.com",
+    "items": [
+      { "productId": 1, "name": "Cà phê Buôn Ma Thuột Robusta rang mộc", "sku": "CF-BMT-RB001", "price": 89000, "qty": 1 },
+      { "productId": 4, "name": "Cà phê rang bơ truyền thống Sài Gòn", "sku": "CF-SG-TR004", "price": 75000, "qty": 1 }
+    ],
+    "subtotal": 164000,
+    "shippingFee": 15000,
+    "discount": 14000,
+    "total": 165000,
+    "currency": "VND",
+    "status": "processing",
+    "paymentStatus": "paid",
+    "paymentMethod": "vnpay",
+    "billingAddress": {
+      "company": "CTY TNHH ABC",
+      "addressLine1": "45A Nguyễn Trãi",
+      "district": "Quận 1",
+      "city": "TP. Hồ Chí Minh",
+      "provinceCode": "SG",
+      "country": "VN"
+    },
+    "createdAt": "2025-11-04T08:30:00.000Z",
+    "updatedAt": "2025-11-04T08:31:00.000Z"
+  },
+  {
+    "id": "ORD-2025-0003",
+    "customerEmail": "hienvu@example.com",
+    "items": [
+      { "productId": 9, "name": "Cà phê Hòa Tan 3in1 Việt Blend", "sku": "CF-VN-IN009", "price": 59000, "qty": 3 }
+    ],
+    "subtotal": 177000,
+    "shippingFee": 0,
+    "discount": 0,
+    "total": 177000,
+    "currency": "VND",
+    "status": "delivered",
+    "paymentStatus": "paid",
+    "paymentMethod": "momo",
+    "shippingAddress": {
+      "fullName": "Vu Hien",
+      "addressLine1": "5A Nguyễn Huệ",
+      "city": "Huế",
+      "provinceCode": "TTH",
+      "country": "VN"
+    },
+    "createdAt": "2025-11-05T09:00:00.000Z",
+    "updatedAt": "2025-11-05T09:20:00.000Z"
+  },
+  {
+    "id": "ORD-2025-0004",
+    "customerEmail": "namnh@example.com",
+    "items": [
+      { "productId": 6, "name": "Cà phê Mộc Blend Sáng Tạo", "sku": "CF-ST-BL006", "price": 119000, "qty": 2 }
+    ],
+    "subtotal": 238000,
+    "shippingFee": 20000,
+    "discount": 0,
+    "total": 258000,
+    "currency": "VND",
+    "status": "shipped",
+    "paymentStatus": "pending",
+    "paymentMethod": "cod",
+    "createdAt": "2025-11-06T10:00:00.000Z",
+    "updatedAt": "2025-11-06T11:00:00.000Z"
+  }
+]
+
+
+
+
+

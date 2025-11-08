@@ -1,16 +1,27 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { MOCK_USERS } from '../../constants';
 import Badge from '../../components/Badge';
 import { Printer, FileDown, FileSpreadsheet, FileText, Copy as CopyIcon, ChevronDown } from 'lucide-react';
+import { fetchCustomers } from '../../../../api/customers';
+  const getDisplayCode = (val: string | number | undefined | null) => {
+    const s = String(val || '');
+    if (!s) return '';
+    const hex = s.replace(/[^a-fA-F0-9]/g, '') || s;
+    const last4 = hex.slice(-4).padStart(4, '0');
+    return `#${last4}`;
+  };
 
 type CustomerListProps = {
-  onSelectCustomer: (id: number) => void;
+  onSelectCustomer: (id: string) => void;
 };
 
 const CustomerList: React.FC<CustomerListProps> = ({ onSelectCustomer }) => {
   const [showExport, setShowExport] = useState(false);
   const exportRef = useRef<HTMLDivElement>(null);
-  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [customers, setCustomers] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [q, setQ] = useState<string>('');
 
   useEffect(() => {
     const onDocClick = (e: MouseEvent) => {
@@ -22,14 +33,14 @@ const CustomerList: React.FC<CustomerListProps> = ({ onSelectCustomer }) => {
     return () => document.removeEventListener('click', onDocClick);
   }, []);
 
-  const allChecked = selectedIds.length === MOCK_USERS.length && MOCK_USERS.length > 0;
+  const allChecked = selectedIds.length === customers.length && customers.length > 0;
   const noneChecked = selectedIds.length === 0;
 
   function toggleAll() {
     if (allChecked) setSelectedIds([]);
-    else setSelectedIds(MOCK_USERS.map(u => u.id));
+    else setSelectedIds(customers.map((u: any) => String(u._id)));
   }
-  function toggleOne(id: number) {
+  function toggleOne(id: string) {
     setSelectedIds((selected) =>
       selected.includes(id)
         ? selected.filter((i) => i !== id)
@@ -37,12 +48,36 @@ const CustomerList: React.FC<CustomerListProps> = ({ onSelectCustomer }) => {
     );
   }
 
+  useEffect(() => {
+    let cancelled = false;
+    const run = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const res = await fetchCustomers({ q, page: 1, limit: 50 });
+        console.log('📡 /api/customers response', res);
+        const items = res?.data || res?.items || [];
+        console.log(`✅ loaded customers: ${items.length}`);
+        if (!cancelled) setCustomers(items);
+      } catch (e: any) {
+        if (!cancelled) {
+          setError(e?.message || 'Failed to load customers');
+          setCustomers([]);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    run();
+    return () => { cancelled = true; };
+  }, [q]);
+
   return (
     <div className="bg-background-light p-6 rounded-lg shadow-lg">
       <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
         <h2 className="text-2xl font-bold text-text-primary">Customers</h2>
         <div className="flex gap-2 items-center">
-          <input type="text" placeholder="Search Order" className="bg-background-dark border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary w-64" />
+          <input value={q} onChange={(e) => setQ(e.target.value)} type="text" placeholder="Search customer" className="bg-background-dark border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary w-64" />
           {/* Export Button */}
           <div className="relative" ref={exportRef}>
             <button
@@ -84,39 +119,43 @@ const CustomerList: React.FC<CustomerListProps> = ({ onSelectCustomer }) => {
               </th>
               <th className="p-3">Customer</th>
               <th className="p-3">Customer ID</th>
-              <th className="p-3">Country</th>
-              <th className="p-3">Order</th>
-              <th className="p-3">Total Spent</th>
+              <th className="p-3">Email</th>
+              <th className="p-3">Status</th>
             </tr>
           </thead>
           <tbody>
-            {MOCK_USERS.map((u, idx) => (
+            {loading && (
+              <tr><td className="p-3 text-text-secondary" colSpan={6}>Loading...</td></tr>
+            )}
+            {error && !loading && (
+              <tr><td className="p-3 text-red-300" colSpan={6}>{error}</td></tr>
+            )}
+            {!loading && customers.map((u: any) => (
               <tr
-                key={u.id}
+                key={u._id}
                 className="border-b border-gray-700 hover:bg-gray-800/40 transition-colors cursor-pointer"
-                onClick={() => onSelectCustomer(u.id)}
+                onClick={() => onSelectCustomer(String(u.id || u._id))}
               >
                 <td className="p-3" onClick={e => e.stopPropagation()}>
                   <input
                     type="checkbox"
-                    checked={selectedIds.includes(u.id)}
-                    onChange={() => toggleOne(u.id)}
-                    aria-label={`Select customer ${u.name}`}
+                    checked={selectedIds.includes(String(u.id || u._id))}
+                    onChange={() => toggleOne(String(u.id || u._id))}
+                    aria-label={`Select customer ${u.fullName || u.name}`}
                   />
                 </td>
                 <td className="p-3">
                   <div className="flex items-center gap-3">
-                    <img src={u.avatar} alt={u.name} className="w-9 h-9 rounded-full" />
+                    <img src={u.avatarUrl || u.avatar} alt={u.fullName || u.name} className="w-9 h-9 rounded-full" />
                     <div>
-                      <p className="font-semibold text-text-primary">{u.name}</p>
+                      <p className="font-semibold text-text-primary">{u.fullName || u.name}</p>
                       <p className="text-xs text-text-secondary">{u.email}</p>
                     </div>
                   </div>
                 </td>
-                <td className="p-3 text-text-secondary">#{String(u.id).padStart(6,'0')}</td>
-                <td className="p-3 text-text-secondary">USA</td>
-                <td className="p-3 text-text-secondary">{500 - idx}</td>
-                <td className="p-3 text-text-secondary">${(9000 - idx * 37).toFixed(2)}</td>
+                <td className="p-3 text-text-secondary">{getDisplayCode(u.id || u._id)}</td>
+                <td className="p-3 text-text-secondary">{u.email || '-'}</td>
+                <td className="p-3"><Badge color={u.status === 'inactive' ? 'yellow' : u.status === 'banned' ? 'red' : 'green'}>{(u.status || 'active').toString()}</Badge></td>
               </tr>
             ))}
           </tbody>
@@ -124,7 +163,7 @@ const CustomerList: React.FC<CustomerListProps> = ({ onSelectCustomer }) => {
       </div>
 
       <div className="flex justify-between items-center mt-6 text-sm text-text-secondary">
-        <p>Showing 1 to {MOCK_USERS.length} of {MOCK_USERS.length} entries</p>
+        <p>Showing {customers.length} entr{customers.length === 1 ? 'y' : 'ies'}</p>
         <div className="flex items-center gap-1">
           <button className="px-3 py-1 rounded-md hover:bg-gray-700">«</button>
           <button className="px-3 py-1 rounded-md bg-primary text-white">1</button>

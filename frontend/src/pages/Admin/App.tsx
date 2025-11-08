@@ -19,20 +19,31 @@ import Notifications from './pages/settings/Notifications';
 const App: React.FC = () => {
   const [activePage, setActivePage] = useState('Dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null);
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string | number | null>(null);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [orderDetailFromCustomer, setOrderDetailFromCustomer] = useState(false);
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string | null>(null);
 
   const renderPage = () => {
     switch (activePage) {
       case 'Dashboard':
         return <Dashboard />;
       case 'Product List':
-        return <Products setActivePage={setActivePage} />;
+        return <Products 
+          setActivePage={setActivePage} 
+          selectedCategory={selectedCategoryFilter}
+          onClearSelectedCategory={() => setSelectedCategoryFilter(null)}
+        />;
       case 'Add Product':
-        return <AddProduct />;
+        return <AddProduct onBack={() => setActivePage('Product List')} setActivePage={setActivePage} />;
       case 'Category List':
-        return <CategoryList />;
+        return <CategoryList 
+          setActivePage={setActivePage}
+          onCategoryClick={(categoryName) => {
+            setSelectedCategoryFilter(categoryName);
+            setActivePage('Product List');
+          }}
+        />;
       case 'Orders':
         return <Orders 
           initialOrderId={selectedOrderId} 

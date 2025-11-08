@@ -1,7 +1,10 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { OrderDetail as OrderDetailType } from '../../types';
 import Badge from '../../components/Badge';
-import { Edit, ShoppingCart, CheckCircle2, Circle, ChevronLeft } from 'lucide-react';
+import { Edit, ShoppingCart, CheckCircle2 } from 'lucide-react';
+import { formatVND } from '../../../../utils/currency';
+import { fetchCustomerById } from '../../../../api/customers';
+import BackButton from '../../components/BackButton';
 
 interface OrderDetailProps {
   order: OrderDetailType;
@@ -9,6 +12,74 @@ interface OrderDetailProps {
 }
 
 const OrderDetail: React.FC<OrderDetailProps> = ({ order, onBack }) => {
+  const getDisplayCode = (val: string | number | undefined | null) => {
+    const s = String(val || '');
+    if (!s) return '';
+    const hex = s.replace(/[^a-fA-F0-9]/g, '') || s;
+    const last4 = hex.slice(-4).padStart(4, '0');
+    return `#${last4}`;
+  };
+
+  const formatAddress = (addr: any) => {
+    if (!addr) return '';
+    const parts = [addr.street, addr.city, addr.state, addr.zip, addr.country]
+      .filter(Boolean)
+      .map((p: string) => String(p).trim());
+    return parts.join(', ');
+  };
+  const [hydratedShipping, setHydratedShipping] = useState<any>(order.shippingAddress);
+  const [hydratedBilling, setHydratedBilling] = useState<any>(order.billingAddress);
+  const shippingAddrText = formatAddress(hydratedShipping);
+  const billingAddrText = formatAddress(hydratedBilling);
+
+  const addressLines = (addr: any): string[] => {
+    if (!addr) return [];
+    const lines: string[] = [];
+    if (addr.street) lines.push(String(addr.street));
+    if (addr.city && !addr.state && !addr.zip) {
+      lines.push(String(addr.city));
+    } else if (addr.city) {
+      lines.push(String(addr.city));
+    }
+    if (addr.zip || addr.state) {
+      const third = [addr.zip, addr.state].filter(Boolean).join(', ');
+      if (third) lines.push(third);
+    }
+    if (addr.country) lines.push(String(addr.country));
+    return lines.length ? lines : [];
+  };
+  const shippingLines = addressLines(hydratedShipping);
+  const billingLines = addressLines(hydratedBilling);
+
+  // Enrich from customer profile if order lacks address
+  useEffect(() => {
+    const needShipping = !shippingLines.length;
+    const needBilling = !billingLines.length;
+    const key = (order as any)?.customer?.id || (order as any)?.customerEmail;
+    if (!key || (!needShipping && !needBilling)) return;
+    (async () => {
+      try {
+        const res = await fetchCustomerById(String(key));
+        const c = res?.data || res;
+        const arr: any[] = c?.addresses || [];
+        if (Array.isArray(arr) && arr.length) {
+          const pick = (type: string) => arr.find((a: any) => (a.type || '').toLowerCase() === type && a.isDefault)
+            || arr.find((a: any) => (a.type || '').toLowerCase() === type);
+          const norm = (a: any) => a ? ({
+            street: [a.addressLine1, a.addressLine2].filter(Boolean).join(', '),
+            city: a.city || '',
+            state: a.district || '',
+            zip: a.postalCode || '',
+            country: a.country || ''
+          }) : undefined;
+          if (needShipping) setHydratedShipping(norm(pick('shipping') || arr[0]));
+          if (needBilling) setHydratedBilling(norm(pick('billing')));
+          
+        }
+      } catch {}
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [order]);
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Paid':
@@ -47,16 +118,10 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order, onBack }) => {
       <div className="bg-background-light p-6 rounded-lg shadow-lg">
         <div className="flex justify-between items-start mb-4">
           <div className="flex items-start gap-3">
-            <button
-              onClick={onBack}
-              className="p-2 rounded-lg hover:bg-gray-700 text-text-secondary hover:text-white transition-colors mt-1"
-              aria-label="Back to orders list"
-            >
-              <ChevronLeft size={20} />
-            </button>
+            <BackButton onClick={onBack} label="Back to orders" className="mt-1" />
             <div>
               <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-2xl font-bold text-text-primary">Order {order.id}</h1>
+                <h1 className="text-2xl font-bold text-text-primary">Order {getDisplayCode(order.id)}</h1>
                 <Badge color={getStatusColor(order.paymentStatus || 'Pending')}>
                   {order.paymentStatus || 'Pending'}
                 </Badge>
@@ -89,9 +154,6 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order, onBack }) => {
               <table className="w-full text-left">
                 <thead>
                   <tr className="border-b border-gray-700 text-sm text-text-secondary">
-                    <th className="p-3">
-                      <input type="checkbox" className="rounded border-gray-600 bg-background-dark" />
-                    </th>
                     <th className="p-3">PRODUCTS</th>
                     <th className="p-3">PRICE</th>
                     <th className="p-3">QTY</th>
@@ -102,9 +164,6 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order, onBack }) => {
                   {order.items.map((item) => (
                     <tr key={item.id} className="border-b border-gray-700">
                       <td className="p-3">
-                        <input type="checkbox" className="rounded border-gray-600 bg-background-dark" />
-                      </td>
-                      <td className="p-3">
                         <div>
                           <p className="font-medium text-text-primary">{item.name}</p>
                           {item.variant && (
@@ -112,9 +171,9 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order, onBack }) => {
                           )}
                         </div>
                       </td>
-                      <td className="p-3 text-text-secondary">${item.price}</td>
+                      <td className="p-3 text-text-secondary">{formatVND(item.price)}</td>
                       <td className="p-3 text-text-secondary">{item.quantity}</td>
-                      <td className="p-3 font-semibold text-text-primary">${(item.price * item.quantity).toFixed(2)}</td>
+                      <td className="p-3 font-semibold text-text-primary">{formatVND(item.price * item.quantity)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -123,19 +182,19 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order, onBack }) => {
             <div className="mt-4 pt-4 border-t border-gray-700 space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-text-secondary">Subtotal:</span>
-                <span className="text-text-primary font-medium">${order.subtotal.toFixed(2)}</span>
+                <span className="text-text-primary font-medium">{formatVND(order.subtotal)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-text-secondary">Discount:</span>
-                <span className="text-text-primary font-medium">-${order.discount.toFixed(2)}</span>
+                <span className="text-text-primary font-medium">-{formatVND(Math.abs(order.discount))}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-text-secondary">Tax:</span>
-                <span className="text-text-primary font-medium">${order.tax.toFixed(2)}</span>
+                <span className="text-text-primary font-medium">{formatVND(order.tax)}</span>
               </div>
               <div className="flex justify-between pt-2 border-t border-gray-700 font-bold text-lg">
                 <span className="text-text-primary">Total:</span>
-                <span className="text-text-primary">${order.total.toFixed(2)}</span>
+                <span className="text-text-primary">{formatVND(order.total)}</span>
               </div>
             </div>
           </div>
@@ -182,25 +241,29 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order, onBack }) => {
             <h2 className="text-xl font-bold text-text-primary mb-4">Customer details</h2>
             <div className="flex flex-col items-center mb-4">
               <img 
-                src={order.customer.avatar} 
-                alt={order.customer.name} 
+                src={order.customer?.avatar} 
+                alt={order.customer?.name || 'Customer'} 
                 className="w-20 h-20 rounded-xl mb-3"
               />
-              <p className="font-bold text-text-primary">{order.customer.name}</p>
-              <p className="text-sm text-text-secondary">Customer ID: {order.customer.id}</p>
-              <div className="flex items-center gap-2 mt-2 text-text-secondary">
-                <ShoppingCart size={16} />
-                <span className="text-sm">{order.customer.totalOrders} Orders</span>
-              </div>
+              <p className="font-bold text-text-primary">{order.customer?.name || 'Customer'}</p>
+              {(order.customer?.id) && (
+                <p className="text-sm text-text-secondary">Customer ID: {getDisplayCode(order.customer.id)}</p>
+              )}
+              {!!order.customer?.totalOrders && (
+                <div className="flex items-center gap-2 mt-2 text-text-secondary">
+                  <ShoppingCart size={16} />
+                  <span className="text-sm">{order.customer.totalOrders} Orders</span>
+                </div>
+              )}
             </div>
             <div className="space-y-3 text-sm">
               <div>
                 <p className="text-text-secondary mb-1">Email:</p>
-                <p className="text-text-primary">{order.customer.email}</p>
+                <p className="text-text-primary">{order.customer?.email || '-'}</p>
               </div>
               <div>
                 <p className="text-text-secondary mb-1">Mobile:</p>
-                <p className="text-text-primary">{order.customer.phone}</p>
+                <p className="text-text-primary">{order.customer?.phone || '-'}</p>
               </div>
             </div>
             <button className="mt-4 w-full text-primary hover:text-primary/80 flex items-center justify-center gap-2 border border-primary rounded-lg py-2">
@@ -217,30 +280,61 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order, onBack }) => {
                 <Edit size={16} />
               </button>
             </div>
-            <p className="text-sm text-text-secondary leading-relaxed">
-              {order.shippingAddress.street}, {order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.zip}, {order.shippingAddress.country}
-            </p>
-          </div>
-
-          {/* Billing Address */}
-          <div className="bg-background-light p-6 rounded-lg shadow-lg">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-text-primary">Billing address</h2>
-              <button className="text-primary hover:text-primary/80">
-                <Edit size={16} />
-              </button>
+            <div className="text-sm text-text-secondary leading-relaxed">
+              {shippingLines.length > 0 ? (
+                shippingLines.map((ln, i) => (
+                  <p key={i}>{ln}</p>
+                ))
+              ) : (
+                <p>-</p>
+              )}
             </div>
-            <p className="text-sm text-text-secondary leading-relaxed">
-              {order.billingAddress.street}, {order.billingAddress.city}, {order.billingAddress.state} {order.billingAddress.zip}, {order.billingAddress.country}
-            </p>
           </div>
 
-          {/* Payment Method */}
+          {/* Billing Address (hide if empty or same as shipping) */}
+          {billingLines.length > 0 && billingAddrText !== shippingAddrText && (
+            <div className="bg-background-light p-6 rounded-lg shadow-lg">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold text-text-primary">Billing address</h2>
+                <button className="text-primary hover:text-primary/80">
+                  <Edit size={16} />
+                </button>
+              </div>
+              <div className="text-sm text-text-secondary leading-relaxed">
+                {billingLines.map((ln, i) => (
+                  <p key={i}>{ln}</p>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Payment Info */}
           <div className="bg-background-light p-6 rounded-lg shadow-lg">
-            <h2 className="text-xl font-bold text-text-primary mb-4">{order.paymentMethod.type}</h2>
-            <p className="text-sm text-text-secondary">
-              Card Number: <span className="text-text-primary">******{order.paymentMethod.last4}</span>
-            </p>
+            <h2 className="text-xl font-bold text-text-primary mb-1">Payment</h2>
+            {(() => {
+              const pmType = String(((order as any).paymentType || order.paymentMethod?.type || '')).toLowerCase();
+              const pm: any = (order as any).paymentMethod || order.paymentMethod;
+              return (
+                <div className="space-y-1 text-sm text-text-secondary">
+                  <p>Payment Type: <span className="text-text-primary">{pmType || '-'}</span></p>
+                  {pmType === 'bank' && (
+                    <>
+                      <p>Linked Bank: <span className="text-text-primary">{pm?.provider || '-'}</span></p>
+                      <p>Card Number: <span className="text-text-primary">{pm?.last4 ? `******${pm.last4}` : '-'}</span></p>
+                    </>
+                  )}
+                  {pmType === 'card' && (
+                    <>
+                      <p>Brand: <span className="text-text-primary">{pm?.brand || '-'}</span></p>
+                      <p>Card Number: <span className="text-text-primary">{pm?.last4 ? `******${pm.last4}` : '-'}</span></p>
+                    </>
+                  )}
+                  {pmType === 'cash' && (
+                    <p>Method: <span className="text-text-primary">Cash</span></p>
+                  )}
+                </div>
+              );
+            })()}
           </div>
         </div>
       </div>

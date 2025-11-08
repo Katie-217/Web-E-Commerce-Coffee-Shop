@@ -1,135 +1,191 @@
-import React, { useState, useRef, useEffect } from 'react';
-import Badge from '../../components/Badge';
-import { MOCK_USERS, MOCK_ORDERS } from '../../constants';
-import { ChevronLeft } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { fetchCustomerById } from '../../../../api/customers';
+import { fetchCustomerOrders } from '../../../../api/customers';
+import BackButton from '../../components/BackButton';
+import CustomerProfileCard from './components/CustomerProfileCard';
+import UpgradeToPremiumCard from './components/UpgradeToPremiumCard';
+import CustomerTabs from './components/CustomerTabs';
+
+const getDisplayCode = (val: string | number | undefined | null) => {
+  const s = String(val || '');
+  if (!s) return '';
+  const hex = s.replace(/[^a-fA-F0-9]/g, '') || s;
+  const last4 = hex.slice(-4).padStart(4, '0');
+  return `#${last4}`;
+};
 
 type Props = {
-  customerId: number | null;
+  customerId: string | number | null;
   onBack: () => void;
   onOrderClick?: (orderId: string) => void;
 };
 
 const CustomerDetail: React.FC<Props> = ({ customerId, onBack, onOrderClick }) => {
-  const customer = MOCK_USERS.find(u => u.id === customerId) || MOCK_USERS[0];
-  const [showExport, setShowExport] = useState(false);
-  const exportRef = useRef<HTMLDivElement>(null);
+  const [customer, setCustomer] = useState<any>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [orders, setOrders] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState<'Overview' | 'Security' | 'Address & Billing' | 'Notifications'>('Overview');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchOrder, setSearchOrder] = useState('');
+  const ITEMS_PER_PAGE = 6;
+
+  const primaryAddress = useMemo(() => {
+    const arr: any[] = customer?.addresses || [];
+    if (!Array.isArray(arr) || arr.length === 0) return null;
+    const pick = (type: string) => arr.find((a: any) => (a.type || '').toLowerCase() === type && a.isDefault)
+      || arr.find((a: any) => (a.type || '').toLowerCase() === type);
+    const a = pick('shipping') || arr[0];
+    if (!a) return null;
+    return {
+      street: [a.addressLine1, a.addressLine2].filter(Boolean).join(', '),
+      city: a.city || '',
+      state: a.district || '',
+      zip: a.postalCode || '',
+      country: a.country || ''
+    };
+  }, [customer]);
+
+  // Calculate stats from orders
+  const stats = useMemo(() => {
+    const ordersCount = orders.length;
+    const totalSpent = orders.reduce((sum, o) => sum + (Number(o.total) || 0), 0);
+    return { ordersCount, totalSpent };
+  }, [orders]);
+
+  // Filter and paginate orders
+  const filteredOrders = useMemo(() => {
+    let filtered = orders;
+    if (searchOrder) {
+      filtered = orders.filter(o =>
+        String(o.id || '').toLowerCase().includes(searchOrder.toLowerCase())
+      );
+    }
+    return filtered;
+  }, [orders, searchOrder]);
+
+  const paginatedOrders = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredOrders.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredOrders, currentPage]);
+
+  const totalPages = Math.ceil(filteredOrders.length / ITEMS_PER_PAGE);
 
   useEffect(() => {
-    const onDocClick = (e: MouseEvent) => {
-      if (exportRef.current && !exportRef.current.contains(e.target as Node)) {
-        setShowExport(false);
+    let cancelled = false;
+    const run = async () => {
+      if (!customerId && customerId !== 0) return;
+      try {
+        setLoading(true);
+        setError(null);
+        const idStr = String(customerId);
+        const res = await fetchCustomerById(idStr);
+        if (!cancelled) {
+          const cust = res?.data || res;
+          setCustomer(cust);
+          // Load orders
+          try {
+            const o = await fetchCustomerOrders(idStr, { page: 1, limit: 100 });
+            setOrders(o?.data || o?.items || []);
+          } catch (e) {
+            // ignore order fetch errors here
+          }
+        }
+      } catch (e: any) {
+        if (!cancelled) {
+          setError(e?.message || 'Failed to load customer');
+          setCustomer(null);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
       }
     };
-    document.addEventListener('click', onDocClick);
-    return () => document.removeEventListener('click', onDocClick);
-  }, []);
-  const orders = MOCK_ORDERS.slice(0, 5);
+    run();
+    return () => { cancelled = true; };
+  }, [customerId]);
+
+  const formatDate = (date: Date | string | null | undefined) => {
+    if (!date) return '';
+    const d = new Date(date);
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
+
+  const handleEditDetails = () => {
+    // TODO: Implement edit details functionality
+    console.log('Edit details for customer:', customer?._id || customer?.id);
+  };
+
+  const handleUpgrade = () => {
+    // TODO: Implement upgrade functionality
+    console.log('Upgrade customer:', customer?._id || customer?.id);
+  };
+
+  const handleDeleteOrder = (orderId: string) => {
+    // TODO: Implement delete order functionality
+    console.log('Delete order:', orderId);
+    // Remove from local state
+    setOrders(prev => prev.filter(o => String(o.id || o._id) !== orderId));
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        {/* Back Button */}
         <div className="flex items-center gap-3">
-          <button onClick={onBack} className="p-2 rounded-md bg-background-dark border border-gray-700 text-text-secondary hover:text-white flex items-center">
-            <ChevronLeft size={20} />
-          </button>
+          <BackButton onClick={onBack} className="w-fit" />
           <div>
-            <h2 className="text-2xl font-bold text-text-primary">Customer ID #{String(customer.id).padStart(6,'0')}</h2>
-            <p className="text-sm text-text-secondary">Aug 17, 2020, 5:48 (ET)</p>
+            <h2 className="text-2xl font-bold text-text-primary">
+              {customer?._id ? `Customer ID ${getDisplayCode(customer._id)}` : 'Customer'}
+            </h2>
+            <p className="text-sm text-text-secondary">
+              {customer?.createdAt ? formatDate(customer.createdAt) : 'Aug 17, 2020, 5:48 (ET)'}
+            </p>
           </div>
         </div>
-        <button className="px-4 py-2 rounded-lg bg-red-600 text-white">Delete Customer</button>
+        <button className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors">
+          Delete Customer
+        </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-background-light p-6 rounded-lg shadow-lg">
-          <div className="flex items-center gap-4">
-            <img src={customer.avatar} alt={customer.name} className="w-20 h-20 rounded-xl"/>
-            <div>
-              <p className="text-lg font-semibold text-text-primary">{customer.name}</p>
-              <p className="text-xs text-text-secondary">Customer ID #{String(customer.id).padStart(6,'0')}</p>
-            </div>
+      {loading && (
+        <div className="p-4 rounded-md bg-background-dark border border-gray-700 text-text-secondary">Loading customer...</div>
+      )}
+      {error && (
+        <div className="p-4 rounded-md bg-red-900/30 border border-red-700 text-red-200">{error}</div>
+      )}
+
+      {customer && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left Section - Customer Profile */}
+          <div className="space-y-6">
+            <CustomerProfileCard
+              customer={customer}
+              stats={stats}
+              primaryAddress={primaryAddress}
+              onEditDetails={handleEditDetails}
+            />
+            <UpgradeToPremiumCard onUpgrade={handleUpgrade} />
           </div>
 
-          <div className="grid grid-cols-2 gap-4 my-6">
-            <div className="bg-background-dark p-4 rounded-lg">
-              <p className="text-sm text-text-secondary">Orders</p>
-              <p className="text-xl font-bold text-white">184</p>
-            </div>
-            <div className="bg-background-dark p-4 rounded-lg">
-              <p className="text-sm text-text-secondary">Spent</p>
-              <p className="text-xl font-bold text-white">$12,378</p>
-            </div>
-          </div>
-
-          <div className="space-y-3 text-sm">
-            <div className="flex justify-between"><span className="text-text-secondary">Email:</span><span className="text-white">{customer.email}</span></div>
-            <div className="flex justify-between"><span className="text-text-secondary">Country:</span><span className="text-white">USA</span></div>
-            <div className="flex justify-between"><span className="text-text-secondary">Status:</span><span><Badge color={'green'}>Active</Badge></span></div>
-          </div>
-
-          <button className="mt-6 w-full bg-primary text-white py-2 rounded-lg">Edit Details</button>
-        </div>
-
-        <div className="md:col-span-2 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-background-light p-6 rounded-lg">
-              <p className="text-text-secondary text-sm">Account Balance</p>
-              <p className="text-2xl font-bold text-white">$2345</p>
-              <p className="text-xs text-text-secondary">Account balance for next purchase</p>
-            </div>
-            <div className="bg-background-light p-6 rounded-lg">
-              <p className="text-text-secondary text-sm">Loyalty Program</p>
-              <p className="text-xs text-green-400">Platinum member</p>
-              <p className="text-xs text-text-secondary">3000 points to next tier</p>
-            </div>
-          </div>
-
-          <div className="bg-background-light p-6 rounded-lg">
-            <div className="flex items-center justify-between mb-4">
-              <p className="font-semibold text-text-primary">Orders placed</p>
-              <input placeholder="Search order" className="bg-background-dark border border-gray-600 rounded-lg px-3 py-2"/>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="border-b border-gray-700 text-sm text-text-secondary">
-                    <th className="p-3">ORDER</th>
-                    <th className="p-3">DATE</th>
-                    <th className="p-3">STATUS</th>
-                    <th className="p-3">SPENT</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {orders.map(o => (
-                    <tr key={o.id} className="border-b border-gray-700 hover:bg-gray-800/50 transition-colors">
-                      <td className="p-3">
-                        {onOrderClick ? (
-                          <button
-                            onClick={() => onOrderClick(o.id)}
-                            className="text-primary hover:underline font-semibold cursor-pointer"
-                          >
-                            {o.id}
-                          </button>
-                        ) : (
-                          <span className="text-text-secondary">{o.id}</span>
-                        )}
-                      </td>
-                      <td className="p-3 text-text-secondary">{o.date}</td>
-                      <td className="p-3"><Badge color={o.status === 'Delivered' ? 'green' : o.status === 'Cancelled' ? 'red' : 'yellow'}>{o.status}</Badge></td>
-                      <td className="p-3 text-text-secondary">${o.payment.toFixed(2)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+          {/* Right Section - Overview and Orders */}
+          <div className="lg:col-span-2 space-y-6">
+            <CustomerTabs
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+              orders={paginatedOrders}
+              searchOrder={searchOrder}
+              onSearchChange={setSearchOrder}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              onOrderClick={onOrderClick}
+              onDeleteOrder={handleDeleteOrder}
+              customer={customer}
+            />
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
 
 export default CustomerDetail;
-
-

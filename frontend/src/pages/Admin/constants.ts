@@ -82,11 +82,10 @@ export const MOCK_USERS: User[] = [
 ];
 
 export const MOCK_CATEGORIES: Category[] = [
-    { id: 1, name: 'Coffee Beans', productCount: 12, status: 'Active' },
-    { id: 2, name: 'Ground Coffee', productCount: 8, status: 'Active' },
-    { id: 3, name: 'Equipment', productCount: 25, status: 'Active' },
-    { id: 4, name: 'Merchandise', productCount: 5, status: 'Inactive' },
-    { id: 5, name: 'Syrups & Sauces', productCount: 15, status: 'Active' },
+    { id: 1, name: 'Roasted coffee', productCount: 8, status: 'Active' },
+    { id: 2, name: 'Coffee sets', productCount: 8, status: 'Active' },
+    { id: 3, name: 'Cups & Mugs', productCount: 8, status: 'Active' },
+    { id: 4, name: 'Coffee makers and grinders', productCount: 6, status: 'Active' },
 ];
 
 

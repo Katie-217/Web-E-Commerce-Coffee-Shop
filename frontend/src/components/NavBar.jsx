@@ -1,35 +1,138 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useRef, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import '../styles/navbar.css';
 
 const Navbar = () => {
-  const [openMenu, setOpenMenu] = useState(false);
+  const [openMenu, setOpenMenu] = useState(false);           // desktop dropdown (MENU)
+  const [openAccount, setOpenAccount] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);       // NEW: mobile drawer
+  const [mobileSubmenuOpen, setMobileSubmenuOpen] = useState(false); // NEW: submenu in drawer
+  const [isDesktop, setIsDesktop] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(min-width: 992px)').matches
+  ); // NEW: track breakpoint
+
+  const [user, setUser] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('user') || 'null');
+    } catch {
+      return null;
+    }
+  });
+
+  const navigate = useNavigate();
+  const accountRef = useRef(null);
+  const closeBtnRef = useRef(null);                          // NEW: focus vào nút Close khi mở drawer
+
+  // Close account dropdown when clicking outside + sync user changes
+  useEffect(() => {
+    const onClickOutside = (e) => {
+      if (accountRef.current && !accountRef.current.contains(e.target)) {
+        setOpenAccount(false);
+      }
+    };
+    const onStorage = (e) => {
+      if (e.key === 'user' || e.key === 'token') {
+        try {
+          setUser(JSON.parse(localStorage.getItem('user') || 'null'));
+        } catch {
+          setUser(null);
+        }
+      }
+    };
+    window.addEventListener('mousedown', onClickOutside);
+    window.addEventListener('storage', onStorage);
+    return () => {
+      window.removeEventListener('mousedown', onClickOutside);
+      window.removeEventListener('storage', onStorage);
+    };
+  }, []);
+
+  // NEW: cập nhật isDesktop theo resize (>= 992px)
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 992px)');
+    const onChange = (e) => setIsDesktop(e.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+
+  // NEW: khi chuyển qua desktop thì tự đóng drawer
+  useEffect(() => {
+    if (isDesktop && drawerOpen) setDrawerOpen(false);
+  }, [isDesktop, drawerOpen]);
+
+  // NEW: khóa scroll khi mở drawer + ESC để đóng
+  useEffect(() => {
+    const html = document.documentElement;
+    if (drawerOpen) {
+      html.style.overflow = 'hidden';
+      // đẩy focus vào nút close để hỗ trợ keyboard
+      setTimeout(() => closeBtnRef.current?.focus(), 0);
+    } else {
+      html.style.overflow = '';
+    }
+    const onKey = (e) => {
+      if (e.key === 'Escape') {
+        setDrawerOpen(false);
+        setOpenAccount(false);
+        setOpenMenu(false);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => {
+      html.style.overflow = '';
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [drawerOpen]);
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUser(null);
+    setOpenAccount(false);
+    navigate('/login');
+  };
+
+  const closeDrawer = () => setDrawerOpen(false);            // NEW
+  const avatarUrl = user?.avatar || null;
+
   return (
     <header className="header">
       <div className="header-container">
-        {/* Nav left */}
+        {/* NEW: Hamburger chỉ hiện ở mobile */}
+        <button
+          className="hamburger"
+          aria-label={drawerOpen ? 'Close menu' : 'Open menu'}
+          aria-controls="mobile-drawer"
+          aria-expanded={drawerOpen}
+          onClick={() => setDrawerOpen(v => !v)}
+        >
+          <span></span><span></span><span></span>
+        </button>
+
+        {/* Nav left (Desktop) */}
         <nav className="nav nav-left">
           <ul className="nav-links">
             <li><Link to="/">HOME</Link></li>
             <li><Link to="/about">ABOUT US</Link></li>
-            <li 
-            className="dropdown" 
-            onMouseEnter={() => setOpenMenu(true)} 
-            onMouseLeave={() => setOpenMenu(false)}
-          >
-            <a>MENU ▾</a>
-            {openMenu && (
-              <ul className="dropdown-menu">
-                <li>Coffee Sets</li>
-                <li>Cup & Mugs</li>
-                <li><Link to = "/menu/takeaway">Roast Coffee</Link></li>
-                <li>Coffee Makers & Grinders</li>
-              </ul>
-            )}
-            
-          </li>
+
+            <li
+              className="dropdown"
+              onMouseEnter={() => isDesktop && setOpenMenu(true)}
+              onMouseLeave={() => isDesktop && setOpenMenu(false)}
+            >
+              {/* với desktop mở bằng hover; mobile dùng drawer bên dưới */}
+              <a href="#" onClick={(e) => e.preventDefault()}>MENU ▾</a>
+              {openMenu && isDesktop && (
+                <ul className="dropdown-menu">
+                  <li>Coffee Sets</li>
+                  <li>Cup & Mugs</li>
+                  <li><Link to="/menu/takeaway">Roast Coffee</Link></li>
+                  <li>Coffee Makers & Grinders</li>
+                </ul>
+              )}
+            </li>
+
             <li><Link to="/contact">CONTACT US</Link></li>
-                 
           </ul>
         </nav>
 
@@ -40,15 +143,17 @@ const Navbar = () => {
           </Link>
         </div>
 
-        {/* Nav right: Phone + Search + Cart + CTA */}
+        {/* Nav right: Phone + Search + Notification + Cart + Account */}
         <nav className="nav nav-right">
           <a href="tel:+8774850700" className="phone-link">+ 877 . 485 . 0700</a>
+
           <div className="searchBox">
             <input className="searchInput" type="text" placeholder="Search..." />
             <button className="searchButton" aria-label="Search">
               <img src="/images/search-icon.svg" alt="Search" />
             </button>
           </div>
+
           <div className="notification">
             <button className="notifi-btn" aria-label="Notifications">
               <svg viewBox="0 0 448 512" className="bell" aria-hidden="true">
@@ -57,19 +162,104 @@ const Navbar = () => {
               <span className="cart-badge">0</span>
             </button>
           </div>
+
           <button className="icon-btn" aria-label="Cart">
             <svg viewBox="0 0 24 24" className="cart-icon" aria-hidden="true">
               <path d="M7 4h-2l-1 2h2l3.6 7.59-1.35 2.45A1.99 1.99 0 0 0 10 19h9v-2h-8.42c-.14 0-.25-.11-.25-.25l.03-.12L11.1 14h6.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 22 5h-15V4zM7 20a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm10 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"></path>
             </svg>
             <span className="cart-badge">0</span>
           </button>
-          
+
+          {/* Account dropdown */}
+          <div className="dropdown account" ref={accountRef}>
+            <a
+              href="#"
+              className="account-link"
+              onClick={(e) => { e.preventDefault(); setOpenAccount(v => !v); }}
+              aria-haspopup="menu"
+              aria-expanded={openAccount}
+              title={user ? (user.name || 'Account') : 'Sign in'}
+            >
+              {avatarUrl ? (
+                <img className="account-avatar" src={avatarUrl} alt="User avatar" />
+              ) : (
+                <svg className="account-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path fill="currentColor" d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-4.33 0-8 2.17-8 5v1h16v-1c0-2.83-3.67-5-8-5Z" />
+                </svg>
+              )}
+              <span className="caret">▾</span>
+            </a>
+
+            {openAccount && (
+              <ul className="dropdown-menu-right" role="menu">
+                {!user ? (
+                  <>
+                    <li><Link className="user-item" to="/login" onClick={() => setOpenAccount(false)}>Sign in</Link></li>
+                  </>
+                ) : (
+                  <>
+                    <li><Link className="user-item" to="/account" onClick={() => setOpenAccount(false)}>My account</Link></li>
+                    <li>
+                      <button type="button" className="logout-item" onClick={handleLogout}>
+                        Sign out
+                      </button>
+                    </li>
+                  </>
+                )}
+              </ul>
+            )}
+          </div>
         </nav>
-
-
-
-
       </div>
+
+      {/* NEW: Backdrop + Drawer cho mobile */}
+      <div
+        className={`backdrop ${drawerOpen ? 'show' : ''}`}
+        onClick={closeDrawer}
+        aria-hidden={!drawerOpen}
+      />
+      <aside
+        id="mobile-drawer"
+        className={`nav-drawer ${drawerOpen ? 'open' : ''}`}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Navigation menu"
+      >
+        <div className="drawer-header">
+          <strong>Menu</strong>
+          <button
+            className="drawer-close"
+            onClick={closeDrawer}
+            aria-label="Close"
+            ref={closeBtnRef}
+          >
+            ×
+          </button>
+        </div>
+        <ul className="drawer-links" role="menu">
+          <li role="none"><Link role="menuitem" to="/" onClick={closeDrawer}>HOME</Link></li>
+          <li role="none"><Link role="menuitem" to="/about" onClick={closeDrawer}>ABOUT US</Link></li>
+
+          <li className={`accordion ${mobileSubmenuOpen ? 'open' : ''}`}>
+            <button
+              className="accordion-toggle"
+              onClick={() => setMobileSubmenuOpen(v => !v)}
+              aria-expanded={mobileSubmenuOpen}
+              aria-controls="drawer-submenu"
+            >
+              MENU <span className="caret">▾</span>
+            </button>
+            <ul id="drawer-submenu" className="accordion-panel">
+              <li>Coffee Sets</li>
+              <li>Cup & Mugs</li>
+              <li><Link to="/menu/takeaway" onClick={closeDrawer}>Roast Coffee</Link></li>
+              <li>Coffee Makers & Grinders</li>
+            </ul>
+          </li>
+
+          <li role="none"><Link role="menuitem" to="/contact" onClick={closeDrawer}>CONTACT US</Link></li>
+        </ul>
+      </aside>
     </header>
   );
 };

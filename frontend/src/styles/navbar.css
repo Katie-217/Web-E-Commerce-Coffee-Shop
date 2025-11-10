@@ -1,4 +1,3 @@
-
 .header {
   width: 100%;
   height: 10vh;
@@ -129,6 +128,32 @@
   color: white;
 }
 
+.dropdown-menu-right {
+  position: absolute;
+  top: 80%;
+  right: 5px;
+  background: black;
+  color: white;
+  list-style: none;
+  min-width: 100px;
+  border-radius: 6px;
+  box-shadow: 0px 4px 8px rgba(0,0,0,0.15);
+  overflow: hidden;
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+.dropdown-menu-right li {
+  padding: 10px 15px;
+  transition: 0.2s;
+  text-align: center;
+}
+
+.dropdown-menu-right li:hover {
+  background: #f4b350 ;
+  color: white;
+}
+.user-item { color: var(--cream-white); text-decoration: none; }
+.user-item:visited { color: var(--cream-white); }
 
 /* Search */ 
 .searchBox {
@@ -446,3 +471,167 @@ button:active {
     font-size: 12px;
   }
 }
+/* Avatar dropdown dùng chung style dropdown như MENU */
+.dropdown.account { position: relative; }
+
+
+/* Anchor hiển thị avatar + caret (giống <a>MENU ▾) */
+.account-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: inherit;
+  text-decoration: none;
+  line-height: 1;
+  cursor: default; /* mở bằng hover, không cần click */
+}
+
+/* Avatar/Icon khóa kích thước để không lệch hàng */
+.account-icon,
+.account-avatar {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+.account-avatar { border-radius: 999px; object-fit: cover; }
+.caret { font-size: 12px; opacity: .9; }
+
+/* Account trigger should look clickable */
+.account-link { cursor: pointer; }
+
+/* Avatar/icon a bit larger for visibility */
+.account-icon, .account-avatar { width: 28px; height: 28px; }
+.account-avatar { border-radius: 50%; object-fit: cover; }
+
+/* Style for the Sign out button inside dropdown so it looks like other items */
+.dropdown-menu-right .logout-item {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--cream-white);
+  font: inherit;
+  padding: 10px 15px;
+  text-align: center;
+  cursor: pointer;
+}
+.dropdown-menu-right .logout-item:hover {
+  background: #f4b350;
+  color: #fff;
+}
+/* ==== Make the account avatar stand out on dark hero ==== */
+
+/* vùng click của avatar */
+.account-link {
+  padding: 4px;
+  border-radius: 9999px;
+  background: rgba(255,255,255,.08);   /* light pill behind */
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  transition: background .2s ease, box-shadow .2s ease, transform .06s ease;
+}
+
+/* kích thước + ring cho avatar / icon mặc định */
+.account-avatar,
+.account-icon {
+  width: 32px;              /* bigger */
+  height: 32px;
+  border-radius: 50%;
+  display: block;
+  background: #fff;         /* white cushion in case user avatar is dark */
+  box-shadow:
+    0 0 0 2px #fff,         /* white ring */
+    0 0 0 5px rgba(0,0,0,.45); /* outer dark halo for contrast on bright bg */
+}
+
+/* nếu là SVG icon mặc định thì đổi màu cho dễ thấy */
+.account-icon path { fill: #1f2937; }   /* dark text on white background */
+
+/* hover/focus: sáng hơn và hơi nổi lên */
+.account-link:hover,
+.account-link:focus-visible {
+  background: rgba(255,255,255,.14);
+  box-shadow: 0 6px 18px rgba(0,0,0,.35);
+  transform: translateY(-1px);
+}
+
+/* caret sát avatar hơn và rõ hơn */
+.caret { margin-left: 2px; color: #fff; opacity: .9; }
+
+/* nếu bạn muốn avatar giống các nút viền tròn bên cạnh */
+.dropdown.account .account-link {
+  border: 2px solid var(--light-brown);
+}
+
+/* ===== Stabilizer: keep layout, just size it down ===== */
+
+/* <= 1024px */
+@media (max-width: 1024px) {
+  .header { height: 16rem; }              /* đủ chỗ cho logo + 2 bên */
+  .header-container { padding: 14px 18px; }
+
+  .logo img {
+    width: 150px; height: 150px;
+    margin-top: 5.5vh;                    /* bớt đè xuống */
+  }
+
+  .nav-links { gap: 18px; }
+  .nav-links li a { font-size: 13px; }
+
+  .searchBox { max-width: 220px; height: 38px; }
+  .searchInput { font-size: 14px; padding: 12px 38px 12px 14px; }
+  .searchButton { width: 30px; height: 30px; right: 6px; }
+
+  .notification .notifi-btn,
+  .icon-btn { width: 34px; height: 34px; }
+  .cart-badge { top: -5px; right: -5px; transform: scale(.9); }
+
+  .account-avatar, .account-icon { width: 30px; height: 30px; }
+}
+
+/* <= 768px (mobile đứng) */
+@media (max-width: 768px) {
+  .header-container { padding: 12px 14px; }
+
+  .logo { display: none; }
+  .header { height: 10vh; }
+
+  .nav-links { gap: 14px; }
+  .nav-links li a { font-size: 12px; }
+  .phone-link { letter-spacing: 1px; font-size: 11px; }
+
+  .searchBox { max-width: 180px; height: 34px; }
+  .searchInput { font-size: 12.5px; padding: 10px 34px 10px 12px; }
+  .searchButton { width: 28px; height: 28px; right: 6px; }
+
+  .notification .notifi-btn,
+  .icon-btn { width: 32px; height: 32px; }
+  .bell, .cart-icon { width: 16px; height: 16px; }
+
+  .account-avatar, .account-icon {
+    width: 28px; height: 28px;
+    box-shadow: 0 0 0 2px #fff, 0 0 0 4px rgba(0,0,0,.45);
+  }
+}
+
+/* <= 560px (điện thoại nhỏ) */
+@media (max-width: 560px) {
+  .header { height: 17rem; }
+  .header-container { padding: 10px 12px; }
+
+  .logo img {
+    width: 105px; height: 105px;
+    margin-top: 4.2vh;
+  }
+
+  .nav-links { gap: 12px; }
+  .nav-links li a { font-size: 11px; }
+
+  .searchBox { max-width: 160px; height: 32px; }
+  .searchInput { font-size: 12px; padding: 10px 32px 10px 12px; }
+  .searchButton { width: 26px; height: 26px; }
+
+  .notification .notifi-btn,
+  .icon-btn { width: 30px; height: 30px; }
+  .cart-badge { width: 16px; height: 16px; font-size: 11px; }
+}
+

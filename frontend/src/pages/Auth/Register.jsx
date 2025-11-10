@@ -1,17 +1,6 @@
 import React from 'react';
+import AuthPage from './AuthPage';
 
-const Register = () => {
-  return (
-    <div className="container">
-      <h1>Đăng ký</h1>
-    </div>
-  );
-};
+const Login = () => <AuthPage initialTab="login" />;
 
-export default Register;
-
-
-
-
-
-
+export default Login;

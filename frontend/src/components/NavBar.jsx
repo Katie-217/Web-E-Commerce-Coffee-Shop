@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import '../styles/navbar.css';
 
@@ -11,39 +12,23 @@ const Navbar = () => {
     () => typeof window !== 'undefined' && window.matchMedia('(min-width: 992px)').matches
   ); // NEW: track breakpoint
 
-  const [user, setUser] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem('user') || 'null');
-    } catch {
-      return null;
-    }
-  });
+  const { user, loading, logout } = useAuth();
 
   const navigate = useNavigate();
   const accountRef = useRef(null);
   const closeBtnRef = useRef(null);                          // NEW: focus vào nút Close khi mở drawer
 
-  // Close account dropdown when clicking outside + sync user changes
+  // Close account dropdown when clicking outside
   useEffect(() => {
     const onClickOutside = (e) => {
       if (accountRef.current && !accountRef.current.contains(e.target)) {
         setOpenAccount(false);
       }
     };
-    const onStorage = (e) => {
-      if (e.key === 'user' || e.key === 'token') {
-        try {
-          setUser(JSON.parse(localStorage.getItem('user') || 'null'));
-        } catch {
-          setUser(null);
-        }
-      }
-    };
+
     window.addEventListener('mousedown', onClickOutside);
-    window.addEventListener('storage', onStorage);
     return () => {
       window.removeEventListener('mousedown', onClickOutside);
-      window.removeEventListener('storage', onStorage);
     };
   }, []);
 
@@ -85,11 +70,9 @@ const Navbar = () => {
   }, [drawerOpen]);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setUser(null);
+    logout();
     setOpenAccount(false);
-    navigate('/login');
+    navigate('/');
   };
 
   const closeDrawer = () => setDrawerOpen(false);            // NEW
@@ -145,7 +128,6 @@ const Navbar = () => {
 
         {/* Nav right: Phone + Search + Notification + Cart + Account */}
         <nav className="nav nav-right">
-          <a href="tel:+8774850700" className="phone-link">+ 877 . 485 . 0700</a>
 
           <div className="searchBox">
             <input className="searchInput" type="text" placeholder="Search..." />
@@ -172,39 +154,49 @@ const Navbar = () => {
 
           {/* Account dropdown */}
           <div className="dropdown account" ref={accountRef}>
-            <a
-              href="#"
+            <button
+              type="button"
               className="account-link"
-              onClick={(e) => { e.preventDefault(); setOpenAccount(v => !v); }}
+              onClick={() => setOpenAccount(v => !v)}
               aria-haspopup="menu"
               aria-expanded={openAccount}
               title={user ? (user.name || 'Account') : 'Sign in'}
             >
-              {avatarUrl ? (
-                <img className="account-avatar" src={avatarUrl} alt="User avatar" />
+              {loading ? (
+                <span style={{ padding: '0 8px', fontSize: 12 }}>…</span>
+              ) : avatarUrl ? (
+              <img className="account-avatar" src={avatarUrl} alt="User avatar" />
               ) : (
                 <svg className="account-icon" viewBox="0 0 24 24" aria-hidden="true">
                   <path fill="currentColor" d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-4.33 0-8 2.17-8 5v1h16v-1c0-2.83-3.67-5-8-5Z" />
                 </svg>
               )}
               <span className="caret">▾</span>
-            </a>
+            </button>
 
             {openAccount && (
               <ul className="dropdown-menu-right" role="menu">
-                {!user ? (
+                {!loading && user ? (
                   <>
-                    <li><Link className="user-item" to="/login" onClick={() => setOpenAccount(false)}>Sign in</Link></li>
-                  </>
-                ) : (
-                  <>
-                    <li><Link className="user-item" to="/account" onClick={() => setOpenAccount(false)}>My account</Link></li>
-                    <li>
+                  <li>
+                    <Link className="user-item" to="/account" onClick={() => setOpenAccount(false)}>
+                      My account
+                    </Link>
+                  </li>
+                  <li>
                       <button type="button" className="logout-item" onClick={handleLogout}>
                         Sign out
                       </button>
                     </li>
                   </>
+                  
+                ) : (
+                
+                    <li>
+                      <Link className="user-item" to="/login" onClick={() => setOpenAccount(false)}>
+                        Sign in
+                      </Link>
+                    </li>
                 )}
               </ul>
             )}

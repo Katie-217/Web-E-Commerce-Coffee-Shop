@@ -1,0 +1,10 @@
+[
+  {
+    "userEmail": "demo@example.com",
+    "items": [
+      { "name": "Classic Arabica", "qty": 2 }
+    ],
+    "status": "pending",
+    "address": "HCMC"
+  }
+]

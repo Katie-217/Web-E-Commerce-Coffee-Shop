@@ -1,7 +1,8 @@
+import { useLocation } from 'react-router-dom';
 import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../../styles/auth.css';
-import * as auth from '../../services/auth';
+import { useAuth } from '../../contexts/AuthContext';
 
 /**
  * Double slider login/register page (scoped classes).
@@ -10,6 +11,9 @@ import * as auth from '../../services/auth';
  */
 
 const AuthPage = ({ initialTab = 'login' }) => {
+    const { login, register } = useAuth();
+    const location = useLocation();
+    const from = location.state?.from?.pathname || '/';
     const [isRegister, setIsRegister] = useState(initialTab === 'register');
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState('');
@@ -41,11 +45,9 @@ const AuthPage = ({ initialTab = 'login' }) => {
         try {
             setLoading(true);
             setMessage('');
-            const res = await auth.login({ email: loginData.email, password: loginData.password });
+            await login(loginData.email, loginData.password);
             setMessage('Signed in successfully!');
-            if (res?.token) localStorage.setItem('token', res.token);
-            if (res?.user) localStorage.setItem('user', JSON.stringify(res.user));
-            navigate('/account');
+            navigate('/');
         } catch (err) {
             setMessage(err.message || 'Login failed.');
         } finally {
@@ -59,7 +61,7 @@ const AuthPage = ({ initialTab = 'login' }) => {
         try {
             setLoading(true);
             setMessage('');
-            await auth.register({
+            await register({
                 name: registerData.name,
                 email: registerData.email,
                 password: registerData.password

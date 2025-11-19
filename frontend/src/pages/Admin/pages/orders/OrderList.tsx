@@ -1,11 +1,12 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { fetchOrders } from '../../../../api/orders';
 import { OrderStatus } from '../../types';
 import Badge from '../../components/Badge';
-import { MoreVertical, Calendar, CheckCircle, Wallet, AlertCircle, ChevronDown, ArrowUp } from 'lucide-react';
+import { MoreVertical, Calendar, CheckCircle, Wallet, AlertCircle, ChevronDown, FileDown, FileSpreadsheet, FileText, CreditCard, Banknote, Smartphone, Building2 } from 'lucide-react';
+import { formatVND } from '../../../../utils/currency';
 
 interface OrderListProps {
-  onOrderClick: (orderId: string) => void;
+  onOrderClick: (orderId: string, orderData?: any) => void;
 }
 
 const ITEMS_PER_PAGE = 10;
@@ -18,35 +19,160 @@ const OrderList: React.FC<OrderListProps> = ({ onOrderClick }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const [itemsPerPage, setItemsPerPage] = useState(ITEMS_PER_PAGE);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [showExport, setShowExport] = useState(false);
+  const exportRef = useRef<HTMLDivElement>(null);
 
-  const getStatusColor = (status: OrderStatus) => {
-    switch (status) {
-      case OrderStatus.Delivered:
-        return 'green';
-      case OrderStatus.Pending:
-        return 'yellow';
-      case OrderStatus.Processing:
-        return 'blue';
-      case OrderStatus.Cancelled:
-        return 'red';
-      default:
-        return 'gray';
+  const getStatusColor = (status: OrderStatus | string) => {
+    if (!status) return 'gray';
+    const s = String(status).toLowerCase();
+    
+    // Completed/Delivered statuses - Green
+    if (s.includes('delivered') || s === 'delivered') {
+      return 'green';
     }
+    
+    // Ready/Shipped statuses - Green/Blue
+    if (s.includes('ready to pickup') || s.includes('readytopickup') || s.includes('ready')) {
+      return 'green';
+    }
+    if (s.includes('shipped') || s === 'shipped') {
+      return 'blue';
+    }
+    
+    // In progress statuses - Blue/Yellow
+    if (s.includes('processing') || s === 'processing') {
+      return 'blue';
+    }
+    if (s.includes('dispatched') || s === 'dispatched') {
+      return 'blue';
+    }
+    if (s.includes('out for delivery') || s.includes('outfordelivery')) {
+      return 'blue';
+    }
+    
+    // Pending statuses - Yellow
+    if (s.includes('pending') || s === 'pending') {
+      return 'yellow';
+    }
+    
+    // Cancelled/Refunded/Returned - Red
+    if (s.includes('cancelled') || s.includes('canceled') || s === 'cancelled') {
+      return 'red';
+    }
+    if (s.includes('refunded') || s === 'refunded') {
+      return 'red';
+    }
+    if (s.includes('returned') || s === 'returned') {
+      return 'red';
+    }
+    
+    return 'gray';
   };
 
   const getPaymentStatusColor = (status?: string) => {
     switch (status) {
-      case 'Pending Payment':
+      case 'Pending':
         return 'yellow';
       case 'Paid':
         return 'green';
       case 'Failed':
         return 'red';
       case 'Refunded':
-        return 'gray';
+        return 'red';
       default:
         return 'gray';
     }
+  };
+
+  const getPaymentMethodIcon = (paymentMethod: any) => {
+    if (!paymentMethod) return Wallet;
+    
+    let methodType = '';
+    if (typeof paymentMethod === 'string') {
+      methodType = paymentMethod.toLowerCase();
+    } else if (paymentMethod?.type) {
+      methodType = String(paymentMethod.type).toLowerCase();
+    }
+    
+    switch (methodType) {
+      case 'cod':
+      case 'cash':
+        return Banknote;
+      case 'card':
+      case 'credit':
+      case 'debit':
+        return CreditCard;
+      case 'vnpay':
+      case 'momo':
+      case 'zalopay':
+      case 'paypal':
+        return Smartphone;
+      case 'bank':
+      case 'banking':
+      case 'transfer':
+        return Building2;
+      default:
+        return Wallet;
+    }
+  };
+
+  const getPaymentMethodColor = (paymentMethod: any) => {
+    if (!paymentMethod) return 'text-gray-400';
+    
+    let methodType = '';
+    if (typeof paymentMethod === 'string') {
+      methodType = paymentMethod.toLowerCase();
+    } else if (paymentMethod?.type) {
+      methodType = String(paymentMethod.type).toLowerCase();
+    }
+    
+    switch (methodType) {
+      case 'cod':
+      case 'cash':
+        return 'text-green-400';
+      case 'card':
+      case 'credit':
+      case 'debit':
+        return 'text-blue-400';
+      case 'vnpay':
+        return 'text-blue-500';
+      case 'momo':
+        return 'text-pink-400';
+      case 'zalopay':
+        return 'text-cyan-400';
+      case 'paypal':
+        return 'text-indigo-400';
+      case 'bank':
+      case 'banking':
+      case 'transfer':
+        return 'text-purple-400';
+      default:
+        return 'text-gray-400';
+    }
+  };
+
+  const getPaymentMethodLabel = (paymentMethod: any) => {
+    if (!paymentMethod) return 'COD';
+    
+    if (typeof paymentMethod === 'string') {
+      const methodMap: { [key: string]: string } = {
+        'cod': 'COD',
+        'vnpay': 'VNPay',
+        'momo': 'MoMo',
+        'zalopay': 'ZaloPay',
+        'card': 'Card',
+        'bank': 'Bank',
+        'cash': 'Cash'
+      };
+      return methodMap[paymentMethod.toLowerCase()] || paymentMethod.toUpperCase();
+    }
+    
+    if (paymentMethod?.type) {
+      return String(paymentMethod.type).toUpperCase();
+    }
+    
+    return 'COD';
   };
 
   const getDisplayCode = (val: string | number | undefined | null) => {
@@ -56,6 +182,16 @@ const OrderList: React.FC<OrderListProps> = ({ onOrderClick }) => {
     const last4 = hex.slice(-4).padStart(4, '0');
     return `#${last4}`;
   };
+
+  useEffect(() => {
+    const onDocClick = (e: MouseEvent) => {
+      if (exportRef.current && !exportRef.current.contains(e.target as Node)) {
+        setShowExport(false);
+      }
+    };
+    document.addEventListener('click', onDocClick);
+    return () => document.removeEventListener('click', onDocClick);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -101,18 +237,46 @@ const OrderList: React.FC<OrderListProps> = ({ onOrderClick }) => {
     );
   }, [rows, searchQuery]);
 
+  // Paginate filtered rows
+  const totalPages = Math.ceil(filteredRows.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedRows = filteredRows.slice(startIndex, startIndex + itemsPerPage);
+
+  // Calculate selection state based on paginated rows
+  const pageOrderIds = paginatedRows.map((order) => String(order.id || order._id)).filter(Boolean);
+  const allChecked = pageOrderIds.length > 0 && pageOrderIds.every((id) => selectedIds.includes(id));
+  const noneChecked = selectedIds.length === 0;
+
+  // Toggle all orders on current page
+  const toggleAll = () => {
+    setSelectedIds((prev) =>
+      allChecked
+        ? prev.filter((id) => !pageOrderIds.includes(id))
+        : [...prev, ...pageOrderIds.filter((id) => !prev.includes(id))]
+    );
+  };
+
+  // Toggle single order
+  const toggleOne = (orderId: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(orderId)
+        ? prev.filter((id) => id !== orderId)
+        : [...prev, orderId]
+    );
+  };
+
   // Calculate stats from all rows (not just filtered)
   const pendingCount = rows.filter(o => paymentStatusFrom(o.status) === 'Pending').length;
   const completedCount = rows.filter(o => paymentStatusFrom(o.status) === 'Paid').length;
   const refundedCount = rows.filter(o => paymentStatusFrom(o.status) === 'Refunded').length;
   const failedCount = rows.filter(o => paymentStatusFrom(o.status) === 'Failed').length;
 
-  const totalPages = Math.ceil(total / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage + 1;
-  const endIndex = Math.min(currentPage * itemsPerPage, total);
+  const displayTotalPages = Math.ceil(total / itemsPerPage);
+  const displayStartIndex = (currentPage - 1) * itemsPerPage + 1;
+  const displayEndIndex = Math.min(currentPage * itemsPerPage, total);
 
   const handlePageChange = (page: number) => {
-    if (page >= 1 && page <= totalPages) {
+    if (page >= 1 && page <= displayTotalPages) {
       setCurrentPage(page);
     }
   };
@@ -177,105 +341,159 @@ const OrderList: React.FC<OrderListProps> = ({ onOrderClick }) => {
               <span className="text-sm text-text-secondary">{itemsPerPage}</span>
               <ChevronDown size={16} className="text-text-secondary" />
             </div>
-            <button className="bg-primary text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-primary/90 transition-colors">
-              <ArrowUp size={16} />
-              Export
-            </button>
+            <div className="relative" ref={exportRef}>
+              <button 
+                type="button" 
+                disabled={noneChecked} 
+                onClick={() => !noneChecked && setShowExport(v => !v)}
+                className={`px-4 py-2 rounded-lg flex items-center gap-2 transition font-semibold ${noneChecked ? 'bg-background-light border border-gray-700 text-text-secondary opacity-50 cursor-not-allowed' : 'bg-primary text-white border border-primary hover:bg-primary/90 cursor-pointer shadow-md'}`}
+              >
+                <span>Export</span>
+                <ChevronDown size={16} />
+              </button>
+              {showExport && !noneChecked && (
+                <div className="absolute right-0 mt-2 w-44 bg-background-light border border-gray-700 rounded-lg shadow-xl z-10 p-2">
+                  <button className="w-full flex items-center gap-2 px-3 py-2 rounded-md hover:bg-background-dark text-text-primary"><FileDown size={16}/> Csv</button>
+                  <button className="w-full flex items-center gap-2 px-3 py-2 rounded-md hover:bg-background-dark text-text-primary"><FileSpreadsheet size={16}/> Excel</button>
+                  <button className="w-full flex items-center gap-2 px-3 py-2 rounded-md hover:bg-background-dark text-text-primary"><FileText size={16}/> Pdf</button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
         {/* Table */}
         <div className="overflow-x-auto">
-          <table className="w-full text-left">
+          <table className="w-full text-left table-fixed">
             <thead>
               <tr className="border-b border-gray-700 text-sm text-text-secondary">
-                <th className="p-3">
-                  <input type="checkbox" className="rounded border-gray-600 bg-background-dark" />
+                <th className="p-3 w-12 text-center">
+                  <input 
+                    type="checkbox" 
+                    checked={allChecked} 
+                    onChange={toggleAll} 
+                    aria-label="Select all orders"
+                    className="rounded border-gray-600 bg-background-dark cursor-pointer"
+                  />
                 </th>
-                <th className="p-3">ORDER</th>
-                <th className="p-3">DATE</th>
-                <th className="p-3">CUSTOMERS</th>
-                <th className="p-3">PAYMENT</th>
-                <th className="p-3">STATUS</th>
-                <th className="p-3">METHOD</th>
-                <th className="p-3 text-center">ACTIONS</th>
+                <th className="p-3 w-32 text-center">ORDER</th>
+                <th className="p-3 w-48 text-left pl-4">DATE</th>
+                <th className="p-3 w-72 text-left pl-4 pr-4">CUSTOMERS</th>
+                <th className="p-3 w-36 text-center">ORDER STATUS</th>
+                <th className="p-3 w-36 text-center">PAYMENT STATUS</th>
+                <th className="p-3 w-32 text-center">METHOD</th>
+                <th className="p-3 w-40 text-center">TOTAL</th>
               </tr>
             </thead>
             <tbody>
               {loading && (
-                <tr><td className="p-3 text-text-secondary" colSpan={8}>Loading...</td></tr>
+                <tr><td className="p-3 text-text-secondary text-center" colSpan={8}>Loading...</td></tr>
               )}
               {error && !loading && (
-                <tr><td className="p-3 text-red-300" colSpan={8}>{error}</td></tr>
+                <tr><td className="p-3 text-red-300 text-center" colSpan={8}>{error}</td></tr>
               )}
-              {!loading && filteredRows.length === 0 && (
-                <tr><td className="p-3 text-text-secondary" colSpan={8}>No orders found</td></tr>
+              {!loading && paginatedRows.length === 0 && (
+                <tr><td className="p-3 text-text-secondary text-center" colSpan={8}>No orders found</td></tr>
               )}
-              {!loading && filteredRows.map((order) => (
+              {!loading && paginatedRows.map((order) => {
+                const orderId = order.id || order._id;
+                if (!orderId) {
+                  return null;
+                }
+                const orderIdStr = String(orderId);
+                const isChecked = selectedIds.includes(orderIdStr);
+                return (
                 <tr
-                  key={order.id}
+                  key={orderIdStr}
                   className="border-b border-gray-700 hover:bg-gray-800/50 transition-colors cursor-pointer"
-                  onClick={() => onOrderClick(String(order.id))}
+                  onClick={() => {
+                    if (orderIdStr) {
+                      onOrderClick(orderIdStr, order);
+                    }
+                  }}
                 >
-                  <td className="p-3" onClick={(e) => e.stopPropagation()}>
-                    <input type="checkbox" className="rounded border-gray-600 bg-background-dark" />
+                  <td className="p-3 text-center" onClick={(e) => e.stopPropagation()}>
+                    <input 
+                      type="checkbox" 
+                      checked={isChecked}
+                      onChange={() => toggleOne(orderIdStr)}
+                      className="rounded border-gray-600 bg-background-dark cursor-pointer"
+                    />
                   </td>
-                  <td className="p-3">
+                  <td className="p-3 text-center">
                     <span className="font-semibold text-primary">
-                      {getDisplayCode(order.id)}
+                      {getDisplayCode(orderId)}
                     </span>
                   </td>
-                  <td className="p-3 text-text-secondary">
-                    {order.createdAt ? new Date(order.createdAt).toLocaleString() : ''}
+                  <td className="p-3 w-48 text-left pl-4 text-text-secondary">
+                    <span className="text-xs whitespace-nowrap">
+                      {order.createdAt ? new Date(order.createdAt).toLocaleString() : ''}
+                    </span>
                   </td>
-                  <td className="p-3">
-                    <div className="flex items-center gap-3">
-                      <img
-                        src={`https://i.pravatar.cc/40?u=${encodeURIComponent(order.customerEmail || order.id)}`}
-                        alt={order.customerEmail || 'Customer'}
-                        className="w-8 h-8 rounded-full object-cover"
-                      />
-                      <div>
-                        <p className="font-medium text-text-primary">
-                          {order.customerEmail?.split('@')[0]?.replace(/\./g, ' ') || 'Customer'}
-                        </p>
-                        <p className="text-xs text-text-secondary">{order.customerEmail}</p>
+                  <td className="p-3 w-72 text-left pl-4 pr-4">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="flex-shrink-0">
+                        <img
+                          src={`https://i.pravatar.cc/40?u=${encodeURIComponent(order.customerEmail || order.id)}`}
+                          alt={order.customerEmail || 'Customer'}
+                          className="w-8 h-8 rounded-full object-cover"
+                        />
+                      </div>
+                      <div className="flex flex-col min-w-0 flex-1">
+                        <p className="font-medium text-text-primary truncate">{order.customerName || order.customerEmail?.split('@')[0]?.replace(/\./g, ' ') || 'Customer'}</p>
+                        <p className="text-xs text-text-secondary truncate">{order.customerEmail}</p>
                       </div>
                     </div>
                   </td>
-                  <td className="p-3">
-                    <div className="flex items-center gap-2">
-                      <div className={`w-2 h-2 rounded-full ${
-                        paymentStatusFrom(order.status) === 'Pending' ? 'bg-yellow-400' :
-                        paymentStatusFrom(order.status) === 'Paid' ? 'bg-green-400' :
-                        paymentStatusFrom(order.status) === 'Failed' ? 'bg-red-400' :
-                        'bg-gray-400'
-                      }`}></div>
-                      <span className="text-text-primary">{paymentStatusFrom(order.status)}</span>
+                  <td className="p-3 text-center">
+                    <div className="flex justify-center">
+                      <Badge color={getStatusColor((order.status || 'Processing') as any)}>
+                        {(() => {
+                          const status = order.status || 'Processing';
+                          // Format status text: capitalize first letter of each word
+                          return String(status)
+                            .split(' ')
+                            .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                            .join(' ');
+                        })()}
+                      </Badge>
                     </div>
                   </td>
-                  <td className="p-3">
-                    <Badge color={getStatusColor((order.status || 'Processing') as any)}>
-                      {order.status || 'Processing'}
-                    </Badge>
-                  </td>
-                  <td className="p-3">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-text-secondary">
-                        {(order.paymentMethod && order.paymentMethod.type) || (order.paymentMethod || '').toString().toUpperCase() || 'CARD'}
-                      </span>
-                      <span className="text-text-secondary">
-                        {order.paymentMethod?.last4 ? `****${order.paymentMethod.last4}` : ''}
-                      </span>
+                  <td className="p-3 text-center">
+                    <div className="flex justify-center">
+                      <Badge color={getPaymentStatusColor(paymentStatusFrom(order.paymentStatus || order.status)) as any}>
+                        {paymentStatusFrom(order.paymentStatus || order.status)}
+                      </Badge>
                     </div>
                   </td>
-                  <td className="p-3 text-center" onClick={(e) => e.stopPropagation()}>
-                    <button className="text-text-secondary hover:text-white">
-                      <MoreVertical size={18} />
-                    </button>
+                  <td className="p-3 text-center">
+                    <div className="flex items-center justify-center relative group">
+                      {(() => {
+                        const Icon = getPaymentMethodIcon(order.paymentMethod);
+                        const colorClass = getPaymentMethodColor(order.paymentMethod);
+                        const label = getPaymentMethodLabel(order.paymentMethod);
+                        return (
+                          <>
+                            <Icon size={20} className={colorClass} />
+                            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-10 border border-gray-700">
+                              {label}
+                              <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
+                                <div className="border-4 border-transparent border-t-gray-800"></div>
+                              </div>
+                            </div>
+                          </>
+                        );
+                      })()}
+                    </div>
+                  </td>
+                  <td className="p-3 text-center">
+                    <span className="text-sm font-semibold text-text-primary">
+                      {formatVND(Number(order.total) || 0)}
+                    </span>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -283,7 +501,7 @@ const OrderList: React.FC<OrderListProps> = ({ onOrderClick }) => {
         {/* Pagination */}
         {totalPages > 1 && (
           <div className="flex justify-between items-center mt-6 text-sm text-text-secondary">
-            <p>Showing {startIndex} to {endIndex} of {total} entries</p>
+            <p>Showing {displayStartIndex} to {displayEndIndex} of {total} entries</p>
             <div className="flex items-center gap-1">
               <button
                 onClick={() => handlePageChange(1)}

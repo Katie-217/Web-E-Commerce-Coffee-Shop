@@ -1,7 +1,7 @@
 import React from 'react';
-import Badge from '../../../components/Badge';
+import Badge from '../../../../components/Badge';
 import { DollarSign, Gift, Star, Crown } from 'lucide-react';
-import { formatVND } from '../../../../../utils/currency';
+import { formatVND } from '../../../../../../utils/currency';
 
 const OverviewCards: React.FC = () => {
   return (

@@ -1,17 +1,87 @@
-import React, { useEffect, useState } from 'react';
-import { OrderDetail as OrderDetailType } from '../../types';
+import React, { useEffect, useState, useRef } from 'react';
+import { OrderDetail as OrderDetailType, ShippingActivity } from '../../types';
 import Badge from '../../components/Badge';
-import { Edit, ShoppingCart, CheckCircle2 } from 'lucide-react';
+import { Edit, ShoppingCart, CheckCircle2, Plus, X, ChevronDown, Calendar } from 'lucide-react';
 import { formatVND } from '../../../../utils/currency';
 import { fetchCustomerById } from '../../../../api/customers';
+import { OrdersApi } from '../../../../api/orders';
 import BackButton from '../../components/BackButton';
+import { saveState, loadState, clearState } from '../../../../utils/statePersistence';
 
 interface OrderDetailProps {
   order: OrderDetailType;
   onBack: () => void;
+  onRefresh?: () => Promise<void>;
 }
 
-const OrderDetail: React.FC<OrderDetailProps> = ({ order, onBack }) => {
+const ORDER_STATUSES = [
+  'pending',
+  'processing',
+  'ready to pickup',
+  'dispatched',
+  'out for delivery',
+  'shipped',
+  'delivered',
+  'cancelled',
+  'refunded',
+  'returned'
+];
+
+const OrderDetail: React.FC<OrderDetailProps> = ({ order, onBack, onRefresh }) => {
+  const orderId = String(order.id || (order as any)._id || '');
+  const stateKey = `order_detail_${orderId}`;
+  
+  // Load persisted state from sessionStorage
+  const persistedState = loadState<{
+    shippingActivity?: ShippingActivity[];
+    formData?: ShippingActivity;
+    showEditModal?: boolean;
+  }>(stateKey);
+  
+  const [shippingActivity, setShippingActivity] = useState<ShippingActivity[]>(
+    persistedState?.shippingActivity || order.shippingActivity || []
+  );
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [formData, setFormData] = useState<ShippingActivity>(
+    persistedState?.formData || {
+      status: '',
+      description: '',
+      date: '',
+      time: '',
+      completed: false,
+    }
+  );
+  const [saving, setSaving] = useState(false);
+  const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
+  const statusDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Save state to sessionStorage whenever it changes
+  useEffect(() => {
+    saveState(stateKey, {
+      shippingActivity,
+      formData,
+      showEditModal,
+    });
+  }, [stateKey, shippingActivity, formData, showEditModal]);
+
+  useEffect(() => {
+    // Only update from order if there's no persisted state
+    if (!persistedState?.shippingActivity) {
+      setShippingActivity(order.shippingActivity || []);
+    }
+  }, [order.shippingActivity, persistedState]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (statusDropdownRef.current && !statusDropdownRef.current.contains(e.target as Node)) {
+        setStatusDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const getDisplayCode = (val: string | number | undefined | null) => {
     const s = String(val || '');
     if (!s) return '';
@@ -28,9 +98,7 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order, onBack }) => {
     return parts.join(', ');
   };
   const [hydratedShipping, setHydratedShipping] = useState<any>(order.shippingAddress);
-  const [hydratedBilling, setHydratedBilling] = useState<any>(order.billingAddress);
   const shippingAddrText = formatAddress(hydratedShipping);
-  const billingAddrText = formatAddress(hydratedBilling);
 
   const addressLines = (addr: any): string[] => {
     if (!addr) return [];
@@ -49,14 +117,12 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order, onBack }) => {
     return lines.length ? lines : [];
   };
   const shippingLines = addressLines(hydratedShipping);
-  const billingLines = addressLines(hydratedBilling);
 
   // Enrich from customer profile if order lacks address
   useEffect(() => {
     const needShipping = !shippingLines.length;
-    const needBilling = !billingLines.length;
     const key = (order as any)?.customer?.id || (order as any)?.customerEmail;
-    if (!key || (!needShipping && !needBilling)) return;
+    if (!key || !needShipping) return;
     (async () => {
       try {
         const res = await fetchCustomerById(String(key));
@@ -73,42 +139,261 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order, onBack }) => {
             country: a.country || ''
           }) : undefined;
           if (needShipping) setHydratedShipping(norm(pick('shipping') || arr[0]));
-          if (needBilling) setHydratedBilling(norm(pick('billing')));
-          
         }
       } catch {}
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [order]);
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Paid':
+    if (!status) return 'gray';
+    const s = String(status).toLowerCase();
+    
+    if (s === 'paid' || s.includes('paid')) {
         return 'green';
-      case 'Pending Payment':
-        return 'yellow';
-      case 'Failed':
-        return 'red';
-      case 'Refunded':
-        return 'gray';
-      default:
-        return 'gray';
     }
+    if (s === 'pending' || s.includes('pending')) {
+        return 'yellow';
+    }
+    if (s === 'failed' || s.includes('failed')) {
+      return 'red';
+    }
+    if (s === 'refunded' || s.includes('refunded')) {
+        return 'red';
+    }
+    
+    return 'gray';
   };
 
   const getOrderStatusColor = (status: string): 'green' | 'yellow' | 'red' | 'gray' | 'blue' => {
-    switch (status) {
-      case 'Ready to Pickup':
+    if (!status) return 'gray';
+    const s = status.toLowerCase();
+    
+    // Completed/Delivered statuses - Green
+    if (s.includes('delivered') || s === 'delivered') {
         return 'green';
-      case 'Delivered':
+    }
+    
+    // Ready/Shipped statuses - Green/Blue
+    if (s.includes('ready to pickup') || s.includes('readytopickup') || s.includes('ready')) {
         return 'green';
-      case 'Processing':
+    }
+    if (s.includes('shipped') || s === 'shipped') {
+      return 'blue';
+    }
+    
+    // In progress statuses - Blue/Yellow
+    if (s.includes('processing') || s === 'processing') {
+      return 'blue';
+    }
+    if (s.includes('dispatched') || s === 'dispatched') {
+      return 'blue';
+    }
+    if (s.includes('out for delivery') || s.includes('outfordelivery')) {
         return 'blue';
-      case 'Pending':
+    }
+    
+    // Pending statuses - Yellow
+    if (s.includes('pending') || s === 'pending') {
         return 'yellow';
-      case 'Cancelled':
+    }
+    
+    // Cancelled/Refunded/Returned - Red
+    if (s.includes('cancelled') || s.includes('canceled') || s === 'cancelled') {
+      return 'red';
+    }
+    if (s.includes('refunded') || s === 'refunded') {
+      return 'red';
+    }
+    if (s.includes('returned') || s === 'returned') {
         return 'red';
-      default:
+    }
+    
         return 'gray';
+  };
+
+  const handleOpenEditModal = (index: number | null = null) => {
+    if (index !== null) {
+      setEditingIndex(index);
+      setFormData(shippingActivity[index]);
+    } else {
+      setEditingIndex(null);
+      setFormData({
+        status: '',
+        description: '',
+        date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+        completed: false,
+      });
+    }
+    setShowEditModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowEditModal(false);
+    setEditingIndex(null);
+    setFormData({
+      status: '',
+      description: '',
+      date: '',
+      time: '',
+      completed: false,
+    });
+  };
+
+  const handleSaveActivity = async () => {
+    if (!formData.status || !formData.description) {
+      alert('Please fill in status and description');
+      return;
+    }
+
+    try {
+      setSaving(true);
+      const updatedActivity = [...shippingActivity];
+      
+      if (editingIndex !== null) {
+        // Update existing activity
+        updatedActivity[editingIndex] = formData;
+      } else {
+        // Add new activity
+        updatedActivity.push(formData);
+      }
+
+      // Determine order status from the latest activity
+      let newStatus: any = order.status;
+      if (updatedActivity.length > 0) {
+        // Get the latest activity (last one in array)
+        const latestActivity = updatedActivity[updatedActivity.length - 1];
+        if (latestActivity?.status) {
+          // Map activity status to order status
+          const statusMap: Record<string, string> = {
+            'pending': 'pending',
+            'processing': 'processing',
+            'ready to pickup': 'ready to pickup',
+            'dispatched': 'dispatched',
+            'out for delivery': 'out for delivery',
+            'shipped': 'shipped',
+            'delivered': 'delivered',
+            'cancelled': 'cancelled',
+            'refunded': 'refunded',
+            'returned': 'returned',
+          };
+          newStatus = statusMap[latestActivity.status.toLowerCase()] || latestActivity.status;
+        }
+      }
+
+      // Get order ID - try multiple formats
+      const orderId = String(order.id || (order as any)._id || (order as any).id || '');
+      if (!orderId) {
+        alert('Error: Order ID is missing. Cannot update shipping activity.');
+        return;
+      }
+      // Update via API - include both shippingActivity and status
+      const response = await OrdersApi.update(orderId, { 
+        shippingActivity: updatedActivity,
+        status: newStatus as any
+      });
+      
+      setShippingActivity(updatedActivity);
+      handleCloseModal();
+      
+      // Clear persisted state after successful save
+      clearState(stateKey);
+      
+      // Refresh order data if callback provided
+      if (onRefresh) {
+        await onRefresh();
+      }
+    } catch (error: any) {
+      
+      // Extract error message
+      let errorMessage = 'Failed to update shipping activity';
+      if (error?.data?.message) {
+        errorMessage = error.data.message;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      // Extract status code
+      const statusCode = error?.status || error?.response?.status || 'Unknown';
+      
+      alert(`Error: ${errorMessage}\nStatus: ${statusCode}`);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteActivity = async (index: number) => {
+    if (!window.confirm('Are you sure you want to delete this activity?')) {
+      return;
+    }
+
+    try {
+      setSaving(true);
+      const updatedActivity = shippingActivity.filter((_, i) => i !== index);
+      
+      // Determine order status from remaining activities
+      let newStatus: any = 'pending'; // Default status if no activities left
+      if (updatedActivity.length > 0) {
+        // Get the latest activity (last one in array)
+        const latestActivity = updatedActivity[updatedActivity.length - 1];
+        if (latestActivity?.status) {
+          // Map activity status to order status
+          const statusMap: Record<string, string> = {
+            'pending': 'pending',
+            'processing': 'processing',
+            'ready to pickup': 'ready to pickup',
+            'dispatched': 'dispatched',
+            'out for delivery': 'out for delivery',
+            'shipped': 'shipped',
+            'delivered': 'delivered',
+            'cancelled': 'cancelled',
+            'refunded': 'refunded',
+            'returned': 'returned',
+          };
+          newStatus = statusMap[latestActivity.status.toLowerCase()] || latestActivity.status;
+        }
+      } else {
+        // If no activities left, set to pending
+        newStatus = 'pending';
+      }
+      
+      // Get order ID - try multiple formats
+      const orderId = String(order.id || (order as any)._id || (order as any).id || '');
+      if (!orderId) {
+        alert('Error: Order ID is missing. Cannot delete shipping activity.');
+        return;
+      }
+      // Update via API - include both shippingActivity and status
+      const response = await OrdersApi.update(orderId, { 
+        shippingActivity: updatedActivity,
+        status: newStatus as any
+      });
+      
+      setShippingActivity(updatedActivity);
+      
+      // Clear persisted state after successful delete
+      clearState(stateKey);
+      
+      // Refresh order data if callback provided
+      if (onRefresh) {
+        await onRefresh();
+      }
+    } catch (error: any) {
+      
+      // Extract error message
+      let errorMessage = 'Failed to delete shipping activity';
+      if (error?.data?.message) {
+        errorMessage = error.data.message;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      // Extract status code
+      const statusCode = error?.status || error?.response?.status || 'Unknown';
+      
+      alert(`Error: ${errorMessage}\nStatus: ${statusCode}`);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -126,7 +411,14 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order, onBack }) => {
                   {order.paymentStatus || 'Pending'}
                 </Badge>
                 <Badge color={getOrderStatusColor(order.status)}>
-                  {order.status === 'Processing' ? 'Ready to Pickup' : order.status}
+                  {(() => {
+                    const status = order.status || 'Pending';
+                    // Format status text: capitalize first letter of each word
+                    return String(status)
+                      .split(' ')
+                      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                      .join(' ');
+                  })()}
                 </Badge>
               </div>
               <p className="text-sm text-text-secondary">{order.date}</p>
@@ -161,21 +453,29 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order, onBack }) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {order.items.map((item) => (
-                    <tr key={item.id} className="border-b border-gray-700">
-                      <td className="p-3">
-                        <div>
-                          <p className="font-medium text-text-primary">{item.name}</p>
-                          {item.variant && (
-                            <p className="text-sm text-text-secondary">{item.variant}</p>
-                          )}
-                        </div>
+                  {order.items && order.items.length > 0 ? (
+                    order.items.map((item) => (
+                      <tr key={item.id} className="border-b border-gray-700">
+                        <td className="p-3">
+                          <div>
+                            <p className="font-medium text-text-primary">{item.name || 'Product'}</p>
+                            {item.variant && (
+                              <p className="text-sm text-text-secondary">{item.variant}</p>
+                            )}
+                          </div>
+                        </td>
+                        <td className="p-3 text-text-secondary">{formatVND(item.price || 0)}</td>
+                        <td className="p-3 text-text-secondary">{item.quantity || 1}</td>
+                        <td className="p-3 font-semibold text-text-primary">{formatVND((item.price || 0) * (item.quantity || 1))}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={4} className="p-3 text-center text-text-secondary">
+                        No items found
                       </td>
-                      <td className="p-3 text-text-secondary">{formatVND(item.price)}</td>
-                      <td className="p-3 text-text-secondary">{item.quantity}</td>
-                      <td className="p-3 font-semibold text-text-primary">{formatVND(item.price * item.quantity)}</td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>
@@ -189,49 +489,280 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order, onBack }) => {
                 <span className="text-text-primary font-medium">-{formatVND(Math.abs(order.discount))}</span>
               </div>
               <div className="flex justify-between">
+                <span className="text-text-secondary">Shipping Fee:</span>
+                <span className="text-text-primary font-medium">{formatVND(order.shippingFee || 0)}</span>
+              </div>
+              <div className="flex justify-between">
                 <span className="text-text-secondary">Tax:</span>
                 <span className="text-text-primary font-medium">{formatVND(order.tax)}</span>
               </div>
               <div className="flex justify-between pt-2 border-t border-gray-700 font-bold text-lg">
-                <span className="text-text-primary">Total:</span>
-                <span className="text-text-primary">{formatVND(order.total)}</span>
+                <span className="text-text-primary font-semibold">Total:</span>
+                <span className="text-primary font-semibold">{formatVND(order.total)}</span>
               </div>
             </div>
           </div>
 
           {/* Shipping Activity */}
           <div className="bg-background-light p-6 rounded-lg shadow-lg">
-            <h2 className="text-xl font-bold text-text-primary mb-4">Shipping activity</h2>
-            <div className="relative pl-6">
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h2 className="text-xl font-bold text-text-primary">Shipping activity</h2>
+                <p className="text-sm text-text-secondary mt-1">
+                  {shippingActivity.length} {shippingActivity.length === 1 ? 'activity' : 'activities'}
+                </p>
+              </div>
+              <button
+                onClick={() => handleOpenEditModal(null)}
+                className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors text-sm font-semibold shadow-md hover:shadow-lg"
+              >
+                <Plus size={16} />
+                Add Activity
+              </button>
+            </div>
+            <div className="relative pl-8">
               {/* Vertical line */}
-              <div className="absolute left-3 top-0 bottom-0 w-0.5 bg-gray-700"></div>
+              <div className={`absolute left-4 top-0 bottom-0 w-0.5 transition-colors ${
+                shippingActivity.length > 0 ? 'bg-gradient-to-b from-primary via-primary/50 to-gray-700' : 'bg-gray-700'
+              }`}></div>
               
-              {order.shippingActivity.map((activity, index) => (
-                <div key={index} className="relative mb-6 last:mb-0">
-                  {/* Circle marker */}
-                  <div className={`absolute -left-7 top-1 w-4 h-4 rounded-full border-2 ${
-                    activity.completed 
-                      ? 'bg-primary border-primary' 
-                      : 'bg-gray-700 border-gray-700'
-                  }`}>
-                    {activity.completed && (
-                      <CheckCircle2 size={12} className="text-white absolute top-0.5 left-0.5" />
-                    )}
+              {shippingActivity.length === 0 ? (
+                <div className="text-center py-12 text-text-secondary">
+                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-background-dark mb-4">
+                    <CheckCircle2 size={24} className="text-gray-600" />
                   </div>
-                  
-                  <div className="pb-4">
-                    <p className="font-semibold text-text-primary">{activity.status}</p>
-                    <p className="text-sm text-text-secondary mt-1">{activity.description}</p>
-                    {(activity.date || activity.time) && (
-                      <p className="text-xs text-text-secondary mt-1">
-                        {activity.date} {activity.time}
-                      </p>
-                    )}
-                  </div>
+                  <p className="text-base font-medium">No shipping activities yet</p>
+                  <p className="text-sm mt-2 text-text-secondary/70">Click "Add Activity" to track order progress</p>
                 </div>
-              ))}
+              ) : (
+                shippingActivity.map((activity, index) => {
+                  const isLast = index === shippingActivity.length - 1;
+                  const getStatusColor = (status: string) => {
+                    const s = status.toLowerCase();
+                    if (s.includes('delivered') || s.includes('completed')) return 'bg-green-500/20 text-green-400 border-green-500/30';
+                    if (s.includes('shipped') || s.includes('dispatched') || s.includes('delivery')) return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
+                    if (s.includes('processing') || s.includes('ready')) return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
+                    if (s.includes('cancelled') || s.includes('refunded') || s.includes('returned')) return 'bg-red-500/20 text-red-400 border-red-500/30';
+                    return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
+                  };
+                  
+                  return (
+                    <div key={index} className="relative mb-6 last:mb-0 group">
+                  {/* Circle marker */}
+                      <div className={`absolute -left-10 top-2 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                    activity.completed 
+                          ? 'bg-primary border-primary shadow-lg shadow-primary/50' 
+                          : 'bg-background-dark border-gray-600'
+                      }`}>
+                        {activity.completed ? (
+                          <CheckCircle2 size={14} className="text-white" />
+                        ) : (
+                          <div className="w-2 h-2 rounded-full bg-gray-500"></div>
+                        )}
+                      </div>
+                      
+                      {/* Activity Card */}
+                      <div className="bg-background-dark rounded-lg border border-gray-700 p-4 hover:border-gray-600 transition-all group-hover:shadow-md">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Badge 
+                                color={(() => {
+                                  const s = activity.status?.toLowerCase() || '';
+                                  if (s.includes('delivered') || s.includes('completed')) return 'green';
+                                  if (s.includes('shipped') || s.includes('dispatched') || s.includes('delivery')) return 'blue';
+                                  if (s.includes('processing') || s.includes('ready')) return 'yellow';
+                                  if (s.includes('cancelled') || s.includes('refunded') || s.includes('returned')) return 'red';
+                                  if (s.includes('pending')) return 'yellow';
+                                  return activity.completed ? 'green' : 'gray';
+                                })()}
+                              >
+                                {activity.status}
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-text-primary leading-relaxed mb-2">
+                              {activity.description}
+                            </p>
+                            {(activity.date || activity.time) && (
+                              <div className="flex items-center gap-2 text-xs text-text-secondary">
+                                <Calendar size={12} />
+                                <span>
+                                  {activity.date} {activity.time}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                          <div className={`flex items-center gap-1 transition-opacity ${
+                            shippingActivity.length === 1 ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                          }`}>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenEditModal(index);
+                              }}
+                              className="p-2 text-text-secondary hover:text-primary hover:bg-background-light rounded-lg transition-colors"
+                              title="Edit activity"
+                            >
+                              <Edit size={14} />
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteActivity(index);
+                              }}
+                              className="p-2 text-text-secondary hover:text-red-400 hover:bg-background-light rounded-lg transition-colors"
+                              title="Delete activity"
+                              disabled={saving}
+                            >
+                              <X size={14} />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
             </div>
           </div>
+
+          {/* Edit Activity Modal */}
+          {showEditModal && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={handleCloseModal}>
+              <div className="bg-background-light rounded-lg shadow-xl p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-xl font-bold text-text-primary">
+                    {editingIndex !== null ? 'Edit Activity' : 'Add Activity'}
+                  </h3>
+                  <button
+                    onClick={handleCloseModal}
+                    className="text-text-secondary hover:text-text-primary"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+                
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-text-secondary mb-1">
+                      Status <span className="text-red-400">*</span>
+                    </label>
+                    <div className="relative" ref={statusDropdownRef}>
+                      <button
+                        type="button"
+                        onClick={() => setStatusDropdownOpen((prev) => !prev)}
+                        className="w-full bg-background-dark border border-gray-600 rounded-lg px-3 py-2 text-left focus:outline-none focus:ring-2 focus:ring-primary flex items-center justify-between hover:bg-background-dark/80 transition-colors"
+                      >
+                        <span className={formData.status ? 'text-text-primary' : 'text-text-secondary'}>
+                          {formData.status 
+                            ? formData.status.charAt(0).toUpperCase() + formData.status.slice(1)
+                            : 'Select status'}
+                        </span>
+                        <ChevronDown 
+                          size={16} 
+                          className={`text-text-secondary transition-transform ${statusDropdownOpen ? 'rotate-180' : ''}`}
+                        />
+                      </button>
+                      {statusDropdownOpen && (
+                        <div className="absolute z-50 mt-2 w-full bg-background-dark border border-gray-600 rounded-lg shadow-xl overflow-hidden">
+                          <div className="max-h-[160px] overflow-y-auto custom-scrollbar">
+                            {ORDER_STATUSES.map((status) => (
+                              <button
+                                key={status}
+                                type="button"
+                                onClick={() => {
+                                  setFormData({ ...formData, status });
+                                  setStatusDropdownOpen(false);
+                                }}
+                                className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
+                                  formData.status === status
+                                    ? 'bg-primary/20 text-primary font-semibold'
+                                    : 'text-text-primary hover:bg-background-light/50'
+                                }`}
+                              >
+                                {status.charAt(0).toUpperCase() + status.slice(1)}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-text-secondary mb-1">
+                      Description <span className="text-red-400">*</span>
+                    </label>
+                    <textarea
+                      value={formData.description}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      className="w-full bg-background-dark border border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary text-text-primary"
+                      placeholder="Activity description"
+                      rows={3}
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-text-secondary mb-1">
+                        Date
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.date}
+                        onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                        className="w-full bg-background-dark border border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary text-text-primary"
+                        placeholder="e.g., Dec 25, 2024"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-text-secondary mb-1">
+                        Time
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.time}
+                        onChange={(e) => setFormData({ ...formData, time: e.target.value })}
+                        className="w-full bg-background-dark border border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary text-text-primary"
+                        placeholder="e.g., 10:30 AM"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="completed"
+                      checked={formData.completed}
+                      onChange={(e) => setFormData({ ...formData, completed: e.target.checked })}
+                      className="w-4 h-4 rounded border-gray-600 bg-background-dark text-primary focus:ring-2 focus:ring-primary"
+                    />
+                    <label htmlFor="completed" className="text-sm text-text-secondary">
+                      Mark as completed
+                    </label>
+                  </div>
+                </div>
+                
+                <div className="flex justify-end gap-3 mt-6">
+                  <button
+                    onClick={handleCloseModal}
+                    className="px-4 py-2 bg-background-dark border border-gray-600 rounded-lg text-text-primary hover:bg-background-dark/80 hover:border-gray-500 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={saving}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSaveActivity}
+                    className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={saving}
+                  >
+                    {saving ? 'Saving...' : editingIndex !== null ? 'Update' : 'Add'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Right Column - Side Info */}
@@ -290,23 +821,6 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order, onBack }) => {
               )}
             </div>
           </div>
-
-          {/* Billing Address (hide if empty or same as shipping) */}
-          {billingLines.length > 0 && billingAddrText !== shippingAddrText && (
-            <div className="bg-background-light p-6 rounded-lg shadow-lg">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold text-text-primary">Billing address</h2>
-                <button className="text-primary hover:text-primary/80">
-                  <Edit size={16} />
-                </button>
-              </div>
-              <div className="text-sm text-text-secondary leading-relaxed">
-                {billingLines.map((ln, i) => (
-                  <p key={i}>{ln}</p>
-                ))}
-              </div>
-            </div>
-          )}
 
           {/* Payment Info */}
           <div className="bg-background-light p-6 rounded-lg shadow-lg">

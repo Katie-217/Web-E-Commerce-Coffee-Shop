@@ -160,16 +160,16 @@
   background: rgb(227, 226, 226);
 }
 
-/*hover effect*/
-button:hover {
+/*hover effect - chỉ áp dụng cho searchButton*/
+.searchButton:hover {
   color: #fff;
   background-color:  rgb(227, 226, 226);
   box-shadow: rgba(88, 55, 41, 0.3) 0 10px 20px;
   transform: translateY(-1px);
 }
 
-/*button pressing effect*/
-button:active {
+/*button pressing effect - chỉ áp dụng cho searchButton*/
+.searchButton:active {
   box-shadow: none;
   transform: translateY(0);
 }

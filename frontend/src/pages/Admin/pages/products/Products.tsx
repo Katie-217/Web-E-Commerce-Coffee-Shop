@@ -5,7 +5,7 @@ import { ProductsApi } from '../../../../api/products';
 import Badge from '../../components/Badge';
 import { formatVND } from '../../../../utils/currency';
 import ProductForm, { ProductFormValues } from './components/ProductForm';
-import { Plus, MoreVertical, Edit, Trash2, ChevronDown, Printer, FileDown, FileSpreadsheet, FileText, Copy as CopyIcon } from 'lucide-react';
+import { Plus, MoreVertical, Edit, Trash2, ChevronDown, FileDown, FileSpreadsheet, FileText } from 'lucide-react';
 
 const ITEMS_PER_PAGE = 10;
 const API_FETCH_LIMIT = 1000;
@@ -15,9 +15,10 @@ type ProductsProps = {
   selectedCategory?: string | null;
   onClearSelectedCategory?: () => void;
   embedded?: boolean;
+  onProductClick?: (product: Product) => void;
 };
 
-  const Products: React.FC<ProductsProps> = ({ setActivePage, selectedCategory = null, onClearSelectedCategory, embedded = false }) => {
+  const Products: React.FC<ProductsProps> = ({ setActivePage, selectedCategory = null, onClearSelectedCategory, embedded = false, onProductClick }) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -38,23 +39,13 @@ type ProductsProps = {
       try {
         setLoading(true);
         setError(null);
-        console.log('🔄 Fetching products from API...');
         const response = await ProductsApi.list({ limit: API_FETCH_LIMIT, page: 1 });
-        console.log('📦 API Response:', response);
         if (response && response.success && response.data) {
-          console.log(`✅ Loaded ${response.data.length} products`);
           setProducts(response.data);
         } else {
-          console.error('❌ Invalid response format:', response);
           setError('Failed to fetch products - Invalid response format');
         }
       } catch (err: any) {
-        console.error('❌ Error fetching products:', err);
-        console.error('❌ Error details:', {
-          message: err.message,
-          status: err.status,
-          data: err.data
-        });
         setError(err.message || 'Failed to fetch products');
       } finally {
         setLoading(false);
@@ -163,7 +154,6 @@ type ProductsProps = {
     if (!editProduct) return;
     try {
       setSaving(true);
-      console.log('🔄 Updating product:', editProduct.id);
       
       const payload = {
         name: editProduct.name,
@@ -177,14 +167,10 @@ type ProductsProps = {
         stock: (editProduct as any).stock,
       } as any;
       
-      console.log('📦 Payload:', payload);
-      
       // Call API to update product in MongoDB
       const res = await ProductsApi.update(editProduct.id, payload);
       
       if (res && res.success && res.data) {
-        console.log('✅ Product updated successfully in MongoDB:', res.data);
-        
         // Update local state with data from MongoDB
         setProducts(prev => prev.map(p => 
           p.id === editProduct.id ? { ...p, ...res.data } : p
@@ -196,7 +182,6 @@ type ProductsProps = {
         throw new Error('Update failed: Invalid response from server');
       }
     } catch (e: any) {
-      console.error('❌ Save product failed:', e);
       alert(`Save failed: ${e.message || 'Unknown error'}`);
     } finally {
       setSaving(false);
@@ -278,17 +263,15 @@ type ProductsProps = {
             </select>
             <div className="relative" ref={exportRef}>
               <button type="button" disabled={noneChecked} onClick={() => !noneChecked && setShowExport(v=>!v)}
-                className={`bg-background-light border border-gray-700 text-text-secondary px-4 py-2 rounded-lg flex items-center gap-2 ${noneChecked ? 'opacity-50 cursor-not-allowed' : 'hover:text-white hover:border-primary'}`}>
+                className={`px-4 py-2 rounded-lg flex items-center gap-2 font-semibold transition ${noneChecked ? 'bg-background-light border border-gray-700 text-text-secondary opacity-50 cursor-not-allowed' : 'bg-primary text-white border border-primary hover:bg-primary/90 cursor-pointer shadow-md'}`}>
                 <span>Export</span>
                 <ChevronDown size={16}/>
               </button>
               {showExport && !noneChecked && (
                 <div className="absolute right-0 mt-2 w-44 bg-background-light border border-gray-700 rounded-lg shadow-xl z-10 p-2">
-                  <button className="w-full flex items-center gap-2 px-3 py-2 rounded-md hover:bg-background-dark text-text-primary"><Printer size={16}/> Print</button>
                   <button className="w-full flex items-center gap-2 px-3 py-2 rounded-md hover:bg-background-dark text-text-primary"><FileDown size={16}/> Csv</button>
                   <button className="w-full flex items-center gap-2 px-3 py-2 rounded-md hover:bg-background-dark text-text-primary"><FileSpreadsheet size={16}/> Excel</button>
                   <button className="w-full flex items-center gap-2 px-3 py-2 rounded-md hover:bg-background-dark text-text-primary"><FileText size={16}/> Pdf</button>
-                  <button className="w-full flex items-center gap-2 px-3 py-2 rounded-md hover:bg-background-dark text-text-primary"><CopyIcon size={16}/> Copy</button>
                 </div>
               )}
             </div>
@@ -346,11 +329,20 @@ type ProductsProps = {
                 </tr>
               )}
               {!loading && !error && paginatedProducts.map((product) => (
-                <tr key={product.id} className="border-b border-gray-700 hover:bg-gray-800/50 transition-colors">
-                  <td className="p-3">
+                <tr 
+                  key={product.id} 
+                  className="border-b border-gray-700 hover:bg-gray-800/50 transition-colors"
+                >
+                  <td className="p-3" onClick={(e) => e.stopPropagation()}>
                     <input type="checkbox" checked={selectedIds.includes(product.id)} onChange={() => toggleOne(product.id)} aria-label={`Select product ${product.name}`}/>
                   </td>
-                  <td className="p-3">
+                  <td 
+                    className="p-3 cursor-pointer"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onProductClick?.(product);
+                    }}
+                  >
                     <div className="flex items-center gap-3">
                       <img src={product.imageUrl} alt={product.name} className="w-10 h-10 rounded-md object-cover" />
                       <div>
@@ -360,8 +352,8 @@ type ProductsProps = {
                     </div>
                   </td>
                   <td className="p-3 text-text-secondary">{product.category}</td>
-                  <td className="p-3">
-                      <label className="relative inline-flex items-center cursor-pointer">
+                  <td className="p-3" onClick={(e) => e.stopPropagation()}>
+                      <label className="relative inline-flex items-center cursor-pointer" onClick={(e) => e.stopPropagation()}>
                         <input 
                           type="checkbox" 
                           className="sr-only peer" 
@@ -369,13 +361,11 @@ type ProductsProps = {
                           onChange={async (e) => {
                             try {
                               const newStockValue = e.target.checked;
-                              console.log(`🔄 Updating stock for product ${product.id}: ${newStockValue}`);
                               
                               // Update stock in MongoDB
                               const res = await ProductsApi.update(product.id, { stock: newStockValue });
                               
                               if (res && res.success && res.data) {
-                                console.log('✅ Stock updated successfully in MongoDB');
                                 // Update local state
                                 setProducts(prev => prev.map(p => 
                                   p.id === product.id ? { ...p, stock: newStockValue } : p
@@ -384,7 +374,6 @@ type ProductsProps = {
                                 throw new Error('Update failed');
                               }
                             } catch (error: any) {
-                              console.error('❌ Failed to update stock:', error);
                               alert(`Failed to update stock: ${error.message || 'Unknown error'}`);
                               // Revert checkbox state on error
                               e.target.checked = !e.target.checked;
@@ -401,7 +390,7 @@ type ProductsProps = {
                   <td className="p-3">
                     <Badge color={getStatusColor(product.status)}>{product.status}</Badge>
                   </td>
-                  <td className="p-3 text-center">
+                  <td className="p-3 text-center" onClick={(e) => e.stopPropagation()}>
                       <div className="flex justify-center items-center gap-2">
                           <button className="text-text-secondary hover:text-primary" onClick={() => onOpenEdit(product)}><Edit size={16}/></button>
                           <button className="text-text-secondary hover:text-accent-red"><Trash2 size={16}/></button>
@@ -474,15 +463,11 @@ type ProductsProps = {
               onSubmit={async (values: ProductFormValues) => {
                 try {
                   setSaving(true);
-                  console.log('🔄 Updating product via form:', editProduct.id);
-                  console.log('📦 Form values:', values);
                   
                   // Call API to update product in MongoDB
                   const res = await ProductsApi.update(editProduct.id, values as any);
                   
                   if (res && res.success && res.data) {
-                    console.log('✅ Product updated successfully in MongoDB:', res.data);
-                    
                     // Update local state with data from MongoDB
                     setProducts(prev => prev.map(p => 
                       p.id === editProduct.id ? { ...p, ...res.data } : p
@@ -494,7 +479,6 @@ type ProductsProps = {
                     throw new Error('Update failed: Invalid response from server');
                   }
                 } catch (e: any) {
-                  console.error('❌ Save product failed:', e);
                   alert(`Save failed: ${e.message || 'Unknown error'}`);
                 } finally {
                   setSaving(false);

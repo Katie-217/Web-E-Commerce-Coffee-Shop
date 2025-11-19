@@ -25,12 +25,10 @@ const NotificationsTab: React.FC = () => {
 
   const handleSave = () => {
     // TODO: Implement save functionality
-    console.log('Save notification settings:', notifications);
   };
 
   const handleDiscard = () => {
     // TODO: Reset to original values
-    console.log('Discard changes');
   };
 
   return (

@@ -17,6 +17,7 @@ type CustomerTabsProps = {
   onPageChange: (page: number) => void;
   onOrderClick?: (orderId: string) => void;
   onDeleteOrder?: (orderId: string) => void;
+  onUpdateOrderStatus?: (orderId: string, status: string) => void;
   customer?: any;
 };
 
@@ -31,6 +32,7 @@ const CustomerTabs: React.FC<CustomerTabsProps> = ({
   onPageChange,
   onOrderClick,
   onDeleteOrder,
+  onUpdateOrderStatus,
   customer,
 }) => {
   return (
@@ -70,11 +72,12 @@ const CustomerTabs: React.FC<CustomerTabsProps> = ({
             onPageChange={onPageChange}
             onOrderClick={onOrderClick}
             onDeleteOrder={onDeleteOrder}
+            onUpdateOrderStatus={onUpdateOrderStatus}
           />
         </>
       )}
 
-      {activeTab === 'Security' && <SecurityTab />}
+      {activeTab === 'Security' && <SecurityTab customer={customer} />}
 
       {activeTab === 'Address & Billing' && <AddressBillingTab customer={customer} />}
 

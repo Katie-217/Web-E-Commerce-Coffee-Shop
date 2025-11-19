@@ -1,13 +1,11 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const router = express.Router();
 const Product = require('../models/Product');
 
 // GET /api/products - Lấy danh sách tất cả sản phẩm
 router.get('/', async (req, res) => {
   try {
-    console.log(' GET /api/products - Request received');
-    console.log(' Query params:', req.query);
-    
     const {
       page = 1,
       limit = 10,
@@ -43,21 +41,61 @@ router.get('/', async (req, res) => {
     // Calculate pagination
     const skip = (parseInt(page) - 1) * parseInt(limit);
     
-    // Get products with pagination from MongoDB
-    console.log('🔍 Query:', JSON.stringify(query, null, 2));
-    console.log('📊 Querying MongoDB collection: products');
+    // Try different databases: 'products' database first, then 'CoffeeDB'
+    let products = [];
+    let total = 0;
     
-    const products = await Product.find(query)
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(parseInt(limit))
-      .lean();
+    // Try 1: 'products' database > 'productsList' collection
+    try {
+      const productsDb = mongoose.connection.useDb('products', { useCache: true });
+      const coll = productsDb.collection('productsList');
+      const totalCount = await coll.countDocuments({});
+      if (totalCount > 0) {
+        [products, total] = await Promise.all([
+          coll.find(query).sort({ createdAt: -1 }).skip(skip).limit(parseInt(limit)).toArray(),
+          coll.countDocuments(query)
+        ]);
+        if (total === 0 && totalCount > 0) {
+          [products, total] = await Promise.all([
+            coll.find({}).sort({ createdAt: -1 }).skip(skip).limit(parseInt(limit)).toArray(),
+            coll.countDocuments({})
+          ]);
+        }
+      }
+    } catch (err) {
+    }
+    
+    // Try 2: Current database (CoffeeDB) > productsList collection
+    if (total === 0) {
+      try {
+        const coll = mongoose.connection.db.collection('productsList');
+        const totalCount = await coll.countDocuments({});
+        if (totalCount > 0) {
+          [products, total] = await Promise.all([
+            coll.find(query).sort({ createdAt: -1 }).skip(skip).limit(parseInt(limit)).toArray(),
+            coll.countDocuments(query)
+          ]);
+          if (total === 0 && totalCount > 0) {
+            [products, total] = await Promise.all([
+              coll.find({}).sort({ createdAt: -1 }).skip(skip).limit(parseInt(limit)).toArray(),
+              coll.countDocuments({})
+            ]);
+          }
+        }
+      } catch (err) {
+      }
+    }
 
-    console.log(`✅ Found ${products.length} products from MongoDB`);
-
-    // Get total count from MongoDB
-    const total = await Product.countDocuments(query);
-    console.log(`📊 Total products: ${total}`);
+    // Fallback to default Product model collection
+    if (total === 0) {
+      try {
+        [products, total] = await Promise.all([
+          Product.find(query).sort({ createdAt: -1 }).skip(skip).limit(parseInt(limit)).lean(),
+          Product.countDocuments(query)
+        ]);
+      } catch (err) {
+      }
+    }
 
     // Transform data to match frontend format
     const transformedProducts = products.map(product => ({
@@ -84,8 +122,6 @@ router.get('/', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('❌ Error fetching products:', error);
-    console.error('❌ Error stack:', error.stack);
     res.status(500).json({
       success: false,
       message: 'Error fetching products',
@@ -98,11 +134,72 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
+    let product = null;
     
-    // Try to find by id field first, then by _id
-    let product = await Product.findOne({ id: parseInt(id) });
+    // Try collections in order: productsList, products.productsList, then products
+    const { Types } = mongoose;
+    
+    // Try 1: productsList (direct query)
+    try {
+      const coll = mongoose.connection.db.collection('productsList');
+      // Try by numeric id first
+      if (!isNaN(id)) {
+        product = await coll.findOne({ id: parseInt(id) });
+      }
+      // Try by ObjectId
+      if (!product && Types.ObjectId.isValid(id)) {
+        product = await coll.findOne({ _id: new Types.ObjectId(id) });
+      }
+      // Try by string id
+      if (!product) {
+        product = await coll.findOne({ id: String(id) });
+      }
+      } catch (err) {
+      }
+    
+    // Try 2: products.productsList
     if (!product) {
-      product = await Product.findById(id);
+      try {
+        const coll = mongoose.connection.db.collection('products.productsList');
+        if (!isNaN(id)) {
+          product = await coll.findOne({ id: parseInt(id) });
+        }
+        if (!product && Types.ObjectId.isValid(id)) {
+          product = await coll.findOne({ _id: new Types.ObjectId(id) });
+        }
+        if (!product) {
+          product = await coll.findOne({ id: String(id) });
+        }
+      } catch (err) {
+      }
+    }
+    
+    // Try 3: products
+    if (!product) {
+      try {
+        const coll = mongoose.connection.db.collection('products');
+        if (!isNaN(id)) {
+          product = await coll.findOne({ id: parseInt(id) });
+        }
+        if (!product && Types.ObjectId.isValid(id)) {
+          product = await coll.findOne({ _id: new Types.ObjectId(id) });
+        }
+        if (!product) {
+          product = await coll.findOne({ id: String(id) });
+        }
+      } catch (err) {
+      }
+    }
+    
+    // Fallback to default Product model collection
+    if (!product) {
+      // Try to find by id field first, then by _id
+      if (!isNaN(id)) {
+        product = await Product.findOne({ id: parseInt(id) });
+      }
+      if (!product && mongoose.Types.ObjectId.isValid(id)) {
+        product = await Product.findById(id);
+      }
     }
     
     if (!product) {
@@ -130,7 +227,6 @@ router.get('/:id', async (req, res) => {
       data: transformedProduct
     });
   } catch (error) {
-    console.error('Error fetching product:', error);
     res.status(500).json({
       success: false,
       message: 'Error fetching product',
@@ -142,9 +238,6 @@ router.get('/:id', async (req, res) => {
 // POST /api/products - Tạo sản phẩm mới trong MongoDB
 router.post('/', async (req, res) => {
   try {
-    console.log('🆕 POST /api/products - Creating new product in MongoDB');
-    console.log('📦 Request body:', req.body);
-    
     // Get the highest id to generate new id
     const lastProduct = await Product.findOne().sort({ id: -1 }).lean();
     const newId = lastProduct ? (lastProduct.id || 0) + 1 : 1;
@@ -173,12 +266,8 @@ router.post('/', async (req, res) => {
       });
     }
     
-    console.log('📝 Product data:', productData);
-    
     // Create product in MongoDB
     const product = await Product.create(productData);
-    
-    console.log(`✅ Product created successfully in MongoDB: ${product.id}`);
     
     // Transform response to match frontend format
     const transformedProduct = {
@@ -202,9 +291,6 @@ router.post('/', async (req, res) => {
       data: transformedProduct
     });
   } catch (error) {
-    console.error('❌ Error creating product in MongoDB:', error);
-    console.error('❌ Error stack:', error.stack);
-    
     // Handle duplicate key error (e.g., duplicate SKU or id)
     if (error.code === 11000) {
       const field = Object.keys(error.keyPattern)[0];
@@ -226,8 +312,6 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    console.log(`🔄 PUT /api/products/${id} - Updating product in MongoDB`);
-    console.log('📦 Request body:', req.body);
     
     // Allowed fields that can be updated
     const allowed = [
@@ -267,9 +351,6 @@ router.put('/:id', async (req, res) => {
     }
 
     // Update product in MongoDB
-    console.log('🔍 Query filters:', filters);
-    console.log('📝 Update data:', data);
-    
     const product = await Product.findOneAndUpdate(
       { $or: filters },
       { $set: data },
@@ -277,11 +358,8 @@ router.put('/:id', async (req, res) => {
     );
 
     if (!product) {
-      console.log(`❌ Product not found with id: ${id}`);
       return res.status(404).json({ success: false, message: 'Product not found' });
     }
-
-    console.log(`✅ Product updated successfully in MongoDB: ${product.id}`);
     
     // Transform response to match frontend format
     const transformedProduct = {
@@ -304,8 +382,6 @@ router.put('/:id', async (req, res) => {
       data: transformedProduct 
     });
   } catch (error) {
-    console.error('❌ Error updating product in MongoDB:', error);
-    console.error('❌ Error stack:', error.stack);
     res.status(500).json({ 
       success: false, 
       message: 'Error updating product', 

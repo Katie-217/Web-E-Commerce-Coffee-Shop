@@ -1,13 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Eye, EyeOff, X, Edit, UserPlus } from 'lucide-react';
 
-const SecurityTab: React.FC = () => {
+type SecurityTabProps = {
+  customer?: any;
+};
+
+const SecurityTab: React.FC<SecurityTabProps> = ({ customer }) => {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showAlert, setShowAlert] = useState(true);
-  const [phoneNumber, setPhoneNumber] = useState('+1(968) 945-8832');
+  const [phoneNumber, setPhoneNumber] = useState(customer?.phone || '');
+
+  // Update phone number when customer data changes
+  useEffect(() => {
+    if (customer?.phone) {
+      setPhoneNumber(customer.phone);
+    }
+  }, [customer]);
 
   return (
     <div className="space-y-6">

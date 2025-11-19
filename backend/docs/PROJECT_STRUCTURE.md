@@ -98,8 +98,7 @@ frontend/
 │   │           ├── dashboard/    # Dashboard widgets, analytics
 │   │           ├── products/     # CRUD sản phẩm (Products.tsx, ProductForm,…)
 │   │           ├── orders/       # Order list/detail, shipping timeline
-│   │           ├── customers/    # Customer list/detail, tabs detail view
-│   │           └── settings/     # Store details, shipping, payment settings
+│   │           └── customers/    # Customer list/detail, tabs detail view
 │   ├── styles/                   # File CSS global (reset, responsive, landing…)
 │   └── utils/
 │       ├── currency.ts           # Hàm format tiền (đ)

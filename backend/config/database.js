@@ -4,8 +4,8 @@ require('dotenv').config();
 // MongoDB Connection String
 // Mặc định: mongodb://localhost:27017
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017';
-// No default database name; only use if explicitly provided
-const DATABASE_NAME = process.env.DATABASE_NAME || '';
+// Default database name: CoffeeDB (based on MongoDB Compass structure)
+const DATABASE_NAME = process.env.DATABASE_NAME || 'CoffeeDB';
 
 // Build connection string with DB name when missing (e.g., mongodb://host:port)
 let connectionString = MONGODB_URI;
@@ -28,21 +28,31 @@ const connectDB = async () => {
   try {
     await mongoose.connect(connectionString, options);
     
+    // Ensure we're using the correct database
+    const db = mongoose.connection.db;
+    const actualDbName = db.databaseName;
     console.log('✅ MongoDB Connected Successfully!');
-    console.log(`📊 Database: ${hasDbInUri ? '(in URI)' : (DATABASE_NAME || '(none specified)')}`);
+    console.log(`📊 Actual Database: ${actualDbName}`);
     console.log(`🔗 Connection String: ${connectionString}`);
     
+    // List all collections for debugging
+    try {
+      const collections = await db.listCollections().toArray();
+      console.log(`📋 Collections in ${actualDbName}:`, collections.map(c => c.name));
+    } catch (err) {
+      console.log('⚠️  Could not list collections:', err.message);
+    }
+    
     // Log connection status
-    const db = mongoose.connection;
-    db.on('error', (err) => {
+    mongoose.connection.on('error', (err) => {
       console.error('❌ MongoDB connection error:', err);
     });
     
-    db.on('disconnected', () => {
+    mongoose.connection.on('disconnected', () => {
       console.log('⚠️  MongoDB disconnected');
     });
     
-    db.on('reconnected', () => {
+    mongoose.connection.on('reconnected', () => {
       console.log('✅ MongoDB reconnected');
     });
     

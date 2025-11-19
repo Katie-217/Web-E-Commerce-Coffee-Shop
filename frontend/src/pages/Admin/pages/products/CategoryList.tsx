@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from 'react';
-import { MOCK_CATEGORIES } from '../../constants';
+import React, { useMemo, useState, useEffect } from 'react';
+import { CategoriesApi } from '../../../../api/categories';
 import Badge from '../../components/Badge';
 import { Plus, Edit, Trash2 } from 'lucide-react';
 
@@ -11,7 +11,31 @@ type CategoryListProps = {
 };
 
 const CategoryList: React.FC<CategoryListProps> = ({ setActivePage, onCategoryClick }) => {
-  const [categories] = useState(MOCK_CATEGORIES);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setLoading(true);
+        const res = await CategoriesApi.list();
+        const data = res?.data || res || [];
+        // Transform API data to match Category type
+        const transformed = Array.isArray(data) ? data.map((cat: any, idx: number) => ({
+          id: cat.id || cat._id || idx + 1,
+          name: cat.name || cat.category || '',
+          productCount: cat.productCount || cat.count || 0,
+          status: cat.status || 'Active',
+        })) : [];
+        setCategories(transformed);
+      } catch (error) {
+        setCategories([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCategories();
+  }, []);
   const [currentPage, setCurrentPage] = useState(1);
 
   const totalPages = Math.max(1, Math.ceil(categories.length / ITEMS_PER_PAGE));

@@ -1,7 +1,7 @@
-import React from 'react';
-import Badge from '../../../components/Badge';
-import { Trash2 } from 'lucide-react';
-import { formatVND } from '../../../../../utils/currency';
+import React, { useState, useRef, useEffect } from 'react';
+import Badge from '../../../../components/Badge';
+import { Trash2, Edit2 } from 'lucide-react';
+import { formatVND } from '../../../../../../utils/currency';
 
 const getDisplayCode = (val: string | number | undefined | null) => {
   const s = String(val || '');
@@ -20,12 +20,25 @@ const formatDate = (date: Date | string | null | undefined) => {
 const getStatusColor = (status: string): 'green' | 'red' | 'yellow' | 'blue' | 'gray' => {
   const s = (status || '').toLowerCase();
   if (s === 'delivered') return 'green';
-  if (s === 'out for delivery') return 'blue';
-  if (s === 'ready to pickup') return 'blue';
-  if (s === 'dispatched') return 'yellow';
-  if (s === 'cancelled') return 'red';
+  if (s === 'out for delivery' || s === 'ready to pickup' || s === 'shipped') return 'blue';
+  if (s === 'dispatched' || s === 'processing') return 'yellow';
+  if (s === 'cancelled' || s === 'refunded' || s === 'returned') return 'red';
+  if (s === 'pending') return 'gray';
   return 'yellow';
 };
+
+const ORDER_STATUSES = [
+  'pending',
+  'processing',
+  'ready to pickup',
+  'dispatched',
+  'out for delivery',
+  'shipped',
+  'delivered',
+  'cancelled',
+  'refunded',
+  'returned'
+];
 
 type OrdersPlacedTableProps = {
   orders: any[];
@@ -36,6 +49,7 @@ type OrdersPlacedTableProps = {
   onPageChange: (page: number) => void;
   onOrderClick?: (orderId: string) => void;
   onDeleteOrder?: (orderId: string) => void;
+  onUpdateOrderStatus?: (orderId: string, status: string) => void;
 };
 
 const OrdersPlacedTable: React.FC<OrdersPlacedTableProps> = ({
@@ -47,8 +61,24 @@ const OrdersPlacedTable: React.FC<OrdersPlacedTableProps> = ({
   onPageChange,
   onOrderClick,
   onDeleteOrder,
+  onUpdateOrderStatus,
 }) => {
   const ITEMS_PER_PAGE = 6;
+  const [editingStatusId, setEditingStatusId] = useState<string | null>(null);
+  const statusDropdownRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      Object.keys(statusDropdownRefs.current).forEach((orderId) => {
+        const ref = statusDropdownRefs.current[orderId];
+        if (ref && !ref.contains(e.target as Node)) {
+          setEditingStatusId(null);
+        }
+      });
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleDelete = (orderId: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -57,6 +87,14 @@ const OrdersPlacedTable: React.FC<OrdersPlacedTableProps> = ({
         onDeleteOrder(orderId);
       }
     }
+  };
+
+  const handleStatusChange = (orderId: string, newStatus: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onUpdateOrderStatus) {
+      onUpdateOrderStatus(orderId, newStatus);
+    }
+    setEditingStatusId(null);
   };
 
   return (
@@ -109,10 +147,44 @@ const OrdersPlacedTable: React.FC<OrdersPlacedTableProps> = ({
                     </span>
                   </td>
                   <td className="p-3 text-text-secondary">{formatDate(o.createdAt)}</td>
-                  <td className="p-3">
-                    <Badge color={getStatusColor(o.status)}>
-                      {(o.status || '').toString().replace(/^./, (c: string) => c.toUpperCase())}
-                    </Badge>
+                  <td className="p-3" onClick={(e) => e.stopPropagation()}>
+                    <div className="relative inline-block" ref={(el) => {
+                      const orderId = String(o.id || o._id);
+                      statusDropdownRefs.current[orderId] = el;
+                    }}>
+                      <button
+                        type="button"
+                        onClick={() => setEditingStatusId(editingStatusId === String(o.id || o._id) ? null : String(o.id || o._id))}
+                        className="flex items-center gap-2 group"
+                      >
+                        <Badge color={getStatusColor(o.status)}>
+                          {(o.status || '').toString().replace(/^./, (c: string) => c.toUpperCase())}
+                        </Badge>
+                        {onUpdateOrderStatus && (
+                          <Edit2 size={14} className="text-text-secondary opacity-0 group-hover:opacity-100 transition-opacity" />
+                        )}
+                      </button>
+                      {editingStatusId === String(o.id || o._id) && onUpdateOrderStatus && (
+                        <div className="absolute left-0 top-full mt-2 z-30 bg-background-dark border border-gray-600 rounded-lg shadow-xl overflow-hidden min-w-[180px]">
+                          <div className="max-h-[160px] overflow-y-auto custom-scrollbar">
+                            {ORDER_STATUSES.map((status) => (
+                              <button
+                                key={status}
+                                type="button"
+                                onClick={(e) => handleStatusChange(String(o.id || o._id), status, e)}
+                                className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
+                                  (o.status || '').toLowerCase() === status.toLowerCase()
+                                    ? 'bg-primary/20 text-primary font-semibold'
+                                    : 'text-text-primary hover:bg-background-light/50'
+                                }`}
+                              >
+                                {status.charAt(0).toUpperCase() + status.slice(1)}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </td>
                   <td className="p-3 text-text-primary font-medium">{formatVND(Number(o.total) || 0)}</td>
                   <td className="p-3 text-center" onClick={(e) => e.stopPropagation()}>

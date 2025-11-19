@@ -1,7 +1,7 @@
 import React from 'react';
-import Badge from '../../../components/Badge';
+import Badge from '../../../../components/Badge';
 import { ShoppingCart, DollarSign } from 'lucide-react';
-import { formatVND } from '../../../../../utils/currency';
+import { formatVND } from '../../../../../../utils/currency';
 
 const getDisplayCode = (val: string | number | undefined | null) => {
   const s = String(val || '');
@@ -75,8 +75,20 @@ const CustomerProfileCard: React.FC<CustomerProfileCardProps> = ({
           </div>
           <div className="flex justify-between">
             <span className="text-text-secondary">Country:</span>
-            <span className="text-text-primary">{primaryAddress?.country || 'USA'}</span>
+            <span className="text-text-primary">{primaryAddress?.country || customer?.country || '-'}</span>
           </div>
+          {customer?.createdAt && (
+            <div className="flex justify-between">
+              <span className="text-text-secondary">Member since:</span>
+              <span className="text-text-primary">
+                {new Date(customer.createdAt).toLocaleDateString('en-US', { 
+                  month: 'short', 
+                  day: 'numeric', 
+                  year: 'numeric' 
+                })}
+              </span>
+            </div>
+          )}
         </div>
       </div>
 

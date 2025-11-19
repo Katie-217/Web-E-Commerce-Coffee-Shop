@@ -11,7 +11,7 @@ const BackButton: React.FC<BackButtonProps> = ({ onClick, label = 'Back', classN
   return (
     <button
       onClick={onClick}
-      className={`inline-flex items-center justify-center p-2 rounded-md bg-background-dark border border-gray-700 text-text-secondary hover:text-white hover:border-primary transition-colors ${className || ''}`}
+      className={`inline-flex items-center justify-center p-2 rounded-md bg-background-dark border border-gray-700 text-text-secondary hover:bg-background-dark hover:transform-none hover:shadow-none ${className || ''}`}
       aria-label={label}
       title={label}
     >

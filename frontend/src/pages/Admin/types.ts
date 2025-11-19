@@ -84,13 +84,7 @@ export interface OrderDetail extends Order {
     zip: string;
     country: string;
   };
-  billingAddress: {
-    street: string;
-    city: string;
-    state: string;
-    zip: string;
-    country: string;
-  };
+  shippingFee?: number;
 }
 
 export interface Category {

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Edit, Trash2, MoreVertical, Plus, ChevronRight } from 'lucide-react';
-import Badge from '../../../components/Badge';
+import Badge from '../../../../components/Badge';
 
 type Address = {
   id: string;
@@ -32,17 +32,14 @@ const AddressBillingTab: React.FC<{ customer: any }> = ({ customer }) => {
 
   const handleAddAddress = () => {
     // TODO: Implement add address functionality
-    console.log('Add new address');
   };
 
   const handleAddPaymentMethod = () => {
     // TODO: Implement add payment method functionality
-    console.log('Add payment methods');
   };
 
   const handleEditAddress = (id: string) => {
     // TODO: Implement edit address functionality
-    console.log('Edit address:', id);
   };
 
   const handleDeleteAddress = (id: string) => {
@@ -52,7 +49,6 @@ const AddressBillingTab: React.FC<{ customer: any }> = ({ customer }) => {
 
   const handleEditPayment = (id: string) => {
     // TODO: Implement edit payment method functionality
-    console.log('Edit payment method:', id);
   };
 
   const handleDeletePayment = (id: string) => {

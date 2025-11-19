@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { fetchCustomerById } from '../../../../api/customers';
 import { fetchCustomerOrders } from '../../../../api/customers';
+import { OrdersApi } from '../../../../api/orders';
 import BackButton from '../../components/BackButton';
-import CustomerProfileCard from './components/CustomerProfileCard';
-import UpgradeToPremiumCard from './components/UpgradeToPremiumCard';
-import CustomerTabs from './components/CustomerTabs';
+import CustomerProfileCard from './components/detail/CustomerProfileCard';
+import CustomerTabs from './components/detail/CustomerTabs';
 
 const getDisplayCode = (val: string | number | undefined | null) => {
   const s = String(val || '');
@@ -58,11 +58,17 @@ const CustomerDetail: React.FC<Props> = ({ customerId, onBack, onOrderClick }) =
     let filtered = orders;
     if (searchOrder) {
       filtered = orders.filter(o =>
-        String(o.id || '').toLowerCase().includes(searchOrder.toLowerCase())
+        String(o.id || o._id || '').toLowerCase().includes(searchOrder.toLowerCase()) ||
+        String(o.orderNumber || '').toLowerCase().includes(searchOrder.toLowerCase())
       );
     }
     return filtered;
   }, [orders, searchOrder]);
+
+  // Reset to page 1 when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchOrder]);
 
   const paginatedOrders = useMemo(() => {
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -74,27 +80,52 @@ const CustomerDetail: React.FC<Props> = ({ customerId, onBack, onOrderClick }) =
   useEffect(() => {
     let cancelled = false;
     const run = async () => {
-      if (!customerId && customerId !== 0) return;
+      if (!customerId && customerId !== 0) {
+        setError('No customer ID provided');
+        setCustomer(null);
+        setLoading(false);
+        return;
+      }
       try {
         setLoading(true);
         setError(null);
-        const idStr = String(customerId);
+        // Clean and validate customer ID
+        const idStr = String(customerId).trim();
+        if (!idStr) {
+          throw new Error('Invalid customer ID');
+        }
+        
         const res = await fetchCustomerById(idStr);
+        
         if (!cancelled) {
+          // Check if response indicates success
+          if (res?.success === false) {
+            throw new Error(res?.message || 'Customer not found');
+          }
+          
           const cust = res?.data || res;
+          if (!cust || (!cust._id && !cust.id)) {
+            throw new Error('Customer not found');
+          }
+          
           setCustomer(cust);
+          
           // Load orders
           try {
             const o = await fetchCustomerOrders(idStr, { page: 1, limit: 100 });
-            setOrders(o?.data || o?.items || []);
-          } catch (e) {
-            // ignore order fetch errors here
+            const orderList = o?.data || o?.items || [];
+            const ordersArray = Array.isArray(orderList) ? orderList : [];
+            setOrders(ordersArray);
+          } catch (e: any) {
+            setOrders([]);
           }
         }
       } catch (e: any) {
         if (!cancelled) {
-          setError(e?.message || 'Failed to load customer');
+          const errorMessage = e?.response?.data?.message || e?.message || 'Failed to load customer';
+          setError(errorMessage);
           setCustomer(null);
+          setOrders([]);
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -112,19 +143,37 @@ const CustomerDetail: React.FC<Props> = ({ customerId, onBack, onOrderClick }) =
 
   const handleEditDetails = () => {
     // TODO: Implement edit details functionality
-    console.log('Edit details for customer:', customer?._id || customer?.id);
   };
 
-  const handleUpgrade = () => {
-    // TODO: Implement upgrade functionality
-    console.log('Upgrade customer:', customer?._id || customer?.id);
+
+  const handleDeleteOrder = async (orderId: string) => {
+    if (!window.confirm(`Are you sure you want to delete order ${getDisplayCode(orderId)}?`)) {
+      return;
+    }
+    try {
+      // TODO: Implement delete order API call
+      // await deleteOrder(orderId);
+      // Remove from local state
+      setOrders(prev => prev.filter(o => String(o.id || o._id) !== orderId));
+    } catch (error: any) {
+      alert(error?.message || 'Failed to delete order');
+    }
   };
 
-  const handleDeleteOrder = (orderId: string) => {
-    // TODO: Implement delete order functionality
-    console.log('Delete order:', orderId);
-    // Remove from local state
-    setOrders(prev => prev.filter(o => String(o.id || o._id) !== orderId));
+  const handleUpdateOrderStatus = async (orderId: string, newStatus: string) => {
+    try {
+      await OrdersApi.updateStatus(orderId, newStatus);
+      // Update local state
+      setOrders(prev => prev.map(o => {
+        const id = String(o.id || o._id);
+        if (id === orderId) {
+          return { ...o, status: newStatus };
+        }
+        return o;
+      }));
+    } catch (error: any) {
+      alert(error?.response?.data?.message || error?.message || 'Failed to update order status');
+    }
   };
 
   return (
@@ -141,16 +190,44 @@ const CustomerDetail: React.FC<Props> = ({ customerId, onBack, onOrderClick }) =
             </p>
           </div>
         </div>
-        <button className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors">
+        <button 
+          className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors"
+          onClick={() => {
+            if (window.confirm(`Are you sure you want to delete customer ${getDisplayCode(customer?._id || customer?.id)}?`)) {
+              // TODO: Implement delete customer functionality
+            }
+          }}
+        >
           Delete Customer
         </button>
       </div>
 
       {loading && (
-        <div className="p-4 rounded-md bg-background-dark border border-gray-700 text-text-secondary">Loading customer...</div>
+        <div className="p-6 rounded-lg bg-background-light border border-gray-700">
+          <div className="flex items-center gap-3">
+            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div>
+            <p className="text-text-secondary">Loading customer...</p>
+          </div>
+        </div>
       )}
-      {error && (
-        <div className="p-4 rounded-md bg-red-900/30 border border-red-700 text-red-200">{error}</div>
+      {error && !loading && (
+        <div className="p-6 rounded-lg bg-red-900/20 border border-red-700/50">
+          <div className="flex flex-col items-center justify-center text-center py-8">
+            <div className="w-16 h-16 rounded-full bg-red-900/30 flex items-center justify-center mb-4">
+              <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-bold text-red-200 mb-2">Customer not found</h3>
+            <p className="text-red-300 mb-4">{error}</p>
+            <button
+              onClick={onBack}
+              className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+            >
+              Back to Customers
+            </button>
+          </div>
+        </div>
       )}
 
       {customer && (
@@ -163,7 +240,6 @@ const CustomerDetail: React.FC<Props> = ({ customerId, onBack, onOrderClick }) =
               primaryAddress={primaryAddress}
               onEditDetails={handleEditDetails}
             />
-            <UpgradeToPremiumCard onUpgrade={handleUpgrade} />
           </div>
 
           {/* Right Section - Overview and Orders */}
@@ -179,6 +255,7 @@ const CustomerDetail: React.FC<Props> = ({ customerId, onBack, onOrderClick }) =
               onPageChange={setCurrentPage}
               onOrderClick={onOrderClick}
               onDeleteOrder={handleDeleteOrder}
+              onUpdateOrderStatus={handleUpdateOrderStatus}
               customer={customer}
             />
           </div>

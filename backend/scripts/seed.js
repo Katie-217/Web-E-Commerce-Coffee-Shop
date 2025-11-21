@@ -4,15 +4,15 @@ const path = require('path');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
-const Customer = require('../src/models/Customer');
-const Product  = require('../src/models/Product');
-const Order    = require('../src/models/Order');
-const Voucher  = require('../src/models/Voucher'); 
+const Customer = require('../models/Customer');
+const Product  = require('../models/Product');
+const Order    = require('../models/Order');
 
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/CoffeeDB';
 
+const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, '..', 'docs');
 const readJSON = (file) => {
-  const p = path.join(__dirname, '..', 'docs', file);
+  const p = path.isAbsolute(file) ? file : path.join(DATA_DIR, file);
   return fs.existsSync(p) ? JSON.parse(fs.readFileSync(p, 'utf-8')) : [];
 };
 
@@ -20,15 +20,12 @@ const ensureHashedCustomers = async (raw = []) => {
   const out = [];
   for (const u of raw) {
     const copy = { ...u };
-    // đảm bảo các field cơ bản
     if (!copy.provider) copy.provider = 'local';
-    if (copy.avatar === undefined) copy.avatar = '/images/avatars/default.png';
-
-    // hash nếu đang là plaintext
+    copy.avatar = copy.avatar || copy.avatarUrl || '/images/avatars/default.png';
+    copy.name = copy.name || copy.fullName;
     const pwd = String(copy.password || '');
     const isHashed = pwd.startsWith('$2'); // bcrypt prefix
     copy.password = isHashed ? pwd : await bcrypt.hash(pwd || '123456', 10);
-
     out.push(copy);
   }
   return out;
@@ -39,9 +36,9 @@ const ensureHashedCustomers = async (raw = []) => {
     await mongoose.connect(MONGO_URI);
 
     const customersRaw = readJSON('customers.json');
-    const products     = readJSON('products.json');
+    const products     = readJSON('coffee_products.json');     // <-- đổi đúng tên file
     const orders       = readJSON('orders.json');
-    const vouchersData  = readJSON('vouchers.json');
+    //const vouchersData = readJSON('vouchers.json');
 
     const customers = await ensureHashedCustomers(customersRaw);
 
@@ -49,43 +46,93 @@ const ensureHashedCustomers = async (raw = []) => {
       Customer.deleteMany({}),
       Product.deleteMany({}),
       Order.deleteMany({}),
-      Voucher.deleteMany({})
+      //Voucher.deleteMany({})
     ]);
 
     const insertedCustomers = await Customer.insertMany(customers);
-    const insertedProducts  = await Product.insertMany(products);
+    const insertedProducts  = await Product.insertMany(products, { ordered: true });
 
-    // map nhanh
-    const byEmail = new Map(insertedCustomers.map(u => [u.email, u._id]));
-    const byName  = new Map(insertedProducts.map(p => [p.name, p])); 
-    if (vouchersData.length) {
-      await Voucher.insertMany(vouchersData);        // <-- DÙNG vouchersData, KHÔNG PHẢI vouchers
-    }
+    // Index nhanh để join
+    const byEmail   = new Map(insertedCustomers.map(u => [u.email, u._id]));
+    const byName    = new Map(insertedProducts.map(p => [p.name, p]));
+    const bySku     = new Map(insertedProducts.map(p => [p.sku, p]));
+    // Map id gốc (trong coffee_products.json) -> document đã insert (zip theo index)
+    const byLegacyId = new Map(products.map((p, idx) => [String(p.id), insertedProducts[idx]]));
+
+    // if (vouchersData.length) {
+    //   await Voucher.insertMany(vouchersData);
+    // }
 
     // tạo orders
+        // tạo orders
     for (const o of orders) {
-      const userId = byEmail.get(o.userEmail);
-      if (!userId) continue;
+      // xác định email từ data JSON
+      const email = o.customerEmail || o.userEmail || o.email;
+      const userId = byEmail.get(email);
 
-      const items = (o.items || [])
-        .map(it => {
-          const p = byName.get(it.name);
-          return p
-            ? { product: p._id, name: p.name, price: p.price, qty: it.qty || 1 }
-            : null;
-        })
-        .filter(Boolean);
+      if (!userId) {
+        console.warn('Skip order (unknown customer):', email);
+        continue;
+      }
 
-      const total = items.reduce((s, i) => s + i.price * i.qty, 0);
+      const items = (o.items || []).map(it => {
+        // tìm product tương ứng
+        const p =
+          (it.productId != null && byLegacyId.get(String(it.productId))) ||
+          (it.sku && bySku.get(it.sku)) ||
+          byName.get(it.name);
+
+        if (!p) {
+          console.warn('Skip item (product not found):', it);
+          return null;
+        }
+
+        const qty   = it.qty ?? it.quantity ?? 1;
+        const price = (typeof it.price === 'number') ? it.price : (p.price ?? 0);
+
+        return {
+          productId: p._id,   // để pass được Order schema (items.productId required)
+          name: p.name,
+          sku: p.sku,
+          price,
+          qty
+        };
+      }).filter(Boolean);
+
+      if (!items.length) {
+        console.warn('Skip order with no valid items:', o.id || email);
+        continue;
+      }
+
+      const subtotal    = (typeof o.subtotal === 'number')
+        ? o.subtotal
+        : items.reduce((s, i) => s + i.price * i.qty, 0);
+      const shippingFee = Number(o.shippingFee || 0);
+      const discount    = Number(o.discount || 0);
+      const total       = (typeof o.total === 'number')
+        ? o.total
+        : subtotal + shippingFee - discount;
 
       await Order.create({
+        id: o.id,                 // required trong schema Order
+        customerEmail: email,     // required trong schema Order
         user: userId,
         items,
+        subtotal,
+        discount,
+        shippingFee,
         total,
+        currency: o.currency || 'VND',
         status: o.status || 'pending',
-        address: o.address || ''
+        paymentStatus: o.paymentStatus || 'pending',
+        paymentMethod: o.paymentMethod || 'cod',
+        shippingAddress: o.shippingAddress || o.address || null,
+        billingAddress:  o.billingAddress || null,
+        createdAt: o.createdAt,
+        updatedAt: o.updatedAt
       });
     }
+
 
     console.log('✅ Seed done');
     process.exit(0);

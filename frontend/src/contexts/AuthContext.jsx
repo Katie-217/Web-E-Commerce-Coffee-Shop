@@ -1,49 +1,67 @@
-import { createContext, useContext, useEffect, useState } from "react";
-import { api, setAuthToken } from "../lib/api";
+import React, { createContext, useContext, useEffect, useState } from "react";
+import * as authService from "../services/auth";
 
 const AuthCtx = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);   // { id, email, name, ... }
+  const [user, setUser] = useState(null);    // { id, name, email, ... }
   const [loading, setLoading] = useState(true);
 
-  // Nạp token từ localStorage khi app khởi động và hydrate /api/auth/me
+  // Lấy user từ localStorage khi app load
   useEffect(() => {
-    const saved = localStorage.getItem("token");
-    if (saved) setAuthToken(saved);
-    api.get("/api/auth/me")
-      .then((r) => setUser(r.data))
-      .catch(() => setUser(null))
-      .finally(() => setLoading(false));
+    try {
+      const saved = localStorage.getItem("user");
+      if (saved) {
+        setUser(JSON.parse(saved));
+      }
+    } catch (e) {
+      console.error("Failed to parse saved user", e);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
+  // helper: lưu token + user
+  const persistAuth = (data, fallbackUser) => {
+    const token = data?.token;
+    const userData = data?.user || fallbackUser || null;
+
+    if (token) {
+      localStorage.setItem("token", token);
+    }
+    if (userData) {
+      localStorage.setItem("user", JSON.stringify(userData));
+    }
+
+    setUser(userData);
+    return userData;
+  };
+
+  // gọi từ UI: login(email, password)
   const login = async (email, password) => {
-    const res = await api.post("/api/auth/login", { email, password });
-    const token = res.data?.token;
-    if (token) {
-      localStorage.setItem("token", token);
-      setAuthToken(token); // set Authorization header
+    setLoading(true);
+    try {
+      const data = await authService.login({ email, password });
+      return persistAuth(data, { email });
+    } finally {
+      setLoading(false);
     }
-    const me = await api.get("/api/auth/me");
-    setUser(me.data);
   };
 
-  const register = async (payload) => {
-    const res = await api.post("/api/auth/register", payload);
-    const token = res.data?.token;
-    if (token) {
-      localStorage.setItem("token", token);
-      setAuthToken(token);
+  // gọi từ UI: register({ name, email, password })
+  const register = async ({ name, email, password }) => {
+    setLoading(true);
+    try {
+      const data = await authService.register({ name, email, password });
+      // nếu BE không trả user, dùng fallback name+email
+      return persistAuth(data, { name, email });
+    } finally {
+      setLoading(false);
     }
-    const me = await api.get("/api/auth/me");
-    setUser(me.data);
   };
 
-  // Logout chỉ cần xóa token phía client (nếu BE chưa có /logout)
-  const logout = async () => {
-    // Nếu có endpoint BE: await api.post("/api/auth/logout");
-    localStorage.removeItem("token");
-    setAuthToken(null);
+  const logout = () => {
+    authService.logout();   // clear localStorage
     setUser(null);
   };
 
@@ -55,5 +73,16 @@ export function AuthProvider({ children }) {
 }
 
 export function useAuth() {
-  return useContext(AuthCtx) || { user: null, loading: false, login: () => {}, logout: () => {} };
+  const ctx = useContext(AuthCtx);
+  if (!ctx) {
+    // fallback an toàn nếu quên bọc AuthProvider
+    return {
+      user: null,
+      loading: false,
+      login: async () => {},
+      register: async () => {},
+      logout: () => {},
+    };
+  }
+  return ctx;
 }

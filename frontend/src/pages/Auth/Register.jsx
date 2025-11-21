@@ -1,6 +1,7 @@
 import React from 'react';
 import AuthPage from './AuthPage';
 
-const Login = () => <AuthPage initialTab="login" />;
+const Register = () => <AuthPage initialTab="register" />;
 
-export default Login;
+export default Register;
+

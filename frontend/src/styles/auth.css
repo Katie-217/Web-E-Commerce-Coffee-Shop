@@ -92,6 +92,15 @@
   letter-spacing: .2px;
   color: #1c1c1c;
 }
+.auth-wrapper .auth-form h1 {
+  font-size: clamp(26px, 2.4vw + 8px, 34px); 
+  margin-bottom: 6px;
+}
+
+.auth-wrapper .auth-form h2 {
+  font-size: clamp(20px, 1.8vw + 6px, 26px);
+}
+
 
 .auth-wrapper .input-group { width: 100%; }
 

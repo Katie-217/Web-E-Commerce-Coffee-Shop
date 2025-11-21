@@ -1,5 +1,4 @@
-
-// Minimal auth service; CRA-friendly env access (no import.meta)
+// src/services/auth.js
 const API_URL = process.env.REACT_APP_API_URL || '';
 
 async function http(path, options = {}) {
@@ -18,15 +17,20 @@ async function http(path, options = {}) {
 }
 
 export async function login(payload) {
-  return http('/api/auth/login', { method: 'POST', body: JSON.stringify(payload) });
+  return http('/api/auth/login', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
 }
 
 export async function register(payload) {
-  return http('/api/auth/register', { method: 'POST', body: JSON.stringify(payload) });
+  return http('/api/auth/register', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
 }
 
 export function logout() {
   localStorage.removeItem('token');
   localStorage.removeItem('user');
 }
-

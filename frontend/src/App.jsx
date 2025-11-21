@@ -1,8 +1,8 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 // Public pages
-import HomePage from './pages/HomePage';
-import CategoryList from './pages/Catalog/CategoryList';
+import HomePage from './pages/Home/HomePage';
+
 import ProductList from './pages/Catalog/ProductList';
 import ProductDetail from './pages/Catalog/ProductDetail';
 import CartPage from './pages/Cart/CartPage';
@@ -12,21 +12,26 @@ import Register from './pages/Auth/Register';
 import AccountPage from './pages/Account/AccountPage';
 import OrderHistory from './pages/Orders/OrderHistory';
 import OrderDetail from './pages/Orders/OrderDetail';
-import Dashboard from './pages/Admin/Dashboard';
-import Products from './pages/Admin/Products';
-import Orders from './pages/Admin/Orders';
-import Users from './pages/Admin/Users';
-import NotFound from './pages/NotFound';
-import AboutPage from './pages/AboutPage';
-import ContactPage from './pages/ContactPage';
-import Menu from './pages/Menu';
+import AdminApp from './pages/Admin/App.tsx';
+import NotFound from './pages/NotFound/NotFound';
+import AboutPage from './pages/About/AboutPage';
+import ContactPage from './pages/Contact/ContactPage';
+import CoffeeSets from './pages/Menu/CoffeeSets';
+import CupsMugs from './pages/Menu/CupsMugs';
+import RoastCoffee from './pages/Menu/RoastCoffee';
+import CoffeeMakersGrinders from './pages/Menu/CoffeeMakersGrinders';
 import Navbar from './components/NavBar';
-import TakeAwayList from './pages/Catalog/TakeAwayList';
+import { CartProvider } from './contexts/CartContext';
+ 
 
-function App() {
+function AppShell() {
+  const location = useLocation();
+  const hideNavbar = location.pathname.startsWith('/admin');
+
+
   return (
-    <Router>
-      <Navbar />
+    <>
+      {!hideNavbar && <Navbar />}
       <Routes>
         {/* Home Page */}
         <Route path="/" element={<HomePage />} />
@@ -42,8 +47,14 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/account" element={<AccountPage />} />
         <Route path="/about" element={<AboutPage />} />
+
         {/* <Route path="/menu" element={<Menu/>} /> */}
-        <Route path = "/menu/takeaway" element={<TakeAwayList/>}/>
+        <Route path="/menu/coffee-sets" element={<CoffeeSets/>} />
+        <Route path="/menu/cups-mugs" element={<CupsMugs/>} />
+        <Route path="/menu/roast-coffee" element={<RoastCoffee/>} />
+        <Route path="/menu/coffee-makers-grinders" element={<CoffeeMakersGrinders/>} />
+
+        {/* Contact */}
         <Route path="/contact" element={<ContactPage />} />
 
         {/* Orders */}
@@ -51,16 +62,24 @@ function App() {
         <Route path="/orders/:orderId" element={<OrderDetail />} />
 
         {/* Admin */}
-        <Route path="/admin" element={<Dashboard />} />
-        <Route path="/admin/products" element={<Products />} />
-        <Route path="/admin/orders" element={<Orders />} />
-        <Route path="/admin/users" element={<Users />} />
+        <Route path="/admin/*" element={<AdminApp />} />
+
+
+
 
         {/* Fallback */}
         <Route path="*" element={<NotFound />} />
       </Routes>
-    </Router>
+    </>
   );
 }
 
-export default App;
+export default function App() {
+  return (
+    <Router>
+      <CartProvider>
+        <AppShell />
+      </CartProvider>
+    </Router>
+  );
+}

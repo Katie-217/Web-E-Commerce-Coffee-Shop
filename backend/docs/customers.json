@@ -1,3 +1,293 @@
 [
-  { "name": "Ngwi", "email": "ngwi@example.com", "password": "123456", "avatar": "/images/avatars/default.png" }
+  {
+    "firstName": "Nguyen",
+    "lastName": "Van A",
+    "fullName": "Nguyen Van A",
+    "email": "vana@example.com",
+    "phone": "0905123456",
+    "gender": "male",
+    "dateOfBirth": "1995-04-12T00:00:00Z",
+    "avatarUrl": "https://i.pravatar.cc/150?img=11",
+    "addresses": [
+      {
+        "label": "home",
+        "type": "shipping",
+        "isDefault": true,
+        "fullName": "Nguyen Van A",
+        "phone": "0905123456",
+        "addressLine1": "123 Đường Lý Thường Kiệt",
+        "ward": "Phường 7",
+        "district": "Quận 10",
+        "city": "TP. Hồ Chí Minh",
+        "provinceCode": "SG",
+        "postalCode": "700000",
+        "country": "VN",
+        "notes": "Giao giờ hành chính"
+      }
+    ],
+    "paymentMethods": [
+      { "type": "cash", "isDefault": true },
+      { "type": "bank", "provider": "Vietcombank", "accountNumber": "0123456789", "accountName": "Nguyen Van A", "card": { "brand": "VISA", "last4": "2077" } },
+      { "type": "card", "brand": "MASTERCARD", "holderName": "Nguyen Van A", "last4": "5851", "expMonth": 12, "expYear": 2028, "isDefault": false }
+    ],
+    "preferences": {
+      "language": "vi",
+      "currency": "VND",
+      "timezone": "Asia/Ho_Chi_Minh",
+      "newsletterSubscribed": true,
+      "marketingChannels": ["email"]
+    },
+    "loyalty": {
+      "points": 120,
+      "tier": "silver",
+      "lastAccrualAt": "2025-10-20T09:00:00Z"
+    },
+    "consents": {
+      "termsAccepted": true,
+      "termsAcceptedAt": "2024-06-01T12:00:00Z",
+      "privacyAccepted": true,
+      "privacyAcceptedAt": "2024-06-01T12:05:00Z"
+    },
+    "tags": ["regular", "newsletter"],
+    "status": "active",
+    "notes": "Khách thân thiết",
+    "createdAt": "2025-01-01T08:00:00Z"
+  },
+  {
+    "firstName": "Tran",
+    "lastName": "Thi B",
+    "fullName": "Tran Thi B",
+    "email": "thib@example.com",
+    "phone": "0987654321",
+    "gender": "female",
+    "addresses": [
+      {
+        "label": "office",
+        "type": "billing",
+        "isDefault": true,
+        "company": "CTY TNHH ABC",
+        "addressLine1": "45A Nguyễn Trãi",
+        "district": "Quận 1",
+        "city": "TP. Hồ Chí Minh",
+        "provinceCode": "SG",
+        "postalCode": "710000",
+        "country": "VN"
+      }
+    ],
+    "paymentMethods": [
+      { "type": "bank", "provider": "Techcombank", "accountNumber": "1900123456789", "accountName": "Tran Thi B", "card": { "brand": "MASTERCARD", "last4": "5851" }, "isDefault": true },
+      { "type": "cash", "isDefault": false }
+    ],
+    "avatarUrl": "https://i.pravatar.cc/150?img=12",
+    "preferences": { "newsletterSubscribed": false },
+    "loyalty": { "points": 0, "tier": "bronze" },
+    "consents": { "termsAccepted": true, "privacyAccepted": true },
+    "status": "active"
+  },
+  {
+    "firstName": "Le",
+    "lastName": "Minh",
+    "fullName": "Le Minh",
+    "email": "leminh@example.com",
+    "phone": "0912345678",
+    "gender": "male",
+    "addresses": [
+      {
+        "label": "home",
+        "type": "shipping",
+        "isDefault": true,
+        "addressLine1": "56 Đường Nguyễn Văn Cừ",
+        "district": "Ninh Kiều",
+        "city": "Cần Thơ",
+        "provinceCode": "CT",
+        "country": "VN"
+      }
+    ],
+    "paymentMethods": [
+      { "type": "cash", "isDefault": true },
+      { "type": "bank", "provider": "VietinBank", "accountNumber": "1029384756", "accountName": "Le Minh", "card": { "brand": "VISA", "last4": "1555" } }
+    ],
+    "avatarUrl": "https://i.pravatar.cc/150?img=13",
+    "preferences": { "language": "en", "currency": "VND" },
+    "loyalty": { "points": 300, "tier": "gold" },
+    "consents": { "termsAccepted": true, "privacyAccepted": true },
+    "status": "active"
+  },
+  {
+    "firstName": "Pham",
+    "lastName": "Quynh",
+    "fullName": "Pham Quynh",
+    "email": "quynhpham@example.com",
+    "phone": "0909988776",
+    "gender": "female",
+    "addresses": [
+      {
+        "label": "home",
+        "type": "shipping",
+        "isDefault": true,
+        "addressLine1": "22 Đường Lê Duẩn",
+        "city": "Đà Nẵng",
+        "provinceCode": "DN",
+        "country": "VN"
+      }
+    ],
+    "paymentMethods": [
+      { "type": "card", "brand": "VISA", "holderName": "Pham Quynh", "last4": "2077", "expMonth": 7, "expYear": 2027, "isDefault": true },
+      { "type": "cash", "isDefault": false }
+    ],
+    "avatarUrl": "https://i.pravatar.cc/150?img=14",
+    "preferences": { "newsletterSubscribed": true, "marketingChannels": ["email", "sms"] },
+    "loyalty": { "points": 50, "tier": "bronze" },
+    "consents": { "termsAccepted": true, "privacyAccepted": true },
+    "status": "active"
+  },
+  {
+    "firstName": "Hoang",
+    "lastName": "Tuan",
+    "fullName": "Hoang Tuan",
+    "email": "tuanhoang@example.com",
+    "phone": "0978123456",
+    "addresses": [
+      {
+        "label": "office",
+        "type": "billing",
+        "isDefault": true,
+        "company": "CTY TNHH XYZ",
+        "addressLine1": "Số 8 Láng Hạ",
+        "district": "Ba Đình",
+        "city": "Hà Nội",
+        "provinceCode": "HN",
+        "country": "VN"
+      }
+    ],
+    "paymentMethods": [
+      { "type": "bank", "provider": "ACB", "accountNumber": "8686868686", "accountName": "Hoang Tuan", "card": { "brand": "VISA", "last4": "5851" }, "isDefault": true }
+    ],
+    "avatarUrl": "https://i.pravatar.cc/150?img=15",
+    "loyalty": { "points": 880, "tier": "platinum" },
+    "status": "active"
+  },
+  {
+    "firstName": "Vu",
+    "lastName": "Hien",
+    "fullName": "Vu Hien",
+    "email": "hienvu@example.com",
+    "phone": "0932456789",
+    "gender": "female",
+    "avatarUrl": "https://i.pravatar.cc/150?img=16",
+    "addresses": [
+      {
+        "label": "home",
+        "type": "shipping",
+        "isDefault": true,
+        "addressLine1": "5A Nguyễn Huệ",
+        "city": "Huế",
+        "provinceCode": "TTH",
+        "country": "VN"
+      }
+    ],
+    "paymentMethods": [
+      { "type": "cash", "isDefault": true }
+    ],
+    "loyalty": { "points": 200, "tier": "silver" },
+    "status": "active"
+  },
+  {
+    "firstName": "Do",
+    "lastName": "Thanh",
+    "fullName": "Do Thanh",
+    "email": "thanhdo@example.com",
+    "phone": "0903344556",
+    "avatarUrl": "https://i.pravatar.cc/150?img=17",
+    "addresses": [
+      {
+        "label": "home",
+        "type": "shipping",
+        "isDefault": true,
+        "addressLine1": "12 Nguyễn Văn Linh",
+        "city": "Hải Phòng",
+        "provinceCode": "HP",
+        "country": "VN"
+      }
+    ],
+    "paymentMethods": [
+      { "type": "card", "brand": "MASTERCARD", "holderName": "Do Thanh", "last4": "3507", "expMonth": 11, "expYear": 2029, "isDefault": true }
+    ],
+    "loyalty": { "points": 150, "tier": "silver" },
+    "status": "active"
+  },
+  {
+    "firstName": "Bui",
+    "lastName": "Lan",
+    "fullName": "Bui Lan",
+    "email": "lanbui@example.com",
+    "phone": "0907778889",
+    "avatarUrl": "https://i.pravatar.cc/150?img=18",
+    "addresses": [
+      {
+        "label": "home",
+        "type": "shipping",
+        "isDefault": true,
+        "addressLine1": "25 Phan Chu Trinh",
+        "city": "Vũng Tàu",
+        "provinceCode": "VT",
+        "country": "VN"
+      }
+    ],
+    "paymentMethods": [
+      { "type": "cash", "isDefault": true }
+    ],
+    "loyalty": { "points": 20, "tier": "bronze" },
+    "status": "inactive"
+  },
+  {
+    "firstName": "Nguyen",
+    "lastName": "Hoai Nam",
+    "fullName": "Nguyen Hoai Nam",
+    "email": "namnh@example.com",
+    "phone": "0969123456",
+    "addresses": [
+      {
+        "label": "office",
+        "type": "billing",
+        "isDefault": true,
+        "addressLine1": "35 Hoàng Diệu",
+        "city": "Đà Nẵng",
+        "provinceCode": "DN",
+        "country": "VN"
+      }
+    ],
+    "paymentMethods": [
+      { "type": "card", "brand": "VISA", "holderName": "Nguyen Hoai Nam", "last4": "4291", "expMonth": 10, "expYear": 2028, "isDefault": true },
+      { "type": "bank", "provider": "MB Bank", "accountNumber": "9704222222", "accountName": "Nguyen Hoai Nam", "card": { "brand": "MASTERCARD", "last4": "4291" } }
+    ],
+    "avatarUrl": "https://i.pravatar.cc/150?img=19",
+    "preferences": { "language": "vi", "newsletterSubscribed": true },
+    "loyalty": { "points": 400, "tier": "gold" },
+    "status": "active"
+  },
+  {
+    "firstName": "Phan",
+    "lastName": "Gia Kiet",
+    "fullName": "Phan Gia Kiet",
+    "email": "kietphan@example.com",
+    "phone": "0911222333",
+    "avatarUrl": "https://i.pravatar.cc/150?img=20",
+    "addresses": [
+      {
+        "label": "office",
+        "type": "shipping",
+        "isDefault": true,
+        "addressLine1": "100A Quốc lộ 13",
+        "city": "Bình Dương",
+        "provinceCode": "BD",
+        "country": "VN"
+      }
+    ],
+    "paymentMethods": [
+      { "type": "cash", "isDefault": true }
+    ],
+    "loyalty": { "points": 60, "tier": "bronze" },
+    "status": "banned"
+  }
 ]

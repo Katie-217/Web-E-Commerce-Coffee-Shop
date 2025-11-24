@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { LayoutDashboard, Package, ShoppingCart, Users, Settings as SettingsIcon, ChevronDown, ChevronUp } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingCart, Users, ChevronDown, ChevronUp } from 'lucide-react';
 
 const ICONS: { [key: string]: React.ElementType } = {
   Dashboard: LayoutDashboard,
   Orders: ShoppingCart,
   Customers: Users,
-  Settings: SettingsIcon,
 };
 
 interface SidebarProps {
@@ -45,7 +44,7 @@ const NavLink: React.FC<{
 };
 
 const ProductMenu: React.FC<SidebarProps> = ({ activePage, setActivePage, onClose }) => {
-    const allProductPages = ['Product List', 'Add Product', 'Category List'];
+    const allProductPages = ['Product List', 'Add Product', 'Category List', 'Product Detail'];
     const visibleProductPages = ['Product List', 'Category List'];
     const isProductPageActive = allProductPages.includes(activePage);
     const [isOpen, setIsOpen] = useState(isProductPageActive);
@@ -95,55 +94,6 @@ const ProductMenu: React.FC<SidebarProps> = ({ activePage, setActivePage, onClos
     );
 };
 
-const SettingsMenu: React.FC<SidebarProps> = ({ activePage, setActivePage, onClose }) => {
-    const allSettingsPages = ['Store Details', 'Payments', 'Checkout', 'Shipping & Delivery', 'Locations', 'Notifications'];
-    const visibleSettingsPages = ['Store Details', 'Payments', 'Checkout', 'Shipping & Delivery', 'Locations', 'Notifications'];
-    const isSettingsPageActive = allSettingsPages.includes(activePage);
-    const [isOpen, setIsOpen] = useState(isSettingsPageActive);
-    
-    useEffect(() => {
-        if(isSettingsPageActive){
-            setIsOpen(true);
-        }
-    }, [activePage, isSettingsPageActive]);
-
-    return (
-        <li>
-            <button
-                onClick={() => setIsOpen(!isOpen)}
-                className={`flex items-center justify-between w-full p-3 my-1 rounded-lg transition-colors duration-200 ${
-                    isSettingsPageActive
-                        ? 'text-white'
-                        : 'text-text-secondary'
-                } hover:bg-background-light hover:text-white`}
-            >
-                <div className="flex items-center">
-                    <SettingsIcon className="w-5 h-5 mr-3" />
-                    <span className="font-medium">Settings</span>
-                </div>
-                {isOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-            </button>
-            {isOpen && (
-                <ul className="pl-6 mt-1 space-y-1">
-                    {visibleSettingsPages.map(page => (
-                         <li key={page}>
-                         <a href="#"
-                           onClick={(e) => { e.preventDefault(); setActivePage(page); }}
-                           className={`flex items-center p-2 rounded-lg text-sm transition-colors duration-200 ${
-                             activePage === page
-                               ? 'bg-primary text-white'
-                               : 'text-text-secondary hover:bg-background-light hover:text-white'
-                           }`}
-                         >
-                           {page}
-                         </a>
-                       </li>
-                    ))}
-                </ul>
-            )}
-        </li>
-    );
-};
 
 
 const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage, isOpen = false, onClose }) => {
@@ -189,7 +139,6 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage, isOpen = f
             }
             return null;
           })}
-          <SettingsMenu activePage={activePage} setActivePage={setActivePage} onClose={onClose} />
         </ul>
        </nav>
       </div>

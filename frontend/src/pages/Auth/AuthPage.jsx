@@ -1,7 +1,9 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import React, { useMemo, useState } from 'react';
-import '../../styles/auth.css';
+import '../Auth/auth.css';
 import { useAuth } from '../../contexts/AuthContext';
+import { forgotPasswordRequest, forgotPasswordVerify } from '../../services/auth';
+
 
 /**
  * Double slider login/register page
@@ -52,6 +54,7 @@ const AuthPage = ({ initialTab = 'login' }) => {
     return emailOk && passOk && match && nameOk;
   }, [registerData]);
 
+
   const handleLogin = async (e) => {
     e.preventDefault();
     if (!canSubmitLogin) return;
@@ -100,6 +103,14 @@ const AuthPage = ({ initialTab = 'login' }) => {
     const API_URL = process.env.REACT_APP_API_URL || '';
     window.location.href = `${API_URL}/api/auth/google`;
   };
+  const [showForgot, setShowForgot] = useState(false);
+const [forgotStep, setForgotStep] = useState(1);
+const [forgotEmail, setForgotEmail] = useState('');
+const [forgotOtp, setForgotOtp] = useState('');
+const [forgotNewPassword, setForgotNewPassword] = useState('');
+const [forgotConfirm, setForgotConfirm] = useState('');
+const [forgotLoading, setForgotLoading] = useState(false);
+
 
   return (
     <div
@@ -246,9 +257,21 @@ const AuthPage = ({ initialTab = 'login' }) => {
                 />
                 Remember me
               </label>
-              <a className="link" href="#forgot">
-                Forgot password?
-              </a>
+              <button
+    type="button"
+    className="link link-button"
+    onClick={() => {
+      setMessage('');
+      setForgotStep(1);
+      setForgotEmail(loginData.email); // auto fill nếu có
+      setForgotOtp('');
+      setForgotNewPassword('');
+      setForgotConfirm('');
+      setShowForgot(true);
+    }}
+  >
+    Forgot password?
+  </button>
             </div>
 
             <button
@@ -316,6 +339,170 @@ const AuthPage = ({ initialTab = 'login' }) => {
           </div>
         </div>
       </div>
+      {showForgot && (
+  <div className="auth-modal-backdrop">
+    <div className="auth-modal">
+      {forgotStep === 1 ? (
+        <>
+          <h2>Reset password</h2>
+          <p className="auth-modal-desc">
+            Nhập email của bạn. Chúng tôi sẽ gửi mã xác nhận (OTP) để đặt lại mật khẩu.
+          </p>
+
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              if (!/\S+@\S+\.\S+/.test(forgotEmail)) {
+                setMessage('Email không hợp lệ');
+                return;
+              }
+              try {
+                setForgotLoading(true);
+                setMessage('');
+                await forgotPasswordRequest(forgotEmail);
+                setForgotStep(2);
+                setMessage('Đã gửi mã xác nhận. Kiểm tra email của bạn.');
+              } catch (err) {
+                setMessage(err.message || 'Không thể gửi mã xác nhận.');
+              } finally {
+                setForgotLoading(false);
+              }
+            }}
+          >
+            <div className="input-group">
+              <input
+                type="email"
+                placeholder="Email"
+                value={forgotEmail}
+                onChange={(e) => setForgotEmail(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="auth-modal-actions">
+              <button
+                type="button"
+                className="auth-btn auth-btn--ghost"
+                onClick={() => setShowForgot(false)}
+              >
+                Hủy
+              </button>
+              <button
+                type="submit"
+                className="auth-btn"
+                disabled={forgotLoading}
+              >
+                {forgotLoading ? 'Đang gửi...' : 'Gửi mã'}
+              </button>
+            </div>
+          </form>
+        </>
+      ) : (
+        <>
+          <h2>Nhập OTP & mật khẩu mới</h2>
+          <p className="auth-modal-desc">
+            Mã OTP gồm 6 số đã được gửi tới: <b>{forgotEmail}</b>
+          </p>
+
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+
+              if (!forgotOtp || forgotOtp.length < 4) {
+                setMessage('Vui lòng nhập mã OTP hợp lệ.');
+                return;
+              }
+              if (forgotNewPassword.length < 6) {
+                setMessage('Mật khẩu mới tối thiểu 6 ký tự.');
+                return;
+              }
+              if (forgotNewPassword !== forgotConfirm) {
+                setMessage('Xác nhận mật khẩu không khớp.');
+                return;
+              }
+
+              try {
+                setForgotLoading(true);
+                setMessage('');
+                await forgotPasswordVerify({
+                  email: forgotEmail,
+                  otp: forgotOtp,
+                  newPassword: forgotNewPassword,
+                });
+
+                setMessage('Đổi mật khẩu thành công. Hãy đăng nhập bằng mật khẩu mới.');
+                setShowForgot(false);
+                setForgotStep(1);
+                setLoginData((prev) => ({
+                  ...prev,
+                  email: forgotEmail,
+                  password: '',
+                }));
+              } catch (err) {
+                setMessage(err.message || 'Reset password failed.');
+              } finally {
+                setForgotLoading(false);
+              }
+            }}
+          >
+            <div className="input-group">
+              <input
+                type="text"
+                placeholder="OTP (6 số)"
+                value={forgotOtp}
+                onChange={(e) =>
+                  setForgotOtp(e.target.value.replace(/\D/g, '').slice(0, 6))
+                }
+                required
+              />
+            </div>
+
+            <div className="input-group">
+              <input
+                type="password"
+                placeholder="New password (≥ 6 characters)"
+                value={forgotNewPassword}
+                onChange={(e) => setForgotNewPassword(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="input-group">
+              <input
+                type="password"
+                placeholder="Confirm new password"
+                value={forgotConfirm}
+                onChange={(e) => setForgotConfirm(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="auth-modal-actions">
+              <button
+                type="button"
+                className="auth-btn auth-btn--ghost"
+                onClick={() => {
+                  setShowForgot(false);
+                  setForgotStep(1);
+                }}
+              >
+                Hủy
+              </button>
+              <button
+                type="submit"
+                className="auth-btn"
+                disabled={forgotLoading}
+              >
+                {forgotLoading ? 'Đang xử lý...' : 'Đặt lại mật khẩu'}
+              </button>
+            </div>
+          </form>
+        </>
+      )}
+    </div>
+  </div>
+)}
+
 
       {message && <div className="auth-message">{message}</div>}
     </div>

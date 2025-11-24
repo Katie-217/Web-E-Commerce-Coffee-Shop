@@ -1,29 +1,36 @@
-require('dotenv').config();
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const connectDB = require('./config/database');
+// backend/server.js (hoặc index.js tuỳ bạn đang đặt tên gì)
+require("dotenv").config();
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
+const connectDB = require("./config/database");
 
 const app = express();
 const PORT = process.env.PORT || 3001; // Đổi port để tránh xung đột với frontend
+
 connectDB();
 
-// Middleware
-// Enable CORS for local development (3000, 5173, etc.) with credentials support
+// ================== MIDDLEWARE CHUNG ==================
 const corsOptions = {
   origin: (origin, callback) => {
-    // Allow no-origin (mobile apps, curl) and any localhost/127.0.0.1 origins for dev
-    if (!origin || /(localhost|127\.0\.0\.1):\d+$/.test(origin)) return callback(null, true);
+    // Allow no-origin (mobile apps, curl) và mọi localhost/127.0.0.1 cho dev
+    if (!origin || /(localhost|127\.0\.0\.1):\d+$/.test(origin)) {
+      return callback(null, true);
+    }
     // Allow explicit origins defined via env (comma-separated)
-    const allowed = (process.env.CORS_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
+    const allowed = (process.env.CORS_ORIGINS || "")
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
     if (allowed.includes(origin)) return callback(null, true);
     return callback(null, false);
   },
   credentials: true,
-  methods: ['GET','HEAD','PUT','PATCH','POST','DELETE'],
-  allowedHeaders: ['Content-Type','Authorization','X-Requested-With'],
+  methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
   optionsSuccessStatus: 200,
 };
+
 app.use(cors(corsOptions));
 app.options(/.*/, cors(corsOptions));
 app.use(express.json());
@@ -31,29 +38,34 @@ app.use(express.urlencoded({ extended: true }));
 
 // Log all requests for debugging
 app.use((req, res, next) => {
-  console.log(`📥 ${req.method} ${req.path}`);
+  console.log(`📥 ${req.method} ${req.originalUrl}`);
   next();
 });
 
-// Routes
-app.get('/', (req, res) => {
-  res.send('Hello from Backend!');
+// ================== ROUTES ==================
+const accountRoutes = require("./routes/account");
+const apiRouter = require("./routes/index");
+
+// route cập nhật tài khoản
+app.use("/api/account", accountRoutes);
+
+// các route API còn lại (/api/auth, /api/products, ...)
+app.use("/api", apiRouter);
+
+// Routes đơn giản
+app.get("/", (req, res) => {
+  res.send("Hello from Backend!");
 });
 
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
-    mongodb: mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected'
+app.get("/health", (req, res) => {
+  res.json({
+    status: "OK",
+    mongodb: mongoose.connection.readyState === 1 ? "Connected" : "Disconnected",
   });
 });
 
-// API Routes - Sử dụng routes/index.js để tổng hợp tất cả routes
-const apiRouter = require('./routes/index');
-app.use('/api', apiRouter);
-
-// Start server
+// ================== START SERVER ==================
 app.listen(PORT, () => {
   console.log(`🚀 Server is running at http://localhost:${PORT}`);
-  console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`📊 Environment: ${process.env.NODE_ENV || "development"}`);
 });

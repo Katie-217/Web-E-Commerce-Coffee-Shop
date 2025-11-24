@@ -94,12 +94,12 @@ const orderSchema = new Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded'],
+    enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled', 'returned'],
     default: 'pending'
   },
   paymentMethod: {
     type: String,
-    enum: ['cod', 'card', 'bank', 'cash', 'vnpay', 'momo', 'zalopay'],
+    enum: ['cod', 'card', 'bank', 'cash', 'vnpay', 'momo', 'zaloPay', 'bank-transfer',],
     default: 'cod'
   },
   paymentStatus: {

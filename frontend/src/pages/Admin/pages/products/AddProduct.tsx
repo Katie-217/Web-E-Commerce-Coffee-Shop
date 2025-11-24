@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { UploadCloud, Trash2 } from 'lucide-react';
 import BackButton from '../../components/BackButton';
 import { ProductsApi } from '../../../../api/products';
+import { saveState, loadState, clearState } from '../../../../utils/statePersistence';
 
 const formatFileSize = (bytes: number) => {
     if (!bytes) return '0 B';
@@ -17,22 +18,49 @@ type AddProductProps = {
 };
 
 const AddProduct: React.FC<AddProductProps> = ({ onBack, setActivePage }) => {
+    const stateKey = 'add_product_form';
+    
+    // Load persisted state from sessionStorage
+    const persistedState = loadState<{
+        formData?: {
+            name: string;
+            sku: string;
+            description: string;
+            category: string;
+            price: string;
+            quantity: string;
+            status: 'Publish' | 'Inactive' | 'Draft';
+            stock: boolean;
+        };
+        imagePreviewUrl?: string;
+    }>(stateKey);
+    
     const fileInputRef = useRef<HTMLInputElement | null>(null);
-    const [imagePreview, setImagePreview] = useState<{ file: File; url: string } | null>(null);
+    const [imagePreview, setImagePreview] = useState<{ file: File; url: string } | null>(
+        persistedState?.imagePreviewUrl ? { url: persistedState.imagePreviewUrl } as any : null
+    );
     const [isDragActive, setIsDragActive] = useState(false);
     const [saving, setSaving] = useState(false);
     
     // Form state based on Product model
     const [formData, setFormData] = useState({
-        name: '',
-        sku: '',
-        description: '',
-        category: '',
-        price: '',
-        quantity: '',
-        status: 'Publish' as 'Publish' | 'Inactive' | 'Draft',
-        stock: true,
+        name: persistedState?.formData?.name || '',
+        sku: persistedState?.formData?.sku || '',
+        description: persistedState?.formData?.description || '',
+        category: persistedState?.formData?.category || '',
+        price: persistedState?.formData?.price || '',
+        quantity: persistedState?.formData?.quantity || '',
+        status: (persistedState?.formData?.status || 'Publish') as 'Publish' | 'Inactive' | 'Draft',
+        stock: persistedState?.formData?.stock !== undefined ? persistedState.formData.stock : true,
     });
+    
+    // Save state to sessionStorage whenever it changes
+    useEffect(() => {
+        saveState(stateKey, {
+            formData,
+            imagePreviewUrl: imagePreview?.url || undefined,
+        });
+    }, [stateKey, formData, imagePreview]);
 
     const handleImageTrigger = () => {
         fileInputRef.current?.click();
@@ -102,12 +130,10 @@ const AddProduct: React.FC<AddProductProps> = ({ onBack, setActivePage }) => {
             }
 
             setSaving(true);
-            console.log('🆕 Creating new product in MongoDB');
 
             // Prepare image URL - for now use a placeholder
             // In production, upload to Firebase/Cloudinary first
             let finalImageUrl = imagePreview.url;
-            console.warn('⚠️ Using local file URL. In production, upload to cloud storage first.');
 
             const payload = {
                 name: formData.name.trim(),
@@ -121,14 +147,14 @@ const AddProduct: React.FC<AddProductProps> = ({ onBack, setActivePage }) => {
                 stock: formData.stock,
             };
 
-            console.log('📦 Payload:', payload);
-
             // Create product in MongoDB
             const res = await ProductsApi.create(payload);
 
             if (res && res.success && res.data) {
-                console.log('✅ Product created successfully in MongoDB:', res.data);
                 alert('Product created successfully!');
+                
+                // Clear persisted state after successful save
+                clearState(stateKey);
                 
                 // Navigate back to product list
                 if (onBack) {
@@ -140,7 +166,6 @@ const AddProduct: React.FC<AddProductProps> = ({ onBack, setActivePage }) => {
                 throw new Error('Create failed: Invalid response from server');
             }
         } catch (e: any) {
-            console.error('❌ Create product failed:', e);
             alert(`Failed to create product: ${e.message || 'Unknown error'}`);
         } finally {
             setSaving(false);
@@ -160,6 +185,8 @@ const AddProduct: React.FC<AddProductProps> = ({ onBack, setActivePage }) => {
                 stock: true,
             });
             handleRemoveImage();
+            // Clear persisted state when discarding
+            clearState(stateKey);
         }
     };
 
@@ -261,8 +288,10 @@ const AddProduct: React.FC<AddProductProps> = ({ onBack, setActivePage }) => {
                             Product Image <span className="text-red-400">*</span>
                         </h3>
                         <div
-                                className={`border-2 border-dashed rounded-lg p-6 sm:p-10 transition-colors cursor-pointer ${
-                                    isDragActive ? 'border-primary bg-primary/5' : 'border-gray-600 hover:border-primary'
+                                className={`group border-2 border-dashed rounded-lg p-6 sm:p-10 transition-all duration-300 cursor-pointer ${
+                                    isDragActive 
+                                        ? 'border-primary bg-primary/10 scale-[1.02] shadow-lg shadow-primary/20' 
+                                        : 'border-gray-600 hover:border-primary hover:bg-primary/5 hover:shadow-md'
                                 } ${imagePreview ? 'text-left' : 'text-center'}`}
                                 onClick={handleImageTrigger}
                                 onDrop={handleDrop}
@@ -296,18 +325,26 @@ const AddProduct: React.FC<AddProductProps> = ({ onBack, setActivePage }) => {
                                     </div>
                                 ) : (
                                     <>
-                                        <UploadCloud className="mx-auto h-12 w-12 text-gray-500" />
-                                        <p className="mt-4 text-text-secondary opacity-70">Drag and drop your image here</p>
+                                        <UploadCloud className="mx-auto h-12 w-12 text-gray-500 transition-all duration-300 group-hover:scale-110 group-hover:text-primary" />
+                                        <p className="mt-4 text-text-secondary opacity-70 transition-opacity duration-300 group-hover:opacity-100">Drag and drop your image here</p>
                                         <p className="text-xs text-gray-500 opacity-70">or</p>
                                         <button
                                             type="button"
-                                            className="text-sm font-semibold text-primary hover:underline mt-1"
+                                            className="group/btn relative inline-flex items-center gap-2 px-4 py-2 mt-2 text-sm font-semibold text-primary bg-primary/10 rounded-lg transition-all duration-300 hover:bg-primary hover:text-white hover:scale-105 hover:shadow-lg hover:shadow-primary/50 active:scale-95"
                                             onClick={(event) => {
                                                 event.stopPropagation();
                                                 handleImageTrigger();
                                             }}
                                         >
-                                            Browse image
+                                            <span>Browse image</span>
+                                            <svg 
+                                                className="w-4 h-4 transition-transform duration-300 group-hover/btn:translate-x-1" 
+                                                fill="none" 
+                                                stroke="currentColor" 
+                                                viewBox="0 0 24 24"
+                                            >
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                            </svg>
                                         </button>
                                     </>
                                 )}

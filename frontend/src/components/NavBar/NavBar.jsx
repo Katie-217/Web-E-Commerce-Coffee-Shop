@@ -87,7 +87,7 @@ const Navbar = () => {
   };
 
   const closeDrawer = () => setDrawerOpen(false);            // NEW
-  const avatarUrl = user?.avatar || null;
+const avatarUrl = user?.avatar || user?.avatarUrl || null;
 
   return (
     <header className="header">
@@ -197,9 +197,12 @@ const Navbar = () => {
                       </Link>
                     </li>
                     <li>
-                      <button type="button" className="logout-item" onClick={handleLogout}>
+    <Link to="/orders">Order history</Link>
+  </li>
+                    <li>
+                      <Link type="button" className="user-item" onClick={handleLogout}>
                         Sign out
-                      </button>
+                      </Link>
                     </li>
                   </>
 

@@ -22,7 +22,21 @@ export async function login(payload) {
     body: JSON.stringify(payload),
   });
 }
+//  B1: Nhập email -> phát OTP
+export async function forgotPasswordRequest(email) {
+  return http('/api/auth/forgot-password/request', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
+  });
+}
 
+//  B2: Nhập OTP + mật khẩu mới
+export async function forgotPasswordVerify({ email, otp, newPassword }) {
+  return http('/api/auth/forgot-password/verify', {
+    method: 'POST',
+    body: JSON.stringify({ email, otp, newPassword }),
+  });
+}
 export async function register(payload) {
   return http('/api/auth/register', {
     method: 'POST',

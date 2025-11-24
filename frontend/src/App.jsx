@@ -9,6 +9,7 @@ import CartPage from './pages/Cart/CartPage';
 import CheckoutPage from './pages/Checkout/CheckoutPage';
 import Login from './pages/Auth/Login';
 import Register from './pages/Auth/Register';
+import AuthPage from './pages/Auth/AuthPage';
 import AccountPage from './pages/Account/AccountPage';
 import OrderHistory from './pages/Orders/OrderHistory';
 import OrderDetail from './pages/Orders/OrderDetail';
@@ -22,6 +23,8 @@ import RoastCoffee from './pages/Menu/RoastCoffee';
 import CoffeeMakersGrinders from './pages/Menu/CoffeeMakersGrinders';
 import Navbar from './components/NavBar';
 import { CartProvider } from './contexts/CartContext';
+import GoogleCallbackPage from "./pages/Auth/GoogleCallbackPage";
+
  
 
 function AppShell() {
@@ -47,6 +50,8 @@ function AppShell() {
         <Route path="/register" element={<Register />} />
         <Route path="/account" element={<AccountPage />} />
         <Route path="/about" element={<AboutPage />} />
+        <Route path="/auth" element={<AuthPage />} />
+        <Route path="/auth/google/callback" element={<GoogleCallbackPage />} />
 
         {/* <Route path="/menu" element={<Menu/>} /> */}
         <Route path="/menu/coffee-sets" element={<CoffeeSets/>} />

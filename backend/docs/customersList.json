@@ -1,0 +1,1824 @@
+[{
+  "_id": {
+    "$oid": "691c9a11caaa275d2c7303f4"
+  },
+  "firstName": "Linh",
+  "lastName": "Ngo",
+  "fullName": "Linh Ngo",
+  "email": "linh.ngo.1@example.com",
+  "phone": "0904593166",
+  "gender": "female",
+  "avatarUrl": "https://i.pravatar.cc/150?img=11",
+  "country": "Vietnam",
+  "addresses": [
+    {
+      "label": "home",
+      "type": "shipping",
+      "isDefault": true,
+      "fullName": "Linh Ngo",
+      "phone": "0904593166",
+      "addressLine1": "56 Vung Tau Street",
+      "district": "Vung Tau",
+      "city": "Vung Tau",
+      "provinceCode": "VT",
+      "country": "VN"
+    }
+  ],
+  "paymentMethods": [
+    {
+      "type": "cash",
+      "isDefault": true
+    }
+  ],
+  "preferences": {
+    "language": "vi",
+    "currency": "VND",
+    "timezone": "Asia/Ho_Chi_Minh",
+    "newsletterSubscribed": false
+  },
+  "loyalty": {
+    "points": 904,
+    "tier": "platinum",
+    "lastAccrualAt": "2025-01-03T08:00:00.000Z"
+  },
+  "consents": {
+    "termsAccepted": true,
+    "termsAcceptedAt": "2023-12-01T08:00:00Z",
+    "privacyAccepted": true,
+    "privacyAcceptedAt": "2023-12-01T08:05:00Z"
+  },
+  "tags": [
+    "sample"
+  ],
+  "status": "active",
+  "createdAt": "2023-12-11T08:00:00.000Z"
+},
+{
+  "_id": {
+    "$oid": "691c9a11caaa275d2c7303f5"
+  },
+  "firstName": "Dao",
+  "lastName": "Do",
+  "fullName": "Dao Do",
+  "email": "dao.do.2@example.com",
+  "phone": "0928510599",
+  "gender": "female",
+  "avatarUrl": "https://i.pravatar.cc/150?img=12",
+  "country": "United States",
+  "addresses": [
+    {
+      "label": "home",
+      "type": "shipping",
+      "isDefault": true,
+      "fullName": "Dao Do",
+      "phone": "0928510599",
+      "addressLine1": "34 Bien Hoa Street",
+      "district": "Bien Hoa",
+      "city": "Bien Hoa",
+      "provinceCode": "DNA",
+      "country": "VN"
+    }
+  ],
+  "paymentMethods": [
+    {
+      "type": "bank",
+      "provider": "Vietcombank",
+      "accountNumber": "9704367891234567",
+      "accountName": "Dao Do"
+    },
+    {
+      "type": "cash",
+      "isDefault": true
+    }
+  ],
+  "preferences": {
+    "language": "vi",
+    "currency": "VND",
+    "timezone": "Asia/Ho_Chi_Minh",
+    "newsletterSubscribed": true
+  },
+  "loyalty": {
+    "points": 697,
+    "tier": "gold",
+    "lastAccrualAt": "2025-04-18T08:00:00.000Z"
+  },
+  "consents": {
+    "termsAccepted": true,
+    "termsAcceptedAt": "2023-12-01T08:00:00Z",
+    "privacyAccepted": true,
+    "privacyAcceptedAt": "2023-12-01T08:05:00Z"
+  },
+  "tags": [
+    "sample"
+  ],
+  "status": "active",
+  "createdAt": "2024-01-15T08:00:00.000Z"
+},
+{
+  "_id": {
+    "$oid": "691c9a11caaa275d2c7303f6"
+  },
+  "firstName": "Hanh",
+  "lastName": "Nguyen",
+  "fullName": "Hanh Nguyen",
+  "email": "hanh.nguyen.3@example.com",
+  "phone": "0928126980",
+  "gender": "male",
+  "avatarUrl": "https://i.pravatar.cc/150?img=13",
+  "country": "Canada",
+  "addresses": [
+    {
+      "label": "home",
+      "type": "shipping",
+      "isDefault": true,
+      "fullName": "Hanh Nguyen",
+      "phone": "0928126980",
+      "addressLine1": "190 Ba Dinh Street",
+      "district": "Ba Dinh",
+      "city": "Hanoi",
+      "provinceCode": "HN",
+      "country": "VN"
+    }
+  ],
+  "paymentMethods": [
+    {
+      "type": "momo",
+      "wallet": "0123456789",
+      "isDefault": false
+    },
+    {
+      "type": "cash",
+      "isDefault": true
+    }
+  ],
+  "preferences": {
+    "language": "vi",
+    "currency": "VND",
+    "timezone": "Asia/Ho_Chi_Minh",
+    "newsletterSubscribed": true
+  },
+  "loyalty": {
+    "points": 809,
+    "tier": "platinum",
+    "lastAccrualAt": "2025-04-21T08:00:00.000Z"
+  },
+  "consents": {
+    "termsAccepted": true,
+    "termsAcceptedAt": "2023-12-01T08:00:00Z",
+    "privacyAccepted": true,
+    "privacyAcceptedAt": "2023-12-01T08:05:00Z"
+  },
+  "tags": [
+    "sample"
+  ],
+  "status": "active",
+  "createdAt": "2023-10-23T08:00:00.000Z"
+},
+{
+  "_id": {
+    "$oid": "691c9a11caaa275d2c7303f7"
+  },
+  "firstName": "Chi",
+  "lastName": "Duong",
+  "fullName": "Chi Duong",
+  "email": "chi.duong.4@example.com",
+  "phone": "0968641984",
+  "gender": "male",
+  "avatarUrl": "https://i.pravatar.cc/150?img=14",
+  "country": "Singapore",
+  "addresses": [
+    {
+      "label": "home",
+      "type": "shipping",
+      "isDefault": true,
+      "fullName": "Chi Duong",
+      "phone": "0968641984",
+      "addressLine1": "203 Nha Trang Street",
+      "district": "Nha Trang",
+      "city": "Nha Trang",
+      "provinceCode": "KH",
+      "country": "VN"
+    }
+  ],
+  "paymentMethods": [
+    {
+      "type": "card",
+      "brand": "VISA",
+      "holderName": "Chi Duong",
+      "last4": "2077",
+      "expMonth": 12,
+      "expYear": 2028
+    },
+    {
+      "type": "cash",
+      "isDefault": true
+    }
+  ],
+  "preferences": {
+    "language": "vi",
+    "currency": "VND",
+    "timezone": "Asia/Ho_Chi_Minh",
+    "newsletterSubscribed": true
+  },
+  "loyalty": {
+    "points": 842,
+    "tier": "platinum",
+    "lastAccrualAt": "2025-05-02T08:00:00.000Z"
+  },
+  "consents": {
+    "termsAccepted": true,
+    "termsAcceptedAt": "2023-12-01T08:00:00Z",
+    "privacyAccepted": true,
+    "privacyAcceptedAt": "2023-12-01T08:05:00Z"
+  },
+  "tags": [
+    "sample"
+  ],
+  "status": "active",
+  "createdAt": "2023-11-14T08:00:00.000Z"
+},
+{
+  "_id": {
+    "$oid": "691c9a11caaa275d2c7303f8"
+  },
+  "firstName": "Vy",
+  "lastName": "Phan",
+  "fullName": "Vy Phan",
+  "email": "vy.phan.5@example.com",
+  "phone": "0974333837",
+  "gender": "female",
+  "avatarUrl": "https://i.pravatar.cc/150?img=15",
+  "country": "Japan",
+  "addresses": [
+    {
+      "label": "home",
+      "type": "shipping",
+      "isDefault": true,
+      "fullName": "Vy Phan",
+      "phone": "0974333837",
+      "addressLine1": "211 Ninh Kieu Street",
+      "district": "Ninh Kieu",
+      "city": "Can Tho",
+      "provinceCode": "CT",
+      "country": "VN"
+    }
+  ],
+  "paymentMethods": [
+    {
+      "type": "bank",
+      "provider": "Vietcombank",
+      "accountNumber": "9704367891234567",
+      "accountName": "Vy Phan"
+    },
+    {
+      "type": "card",
+      "brand": "VISA",
+      "holderName": "Vy Phan",
+      "last4": "2077",
+      "expMonth": 12,
+      "expYear": 2028
+    }
+  ],
+  "preferences": {
+    "language": "en",
+    "currency": "VND",
+    "timezone": "Asia/Ho_Chi_Minh",
+    "newsletterSubscribed": false
+  },
+  "loyalty": {
+    "points": 76,
+    "tier": "bronze",
+    "lastAccrualAt": "2025-03-20T08:00:00.000Z"
+  },
+  "consents": {
+    "termsAccepted": true,
+    "termsAcceptedAt": "2023-12-01T08:00:00Z",
+    "privacyAccepted": true,
+    "privacyAcceptedAt": "2023-12-01T08:05:00Z"
+  },
+  "tags": [
+    "sample"
+  ],
+  "status": "active",
+  "createdAt": "2023-11-04T08:00:00.000Z"
+},
+{
+  "_id": {
+    "$oid": "691c9a11caaa275d2c7303f9"
+  },
+  "firstName": "Thao",
+  "lastName": "Pham",
+  "fullName": "Thao Pham",
+  "email": "thao.pham.6@example.com",
+  "phone": "0925590188",
+  "gender": "male",
+  "avatarUrl": "https://i.pravatar.cc/150?img=16",
+  "country": "Australia",
+  "addresses": [
+    {
+      "label": "home",
+      "type": "shipping",
+      "isDefault": true,
+      "fullName": "Thao Pham",
+      "phone": "0925590188",
+      "addressLine1": "140 Nha Trang Street",
+      "district": "Nha Trang",
+      "city": "Nha Trang",
+      "provinceCode": "KH",
+      "country": "VN"
+    }
+  ],
+  "paymentMethods": [
+    {
+      "type": "cash",
+      "isDefault": true
+    }
+  ],
+  "preferences": {
+    "language": "vi",
+    "currency": "VND",
+    "timezone": "Asia/Ho_Chi_Minh",
+    "newsletterSubscribed": false
+  },
+  "loyalty": {
+    "points": 697,
+    "tier": "gold",
+    "lastAccrualAt": "2025-03-10T08:00:00.000Z"
+  },
+  "consents": {
+    "termsAccepted": true,
+    "termsAcceptedAt": "2023-12-01T08:00:00Z",
+    "privacyAccepted": true,
+    "privacyAcceptedAt": "2023-12-01T08:05:00Z"
+  },
+  "tags": [
+    "sample"
+  ],
+  "status": "active",
+  "createdAt": "2024-01-24T08:00:00.000Z"
+},
+{
+  "_id": {
+    "$oid": "691c9a11caaa275d2c7303fa"
+  },
+  "firstName": "Dao",
+  "lastName": "Vo",
+  "fullName": "Dao Vo",
+  "email": "dao.vo.7@example.com",
+  "phone": "0989950214",
+  "gender": "female",
+  "avatarUrl": "https://i.pravatar.cc/150?img=17",
+  "country": "Germany",
+  "addresses": [
+    {
+      "label": "home",
+      "type": "shipping",
+      "isDefault": true,
+      "fullName": "Dao Vo",
+      "phone": "0989950214",
+      "addressLine1": "195 Hue City Street",
+      "district": "Hue City",
+      "city": "Hue",
+      "provinceCode": "TTH",
+      "country": "VN"
+    }
+  ],
+  "paymentMethods": [
+    {
+      "type": "bank",
+      "provider": "Vietcombank",
+      "accountNumber": "9704367891234567",
+      "accountName": "Dao Vo"
+    },
+    {
+      "type": "cash",
+      "isDefault": true
+    }
+  ],
+  "preferences": {
+    "language": "vi",
+    "currency": "VND",
+    "timezone": "Asia/Ho_Chi_Minh",
+    "newsletterSubscribed": true
+  },
+  "loyalty": {
+    "points": 219,
+    "tier": "silver",
+    "lastAccrualAt": "2025-04-08T08:00:00.000Z"
+  },
+  "consents": {
+    "termsAccepted": true,
+    "termsAcceptedAt": "2023-12-01T08:00:00Z",
+    "privacyAccepted": true,
+    "privacyAcceptedAt": "2023-12-01T08:05:00Z"
+  },
+  "tags": [
+    "sample"
+  ],
+  "status": "active",
+  "createdAt": "2023-10-26T08:00:00.000Z"
+},
+{
+  "_id": {
+    "$oid": "691c9a11caaa275d2c7303fb"
+  },
+  "firstName": "Kiet",
+  "lastName": "Pham",
+  "fullName": "Kiet Pham",
+  "email": "kiet.pham.8@example.com",
+  "phone": "0905065441",
+  "gender": "female",
+  "avatarUrl": "https://i.pravatar.cc/150?img=18",
+  "country": "France",
+  "addresses": [
+    {
+      "label": "home",
+      "type": "shipping",
+      "isDefault": true,
+      "fullName": "Kiet Pham",
+      "phone": "0905065441",
+      "addressLine1": "123 Go Vap Street",
+      "district": "Go Vap",
+      "city": "Ho Chi Minh City",
+      "provinceCode": "SG",
+      "country": "VN"
+    }
+  ],
+  "paymentMethods": [
+    {
+      "type": "momo",
+      "wallet": "0123456789",
+      "isDefault": false
+    },
+    {
+      "type": "cash",
+      "isDefault": true
+    }
+  ],
+  "preferences": {
+    "language": "vi",
+    "currency": "VND",
+    "timezone": "Asia/Ho_Chi_Minh",
+    "newsletterSubscribed": false
+  },
+  "loyalty": {
+    "points": 694,
+    "tier": "gold",
+    "lastAccrualAt": "2025-05-05T08:00:00.000Z"
+  },
+  "consents": {
+    "termsAccepted": true,
+    "termsAcceptedAt": "2023-12-01T08:00:00Z",
+    "privacyAccepted": true,
+    "privacyAcceptedAt": "2023-12-01T08:05:00Z"
+  },
+  "tags": [
+    "sample"
+  ],
+  "status": "active",
+  "createdAt": "2023-10-12T08:00:00.000Z"
+},
+{
+  "_id": {
+    "$oid": "691c9a11caaa275d2c7303fc"
+  },
+  "firstName": "Dao",
+  "lastName": "Truong",
+  "fullName": "Dao Truong",
+  "email": "dao.truong.9@example.com",
+  "phone": "0973527493",
+  "gender": "female",
+  "avatarUrl": "https://i.pravatar.cc/150?img=19",
+  "country": "United Kingdom",
+  "addresses": [
+    {
+      "label": "home",
+      "type": "shipping",
+      "isDefault": true,
+      "fullName": "Dao Truong",
+      "phone": "0973527493",
+      "addressLine1": "44 Vung Tau Street",
+      "district": "Vung Tau",
+      "city": "Vung Tau",
+      "provinceCode": "VT",
+      "country": "VN"
+    }
+  ],
+  "paymentMethods": [
+    {
+      "type": "card",
+      "brand": "VISA",
+      "holderName": "Dao Truong",
+      "last4": "2077",
+      "expMonth": 12,
+      "expYear": 2028
+    },
+    {
+      "type": "cash",
+      "isDefault": true
+    }
+  ],
+  "preferences": {
+    "language": "vi",
+    "currency": "VND",
+    "timezone": "Asia/Ho_Chi_Minh",
+    "newsletterSubscribed": true
+  },
+  "loyalty": {
+    "points": 589,
+    "tier": "gold",
+    "lastAccrualAt": "2025-06-23T08:00:00.000Z"
+  },
+  "consents": {
+    "termsAccepted": true,
+    "termsAcceptedAt": "2023-12-01T08:00:00Z",
+    "privacyAccepted": true,
+    "privacyAcceptedAt": "2023-12-01T08:05:00Z"
+  },
+  "tags": [
+    "sample"
+  ],
+  "status": "active",
+  "createdAt": "2024-01-16T08:00:00.000Z"
+},
+{
+  "_id": {
+    "$oid": "691c9a11caaa275d2c7303fd"
+  },
+  "firstName": "Yen",
+  "lastName": "Do",
+  "fullName": "Yen Do",
+  "email": "yen.do.10@example.com",
+  "phone": "0961073468",
+  "gender": "female",
+  "avatarUrl": "https://i.pravatar.cc/150?img=20",
+  "country": "Thailand",
+  "addresses": [
+    {
+      "label": "home",
+      "type": "shipping",
+      "isDefault": true,
+      "fullName": "Yen Do",
+      "phone": "0961073468",
+      "addressLine1": "60 Bien Hoa Street",
+      "district": "Bien Hoa",
+      "city": "Bien Hoa",
+      "provinceCode": "DNA",
+      "country": "VN"
+    }
+  ],
+  "paymentMethods": [
+    {
+      "type": "bank",
+      "provider": "Vietcombank",
+      "accountNumber": "9704367891234567",
+      "accountName": "Yen Do"
+    },
+    {
+      "type": "card",
+      "brand": "VISA",
+      "holderName": "Yen Do",
+      "last4": "2077",
+      "expMonth": 12,
+      "expYear": 2028
+    }
+  ],
+  "preferences": {
+    "language": "vi",
+    "currency": "VND",
+    "timezone": "Asia/Ho_Chi_Minh",
+    "newsletterSubscribed": false
+  },
+  "loyalty": {
+    "points": 819,
+    "tier": "platinum",
+    "lastAccrualAt": "2025-04-16T08:00:00.000Z"
+  },
+  "consents": {
+    "termsAccepted": true,
+    "termsAcceptedAt": "2023-12-01T08:00:00Z",
+    "privacyAccepted": true,
+    "privacyAcceptedAt": "2023-12-01T08:05:00Z"
+  },
+  "tags": [
+    "sample"
+  ],
+  "status": "active",
+  "createdAt": "2023-12-16T08:00:00.000Z"
+},
+{
+  "_id": {
+    "$oid": "691c9a11caaa275d2c7303fe"
+  },
+  "firstName": "Xuan",
+  "lastName": "Duong",
+  "fullName": "Xuan Duong",
+  "email": "xuan.duong.11@example.com",
+  "phone": "0944942732",
+  "gender": "female",
+  "avatarUrl": "https://i.pravatar.cc/150?img=21",
+  "country": "Malaysia",
+  "addresses": [
+    {
+      "label": "home",
+      "type": "shipping",
+      "isDefault": true,
+      "fullName": "Xuan Duong",
+      "phone": "0944942732",
+      "addressLine1": "54 Ngo Quyen Street",
+      "district": "Ngo Quyen",
+      "city": "Hai Phong",
+      "provinceCode": "HP",
+      "country": "VN"
+    }
+  ],
+  "paymentMethods": [
+    {
+      "type": "cash",
+      "isDefault": true
+    }
+  ],
+  "preferences": {
+    "language": "vi",
+    "currency": "VND",
+    "timezone": "Asia/Ho_Chi_Minh",
+    "newsletterSubscribed": false
+  },
+  "loyalty": {
+    "points": 664,
+    "tier": "gold",
+    "lastAccrualAt": "2025-05-16T08:00:00.000Z"
+  },
+  "consents": {
+    "termsAccepted": true,
+    "termsAcceptedAt": "2023-12-01T08:00:00Z",
+    "privacyAccepted": true,
+    "privacyAcceptedAt": "2023-12-01T08:05:00Z"
+  },
+  "tags": [
+    "sample"
+  ],
+  "status": "active",
+  "createdAt": "2024-01-14T08:00:00.000Z"
+},
+{
+  "_id": {
+    "$oid": "691c9a11caaa275d2c7303ff"
+  },
+  "firstName": "Uyen",
+  "lastName": "Vu",
+  "fullName": "Uyen Vu",
+  "email": "uyen.vu.12@example.com",
+  "phone": "0942202827",
+  "gender": "male",
+  "avatarUrl": "https://i.pravatar.cc/150?img=22",
+  "country": "Indonesia",
+  "addresses": [
+    {
+      "label": "home",
+      "type": "shipping",
+      "isDefault": true,
+      "fullName": "Uyen Vu",
+      "phone": "0942202827",
+      "addressLine1": "84 Vung Tau Street",
+      "district": "Vung Tau",
+      "city": "Vung Tau",
+      "provinceCode": "VT",
+      "country": "VN"
+    }
+  ],
+  "paymentMethods": [
+    {
+      "type": "bank",
+      "provider": "Vietcombank",
+      "accountNumber": "9704367891234567",
+      "accountName": "Uyen Vu"
+    },
+    {
+      "type": "cash",
+      "isDefault": true
+    }
+  ],
+  "preferences": {
+    "language": "vi",
+    "currency": "VND",
+    "timezone": "Asia/Ho_Chi_Minh",
+    "newsletterSubscribed": true
+  },
+  "loyalty": {
+    "points": 184,
+    "tier": "bronze",
+    "lastAccrualAt": "2025-05-19T08:00:00.000Z"
+  },
+  "consents": {
+    "termsAccepted": true,
+    "termsAcceptedAt": "2023-12-01T08:00:00Z",
+    "privacyAccepted": true,
+    "privacyAcceptedAt": "2023-12-01T08:05:00Z"
+  },
+  "tags": [
+    "sample"
+  ],
+  "status": "active",
+  "createdAt": "2023-11-12T08:00:00.000Z"
+},
+{
+  "_id": {
+    "$oid": "691c9a11caaa275d2c730400"
+  },
+  "firstName": "Xuan",
+  "lastName": "Hoang",
+  "fullName": "Xuan Hoang",
+  "email": "xuan.hoang.13@example.com",
+  "phone": "0972932316",
+  "gender": "male",
+  "avatarUrl": "https://i.pravatar.cc/150?img=23",
+  "country": "Philippines",
+  "addresses": [
+    {
+      "label": "home",
+      "type": "shipping",
+      "isDefault": true,
+      "fullName": "Xuan Hoang",
+      "phone": "0972932316",
+      "addressLine1": "207 Hai Chau Street",
+      "district": "Hai Chau",
+      "city": "Da Nang",
+      "provinceCode": "DN",
+      "country": "VN"
+    }
+  ],
+  "paymentMethods": [
+    {
+      "type": "momo",
+      "wallet": "0123456789",
+      "isDefault": false
+    },
+    {
+      "type": "cash",
+      "isDefault": true
+    }
+  ],
+  "preferences": {
+    "language": "vi",
+    "currency": "VND",
+    "timezone": "Asia/Ho_Chi_Minh",
+    "newsletterSubscribed": true
+  },
+  "loyalty": {
+    "points": 689,
+    "tier": "gold",
+    "lastAccrualAt": "2025-05-21T08:00:00.000Z"
+  },
+  "consents": {
+    "termsAccepted": true,
+    "termsAcceptedAt": "2023-12-01T08:00:00Z",
+    "privacyAccepted": true,
+    "privacyAcceptedAt": "2023-12-01T08:05:00Z"
+  },
+  "tags": [
+    "sample"
+  ],
+  "status": "active",
+  "createdAt": "2024-01-23T08:00:00.000Z"
+},
+{
+  "_id": {
+    "$oid": "691c9a11caaa275d2c730401"
+  },
+  "firstName": "Tam",
+  "lastName": "Dinh",
+  "fullName": "Tam Dinh",
+  "email": "tam.dinh.14@example.com",
+  "phone": "0983682574",
+  "gender": "female",
+  "avatarUrl": "https://i.pravatar.cc/150?img=24",
+  "country": "South Korea",
+  "addresses": [
+    {
+      "label": "home",
+      "type": "shipping",
+      "isDefault": true,
+      "fullName": "Tam Dinh",
+      "phone": "0983682574",
+      "addressLine1": "247 Nha Trang Street",
+      "district": "Nha Trang",
+      "city": "Nha Trang",
+      "provinceCode": "KH",
+      "country": "VN"
+    }
+  ],
+  "paymentMethods": [
+    {
+      "type": "card",
+      "brand": "VISA",
+      "holderName": "Tam Dinh",
+      "last4": "2077",
+      "expMonth": 12,
+      "expYear": 2028
+    },
+    {
+      "type": "cash",
+      "isDefault": true
+    }
+  ],
+  "preferences": {
+    "language": "en",
+    "currency": "VND",
+    "timezone": "Asia/Ho_Chi_Minh",
+    "newsletterSubscribed": true
+  },
+  "loyalty": {
+    "points": 324,
+    "tier": "silver",
+    "lastAccrualAt": "2025-01-14T08:00:00.000Z"
+  },
+  "consents": {
+    "termsAccepted": true,
+    "termsAcceptedAt": "2023-12-01T08:00:00Z",
+    "privacyAccepted": true,
+    "privacyAcceptedAt": "2023-12-01T08:05:00Z"
+  },
+  "tags": [
+    "sample"
+  ],
+  "status": "active",
+  "createdAt": "2024-01-28T08:00:00.000Z"
+},
+{
+  "_id": {
+    "$oid": "691c9a11caaa275d2c730402"
+  },
+  "firstName": "Yen",
+  "lastName": "Vo",
+  "fullName": "Yen Vo",
+  "email": "yen.vo.15@example.com",
+  "phone": "0997442946",
+  "gender": "female",
+  "avatarUrl": "https://i.pravatar.cc/150?img=25",
+  "country": "India",
+  "addresses": [
+    {
+      "label": "home",
+      "type": "shipping",
+      "isDefault": true,
+      "fullName": "Yen Vo",
+      "phone": "0997442946",
+      "addressLine1": "69 Cau Giay Street",
+      "district": "Cau Giay",
+      "city": "Hanoi",
+      "provinceCode": "HN",
+      "country": "VN"
+    }
+  ],
+  "paymentMethods": [
+    {
+      "type": "bank",
+      "provider": "Vietcombank",
+      "accountNumber": "9704367891234567",
+      "accountName": "Yen Vo"
+    },
+    {
+      "type": "card",
+      "brand": "VISA",
+      "holderName": "Yen Vo",
+      "last4": "2077",
+      "expMonth": 12,
+      "expYear": 2028
+    }
+  ],
+  "preferences": {
+    "language": "vi",
+    "currency": "VND",
+    "timezone": "Asia/Ho_Chi_Minh",
+    "newsletterSubscribed": false
+  },
+  "loyalty": {
+    "points": 330,
+    "tier": "silver",
+    "lastAccrualAt": "2025-01-29T08:00:00.000Z"
+  },
+  "consents": {
+    "termsAccepted": true,
+    "termsAcceptedAt": "2023-12-01T08:00:00Z",
+    "privacyAccepted": true,
+    "privacyAcceptedAt": "2023-12-01T08:05:00Z"
+  },
+  "tags": [
+    "sample"
+  ],
+  "status": "active",
+  "createdAt": "2023-12-01T08:00:00.000Z"
+},
+{
+  "_id": {
+    "$oid": "691c9a11caaa275d2c730403"
+  },
+  "firstName": "Binh",
+  "lastName": "Truong",
+  "fullName": "Binh Truong",
+  "email": "binh.truong.16@example.com",
+  "phone": "0902499711",
+  "gender": "female",
+  "avatarUrl": "https://i.pravatar.cc/150?img=26",
+  "country": "China",
+  "addresses": [
+    {
+      "label": "home",
+      "type": "shipping",
+      "isDefault": true,
+      "fullName": "Binh Truong",
+      "phone": "0902499711",
+      "addressLine1": "92 District 1 Street",
+      "district": "District 1",
+      "city": "Ho Chi Minh City",
+      "provinceCode": "SG",
+      "country": "VN"
+    }
+  ],
+  "paymentMethods": [
+    {
+      "type": "cash",
+      "isDefault": true
+    }
+  ],
+  "preferences": {
+    "language": "vi",
+    "currency": "VND",
+    "timezone": "Asia/Ho_Chi_Minh",
+    "newsletterSubscribed": true
+  },
+  "loyalty": {
+    "points": 93,
+    "tier": "bronze",
+    "lastAccrualAt": "2025-05-19T08:00:00.000Z"
+  },
+  "consents": {
+    "termsAccepted": true,
+    "termsAcceptedAt": "2023-12-01T08:00:00Z",
+    "privacyAccepted": true,
+    "privacyAcceptedAt": "2023-12-01T08:05:00Z"
+  },
+  "tags": [
+    "sample"
+  ],
+  "status": "inactive",
+  "createdAt": "2023-10-09T08:00:00.000Z"
+},
+{
+  "_id": {
+    "$oid": "691c9a11caaa275d2c730404"
+  },
+  "firstName": "Binh",
+  "lastName": "Nguyen",
+  "fullName": "Binh Nguyen",
+  "email": "binh.nguyen.17@example.com",
+  "phone": "0967359867",
+  "gender": "female",
+  "avatarUrl": "https://i.pravatar.cc/150?img=27",
+  "country": "Spain",
+  "addresses": [
+    {
+      "label": "home",
+      "type": "shipping",
+      "isDefault": true,
+      "fullName": "Binh Nguyen",
+      "phone": "0967359867",
+      "addressLine1": "160 Ngo Quyen Street",
+      "district": "Ngo Quyen",
+      "city": "Hai Phong",
+      "provinceCode": "HP",
+      "country": "VN"
+    }
+  ],
+  "paymentMethods": [
+    {
+      "type": "bank",
+      "provider": "Vietcombank",
+      "accountNumber": "9704367891234567",
+      "accountName": "Binh Nguyen"
+    },
+    {
+      "type": "cash",
+      "isDefault": true
+    }
+  ],
+  "preferences": {
+    "language": "vi",
+    "currency": "VND",
+    "timezone": "Asia/Ho_Chi_Minh",
+    "newsletterSubscribed": false
+  },
+  "loyalty": {
+    "points": 486,
+    "tier": "gold",
+    "lastAccrualAt": "2025-07-08T08:00:00.000Z"
+  },
+  "consents": {
+    "termsAccepted": true,
+    "termsAcceptedAt": "2023-12-01T08:00:00Z",
+    "privacyAccepted": true,
+    "privacyAcceptedAt": "2023-12-01T08:05:00Z"
+  },
+  "tags": [
+    "sample"
+  ],
+  "status": "active",
+  "createdAt": "2023-10-19T08:00:00.000Z"
+},
+{
+  "_id": {
+    "$oid": "691c9a11caaa275d2c730405"
+  },
+  "firstName": "Hieu",
+  "lastName": "Bui",
+  "fullName": "Hieu Bui",
+  "email": "hieu.bui.18@example.com",
+  "phone": "0919950614",
+  "gender": "female",
+  "avatarUrl": "https://i.pravatar.cc/150?img=28",
+  "country": "Italy",
+  "addresses": [
+    {
+      "label": "home",
+      "type": "shipping",
+      "isDefault": true,
+      "fullName": "Hieu Bui",
+      "phone": "0919950614",
+      "addressLine1": "51 Quy Nhon Street",
+      "district": "Quy Nhon",
+      "city": "Quy Nhon",
+      "provinceCode": "BD",
+      "country": "VN"
+    }
+  ],
+  "paymentMethods": [
+    {
+      "type": "momo",
+      "wallet": "0123456789",
+      "isDefault": false
+    },
+    {
+      "type": "cash",
+      "isDefault": true
+    }
+  ],
+  "preferences": {
+    "language": "vi",
+    "currency": "VND",
+    "timezone": "Asia/Ho_Chi_Minh",
+    "newsletterSubscribed": true
+  },
+  "loyalty": {
+    "points": 1177,
+    "tier": "platinum",
+    "lastAccrualAt": "2025-01-10T08:00:00.000Z"
+  },
+  "consents": {
+    "termsAccepted": true,
+    "termsAcceptedAt": "2023-12-01T08:00:00Z",
+    "privacyAccepted": true,
+    "privacyAcceptedAt": "2023-12-01T08:05:00Z"
+  },
+  "tags": [
+    "sample"
+  ],
+  "status": "active",
+  "createdAt": "2023-10-09T08:00:00.000Z"
+},
+{
+  "_id": {
+    "$oid": "691c9a11caaa275d2c730406"
+  },
+  "firstName": "Huong",
+  "lastName": "Dang",
+  "fullName": "Huong Dang",
+  "email": "huong.dang.19@example.com",
+  "phone": "0999724104",
+  "gender": "male",
+  "avatarUrl": "https://i.pravatar.cc/150?img=29",
+  "country": "Brazil",
+  "addresses": [
+    {
+      "label": "home",
+      "type": "shipping",
+      "isDefault": true,
+      "fullName": "Huong Dang",
+      "phone": "0999724104",
+      "addressLine1": "81 Go Vap Street",
+      "district": "Go Vap",
+      "city": "Ho Chi Minh City",
+      "provinceCode": "SG",
+      "country": "VN"
+    }
+  ],
+  "paymentMethods": [
+    {
+      "type": "card",
+      "brand": "VISA",
+      "holderName": "Huong Dang",
+      "last4": "2077",
+      "expMonth": 12,
+      "expYear": 2028
+    },
+    {
+      "type": "cash",
+      "isDefault": true
+    }
+  ],
+  "preferences": {
+    "language": "vi",
+    "currency": "VND",
+    "timezone": "Asia/Ho_Chi_Minh",
+    "newsletterSubscribed": false
+  },
+  "loyalty": {
+    "points": 950,
+    "tier": "platinum",
+    "lastAccrualAt": "2025-07-03T08:00:00.000Z"
+  },
+  "consents": {
+    "termsAccepted": true,
+    "termsAcceptedAt": "2023-12-01T08:00:00Z",
+    "privacyAccepted": true,
+    "privacyAcceptedAt": "2023-12-01T08:05:00Z"
+  },
+  "tags": [
+    "sample"
+  ],
+  "status": "active",
+  "createdAt": "2024-01-27T08:00:00.000Z"
+},
+{
+  "_id": {
+    "$oid": "691c9a11caaa275d2c730407"
+  },
+  "firstName": "An",
+  "lastName": "Truong",
+  "fullName": "An Truong",
+  "email": "an.truong.20@example.com",
+  "phone": "0907679622",
+  "gender": "female",
+  "avatarUrl": "https://i.pravatar.cc/150?img=30",
+  "country": "Mexico",
+  "addresses": [
+    {
+      "label": "home",
+      "type": "shipping",
+      "isDefault": true,
+      "fullName": "An Truong",
+      "phone": "0907679622",
+      "addressLine1": "187 Hai Chau Street",
+      "district": "Hai Chau",
+      "city": "Da Nang",
+      "provinceCode": "DN",
+      "country": "VN"
+    }
+  ],
+  "paymentMethods": [
+    {
+      "type": "bank",
+      "provider": "Vietcombank",
+      "accountNumber": "9704367891234567",
+      "accountName": "An Truong"
+    },
+    {
+      "type": "card",
+      "brand": "VISA",
+      "holderName": "An Truong",
+      "last4": "2077",
+      "expMonth": 12,
+      "expYear": 2028
+    }
+  ],
+  "preferences": {
+    "language": "vi",
+    "currency": "VND",
+    "timezone": "Asia/Ho_Chi_Minh",
+    "newsletterSubscribed": false
+  },
+  "loyalty": {
+    "points": 764,
+    "tier": "gold",
+    "lastAccrualAt": "2025-04-05T08:00:00.000Z"
+  },
+  "consents": {
+    "termsAccepted": true,
+    "termsAcceptedAt": "2023-12-01T08:00:00Z",
+    "privacyAccepted": true,
+    "privacyAcceptedAt": "2023-12-01T08:05:00Z"
+  },
+  "tags": [
+    "sample"
+  ],
+  "status": "active",
+  "createdAt": "2023-12-25T08:00:00.000Z"
+},
+{
+  "_id": {
+    "$oid": "691c9a11caaa275d2c730408"
+  },
+  "firstName": "Tu",
+  "lastName": "Dinh",
+  "fullName": "Tu Dinh",
+  "email": "tu.dinh.21@example.com",
+  "phone": "0905343180",
+  "gender": "female",
+  "avatarUrl": "https://i.pravatar.cc/150?img=31",
+  "country": "Netherlands",
+  "addresses": [
+    {
+      "label": "home",
+      "type": "shipping",
+      "isDefault": true,
+      "fullName": "Tu Dinh",
+      "phone": "0905343180",
+      "addressLine1": "235 Vung Tau Street",
+      "district": "Vung Tau",
+      "city": "Vung Tau",
+      "provinceCode": "VT",
+      "country": "VN"
+    }
+  ],
+  "paymentMethods": [
+    {
+      "type": "cash",
+      "isDefault": true
+    }
+  ],
+  "preferences": {
+    "language": "en",
+    "currency": "VND",
+    "timezone": "Asia/Ho_Chi_Minh",
+    "newsletterSubscribed": false
+  },
+  "loyalty": {
+    "points": 128,
+    "tier": "bronze",
+    "lastAccrualAt": "2025-03-29T08:00:00.000Z"
+  },
+  "consents": {
+    "termsAccepted": true,
+    "termsAcceptedAt": "2023-12-01T08:00:00Z",
+    "privacyAccepted": true,
+    "privacyAcceptedAt": "2023-12-01T08:05:00Z"
+  },
+  "tags": [
+    "sample"
+  ],
+  "status": "active",
+  "createdAt": "2024-01-08T08:00:00.000Z"
+},
+{
+  "_id": {
+    "$oid": "691c9a11caaa275d2c730409"
+  },
+  "firstName": "Nam",
+  "lastName": "Do",
+  "fullName": "Nam Do",
+  "email": "nam.do.22@example.com",
+  "phone": "0927384180",
+  "gender": "female",
+  "avatarUrl": "https://i.pravatar.cc/150?img=32",
+  "country": "Sweden",
+  "addresses": [
+    {
+      "label": "home",
+      "type": "shipping",
+      "isDefault": true,
+      "fullName": "Nam Do",
+      "phone": "0927384180",
+      "addressLine1": "52 Go Vap Street",
+      "district": "Go Vap",
+      "city": "Ho Chi Minh City",
+      "provinceCode": "SG",
+      "country": "VN"
+    }
+  ],
+  "paymentMethods": [
+    {
+      "type": "bank",
+      "provider": "Vietcombank",
+      "accountNumber": "9704367891234567",
+      "accountName": "Nam Do"
+    },
+    {
+      "type": "cash",
+      "isDefault": true
+    }
+  ],
+  "preferences": {
+    "language": "vi",
+    "currency": "VND",
+    "timezone": "Asia/Ho_Chi_Minh",
+    "newsletterSubscribed": true
+  },
+  "loyalty": {
+    "points": 300,
+    "tier": "silver",
+    "lastAccrualAt": "2025-05-26T08:00:00.000Z"
+  },
+  "consents": {
+    "termsAccepted": true,
+    "termsAcceptedAt": "2023-12-01T08:00:00Z",
+    "privacyAccepted": true,
+    "privacyAcceptedAt": "2023-12-01T08:05:00Z"
+  },
+  "tags": [
+    "sample"
+  ],
+  "status": "active",
+  "createdAt": "2023-12-04T08:00:00.000Z"
+},
+{
+  "_id": {
+    "$oid": "691c9a11caaa275d2c73040a"
+  },
+  "firstName": "Chi",
+  "lastName": "Hoang",
+  "fullName": "Chi Hoang",
+  "email": "chi.hoang.23@example.com",
+  "phone": "0996382342",
+  "gender": "male",
+  "avatarUrl": "https://i.pravatar.cc/150?img=33",
+  "country": "Norway",
+  "addresses": [
+    {
+      "label": "home",
+      "type": "shipping",
+      "isDefault": true,
+      "fullName": "Chi Hoang",
+      "phone": "0996382342",
+      "addressLine1": "162 Hai Chau Street",
+      "district": "Hai Chau",
+      "city": "Da Nang",
+      "provinceCode": "DN",
+      "country": "VN"
+    }
+  ],
+  "paymentMethods": [
+    {
+      "type": "momo",
+      "wallet": "0123456789",
+      "isDefault": false
+    },
+    {
+      "type": "cash",
+      "isDefault": true
+    }
+  ],
+  "preferences": {
+    "language": "vi",
+    "currency": "VND",
+    "timezone": "Asia/Ho_Chi_Minh",
+    "newsletterSubscribed": false
+  },
+  "loyalty": {
+    "points": 527,
+    "tier": "gold",
+    "lastAccrualAt": "2025-01-24T08:00:00.000Z"
+  },
+  "consents": {
+    "termsAccepted": true,
+    "termsAcceptedAt": "2023-12-01T08:00:00Z",
+    "privacyAccepted": true,
+    "privacyAcceptedAt": "2023-12-01T08:05:00Z"
+  },
+  "tags": [
+    "sample"
+  ],
+  "status": "active",
+  "createdAt": "2023-12-11T08:00:00.000Z"
+},
+{
+  "_id": {
+    "$oid": "691c9a11caaa275d2c73040b"
+  },
+  "firstName": "Khanh",
+  "lastName": "Vo",
+  "fullName": "Khanh Vo",
+  "email": "khanh.vo.24@example.com",
+  "phone": "0964720996",
+  "gender": "female",
+  "avatarUrl": "https://i.pravatar.cc/150?img=34",
+  "country": "Finland",
+  "addresses": [
+    {
+      "label": "home",
+      "type": "shipping",
+      "isDefault": true,
+      "fullName": "Khanh Vo",
+      "phone": "0964720996",
+      "addressLine1": "197 Go Vap Street",
+      "district": "Go Vap",
+      "city": "Ho Chi Minh City",
+      "provinceCode": "SG",
+      "country": "VN"
+    }
+  ],
+  "paymentMethods": [
+    {
+      "type": "card",
+      "brand": "VISA",
+      "holderName": "Khanh Vo",
+      "last4": "2077",
+      "expMonth": 12,
+      "expYear": 2028
+    },
+    {
+      "type": "cash",
+      "isDefault": true
+    }
+  ],
+  "preferences": {
+    "language": "vi",
+    "currency": "VND",
+    "timezone": "Asia/Ho_Chi_Minh",
+    "newsletterSubscribed": false
+  },
+  "loyalty": {
+    "points": 864,
+    "tier": "platinum",
+    "lastAccrualAt": "2025-06-24T08:00:00.000Z"
+  },
+  "consents": {
+    "termsAccepted": true,
+    "termsAcceptedAt": "2023-12-01T08:00:00Z",
+    "privacyAccepted": true,
+    "privacyAcceptedAt": "2023-12-01T08:05:00Z"
+  },
+  "tags": [
+    "sample"
+  ],
+  "status": "active",
+  "createdAt": "2023-12-03T08:00:00.000Z"
+},
+{
+  "_id": {
+    "$oid": "691c9a11caaa275d2c73040c"
+  },
+  "firstName": "Son",
+  "lastName": "Le",
+  "fullName": "Son Le",
+  "email": "son.le.25@example.com",
+  "phone": "0937645144",
+  "gender": "female",
+  "avatarUrl": "https://i.pravatar.cc/150?img=35",
+  "country": "Denmark",
+  "addresses": [
+    {
+      "label": "home",
+      "type": "shipping",
+      "isDefault": true,
+      "fullName": "Son Le",
+      "phone": "0937645144",
+      "addressLine1": "87 Go Vap Street",
+      "district": "Go Vap",
+      "city": "Ho Chi Minh City",
+      "provinceCode": "SG",
+      "country": "VN"
+    }
+  ],
+  "paymentMethods": [
+    {
+      "type": "bank",
+      "provider": "Vietcombank",
+      "accountNumber": "9704367891234567",
+      "accountName": "Son Le"
+    },
+    {
+      "type": "card",
+      "brand": "VISA",
+      "holderName": "Son Le",
+      "last4": "2077",
+      "expMonth": 12,
+      "expYear": 2028
+    }
+  ],
+  "preferences": {
+    "language": "vi",
+    "currency": "VND",
+    "timezone": "Asia/Ho_Chi_Minh",
+    "newsletterSubscribed": false
+  },
+  "loyalty": {
+    "points": 992,
+    "tier": "platinum",
+    "lastAccrualAt": "2025-07-10T08:00:00.000Z"
+  },
+  "consents": {
+    "termsAccepted": true,
+    "termsAcceptedAt": "2023-12-01T08:00:00Z",
+    "privacyAccepted": true,
+    "privacyAcceptedAt": "2023-12-01T08:05:00Z"
+  },
+  "tags": [
+    "sample"
+  ],
+  "status": "active",
+  "createdAt": "2023-12-28T08:00:00.000Z"
+},
+{
+  "_id": {
+    "$oid": "691c9a11caaa275d2c73040d"
+  },
+  "firstName": "Minh",
+  "lastName": "Ngo",
+  "fullName": "Minh Ngo",
+  "email": "minh.ngo.26@example.com",
+  "phone": "0961560440",
+  "gender": "male",
+  "avatarUrl": "https://i.pravatar.cc/150?img=36",
+  "country": "Poland",
+  "addresses": [
+    {
+      "label": "home",
+      "type": "shipping",
+      "isDefault": true,
+      "fullName": "Minh Ngo",
+      "phone": "0961560440",
+      "addressLine1": "118 Ninh Kieu Street",
+      "district": "Ninh Kieu",
+      "city": "Can Tho",
+      "provinceCode": "CT",
+      "country": "VN"
+    }
+  ],
+  "paymentMethods": [
+    {
+      "type": "cash",
+      "isDefault": true
+    }
+  ],
+  "preferences": {
+    "language": "vi",
+    "currency": "VND",
+    "timezone": "Asia/Ho_Chi_Minh",
+    "newsletterSubscribed": true
+  },
+  "loyalty": {
+    "points": 805,
+    "tier": "platinum",
+    "lastAccrualAt": "2025-04-29T08:00:00.000Z"
+  },
+  "consents": {
+    "termsAccepted": true,
+    "termsAcceptedAt": "2023-12-01T08:00:00Z",
+    "privacyAccepted": true,
+    "privacyAcceptedAt": "2023-12-01T08:05:00Z"
+  },
+  "tags": [
+    "sample"
+  ],
+  "status": "active",
+  "createdAt": "2023-12-23T08:00:00.000Z"
+},
+{
+  "_id": {
+    "$oid": "691c9a11caaa275d2c73040e"
+  },
+  "firstName": "Yen",
+  "lastName": "Phan",
+  "fullName": "Yen Phan",
+  "email": "yen.phan.27@example.com",
+  "phone": "0946495329",
+  "gender": "female",
+  "avatarUrl": "https://i.pravatar.cc/150?img=37",
+  "country": "Portugal",
+  "addresses": [
+    {
+      "label": "home",
+      "type": "shipping",
+      "isDefault": true,
+      "fullName": "Yen Phan",
+      "phone": "0946495329",
+      "addressLine1": "16 Hue City Street",
+      "district": "Hue City",
+      "city": "Hue",
+      "provinceCode": "TTH",
+      "country": "VN"
+    }
+  ],
+  "paymentMethods": [
+    {
+      "type": "bank",
+      "provider": "Vietcombank",
+      "accountNumber": "9704367891234567",
+      "accountName": "Yen Phan"
+    },
+    {
+      "type": "cash",
+      "isDefault": true
+    }
+  ],
+  "preferences": {
+    "language": "vi",
+    "currency": "VND",
+    "timezone": "Asia/Ho_Chi_Minh",
+    "newsletterSubscribed": true
+  },
+  "loyalty": {
+    "points": 75,
+    "tier": "bronze",
+    "lastAccrualAt": "2025-02-17T08:00:00.000Z"
+  },
+  "consents": {
+    "termsAccepted": true,
+    "termsAcceptedAt": "2023-12-01T08:00:00Z",
+    "privacyAccepted": true,
+    "privacyAcceptedAt": "2023-12-01T08:05:00Z"
+  },
+  "tags": [
+    "sample"
+  ],
+  "status": "active",
+  "createdAt": "2024-01-26T08:00:00.000Z"
+},
+{
+  "_id": {
+    "$oid": "691c9a11caaa275d2c73040f"
+  },
+  "firstName": "Linh",
+  "lastName": "Dang",
+  "fullName": "Linh Dang",
+  "email": "linh.dang.28@example.com",
+  "phone": "0981162624",
+  "gender": "male",
+  "avatarUrl": "https://i.pravatar.cc/150?img=38",
+  "country": "Ireland",
+  "addresses": [
+    {
+      "label": "home",
+      "type": "shipping",
+      "isDefault": true,
+      "fullName": "Linh Dang",
+      "phone": "0981162624",
+      "addressLine1": "160 Bien Hoa Street",
+      "district": "Bien Hoa",
+      "city": "Bien Hoa",
+      "provinceCode": "DNA",
+      "country": "VN"
+    }
+  ],
+  "paymentMethods": [
+    {
+      "type": "momo",
+      "wallet": "0123456789",
+      "isDefault": false
+    },
+    {
+      "type": "cash",
+      "isDefault": true
+    }
+  ],
+  "preferences": {
+    "language": "vi",
+    "currency": "VND",
+    "timezone": "Asia/Ho_Chi_Minh",
+    "newsletterSubscribed": false
+  },
+  "loyalty": {
+    "points": 321,
+    "tier": "silver",
+    "lastAccrualAt": "2025-05-23T08:00:00.000Z"
+  },
+  "consents": {
+    "termsAccepted": true,
+    "termsAcceptedAt": "2023-12-01T08:00:00Z",
+    "privacyAccepted": true,
+    "privacyAcceptedAt": "2023-12-01T08:05:00Z"
+  },
+  "tags": [
+    "sample"
+  ],
+  "status": "active",
+  "createdAt": "2024-01-02T08:00:00.000Z"
+},
+{
+  "_id": {
+    "$oid": "691c9a11caaa275d2c730410"
+  },
+  "firstName": "Tu",
+  "lastName": "Pham",
+  "fullName": "Tu Pham",
+  "email": "tu.pham.29@example.com",
+  "phone": "0928049147",
+  "gender": "female",
+  "avatarUrl": "https://i.pravatar.cc/150?img=39",
+  "country": "United Arab Emirates",
+  "addresses": [
+    {
+      "label": "home",
+      "type": "shipping",
+      "isDefault": true,
+      "fullName": "Tu Pham",
+      "phone": "0928049147",
+      "addressLine1": "80 Bien Hoa Street",
+      "district": "Bien Hoa",
+      "city": "Bien Hoa",
+      "provinceCode": "DNA",
+      "country": "VN"
+    }
+  ],
+  "paymentMethods": [
+    {
+      "type": "card",
+      "brand": "VISA",
+      "holderName": "Tu Pham",
+      "last4": "2077",
+      "expMonth": 12,
+      "expYear": 2028
+    },
+    {
+      "type": "cash",
+      "isDefault": true
+    }
+  ],
+  "preferences": {
+    "language": "vi",
+    "currency": "VND",
+    "timezone": "Asia/Ho_Chi_Minh",
+    "newsletterSubscribed": true
+  },
+  "loyalty": {
+    "points": 333,
+    "tier": "silver",
+    "lastAccrualAt": "2025-04-21T08:00:00.000Z"
+  },
+  "consents": {
+    "termsAccepted": true,
+    "termsAcceptedAt": "2023-12-01T08:00:00Z",
+    "privacyAccepted": true,
+    "privacyAcceptedAt": "2023-12-01T08:05:00Z"
+  },
+  "tags": [
+    "sample"
+  ],
+  "status": "active",
+  "createdAt": "2023-11-26T08:00:00.000Z"
+},
+{
+  "_id": {
+    "$oid": "691c9a11caaa275d2c730411"
+  },
+  "firstName": "Huong",
+  "lastName": "Truong",
+  "fullName": "Huong Truong",
+  "email": "huong.truong.30@example.com",
+  "phone": "0942313131",
+  "gender": "male",
+  "avatarUrl": "https://i.pravatar.cc/150?img=40",
+  "country": "New Zealand",
+  "addresses": [
+    {
+      "label": "home",
+      "type": "shipping",
+      "isDefault": true,
+      "fullName": "Huong Truong",
+      "phone": "0942313131",
+      "addressLine1": "168 District 1 Street",
+      "district": "District 1",
+      "city": "Ho Chi Minh City",
+      "provinceCode": "SG",
+      "country": "VN"
+    }
+  ],
+  "paymentMethods": [
+    {
+      "type": "bank",
+      "provider": "Vietcombank",
+      "accountNumber": "9704367891234567",
+      "accountName": "Huong Truong"
+    },
+    {
+      "type": "card",
+      "brand": "VISA",
+      "holderName": "Huong Truong",
+      "last4": "2077",
+      "expMonth": 12,
+      "expYear": 2028
+    }
+  ],
+  "preferences": {
+    "language": "vi",
+    "currency": "VND",
+    "timezone": "Asia/Ho_Chi_Minh",
+    "newsletterSubscribed": false
+  },
+  "loyalty": {
+    "points": 479,
+    "tier": "gold",
+    "lastAccrualAt": "2025-01-04T08:00:00.000Z"
+  },
+  "consents": {
+    "termsAccepted": true,
+    "termsAcceptedAt": "2023-12-01T08:00:00Z",
+    "privacyAccepted": true,
+    "privacyAcceptedAt": "2023-12-01T08:05:00Z"
+  },
+  "tags": [
+    "sample"
+  ],
+  "status": "active",
+  "createdAt": "2023-11-06T08:00:00.000Z"
+}]

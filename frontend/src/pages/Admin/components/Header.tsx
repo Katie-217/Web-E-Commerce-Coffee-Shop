@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Search, Bell, Settings } from 'lucide-react';
+import { Search, Bell } from 'lucide-react';
 
 interface HeaderProps {
   onToggleSidebar?: () => void;
@@ -32,9 +32,6 @@ const Header: React.FC<HeaderProps> = ({ logoUrl }) => {
       <div className="flex items-center space-x-4">
         <button className="p-2 rounded-full hover:bg-gray-700 text-gray-400 hover:text-white">
           <Bell className="w-6 h-6" />
-        </button>
-        <button className="p-2 rounded-full hover:bg-gray-700 text-gray-400 hover:text-white">
-          <Settings className="w-6 h-6" />
         </button>
         <div className="flex items-center space-x-3">
           <img

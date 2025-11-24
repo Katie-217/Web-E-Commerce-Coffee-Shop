@@ -3,6 +3,8 @@ import React, { useEffect, useState } from "react";
 import { useCart } from "../../contexts/CartContext";
 import CartSummary from "./CartSummary";
 import "./cart-page.css";
+import { useNavigate } from "react-router-dom"; 
+
 
 function formatVND(n) {
   return new Intl.NumberFormat("vi-VN", {
@@ -13,6 +15,7 @@ function formatVND(n) {
 }
 
 export default function CartPage() {
+  const navigate = useNavigate();
   const {
     items,
     removeFromCart,
@@ -46,6 +49,24 @@ export default function CartPage() {
 
   const allSelected =
     hasItems && selectedItems.length === items.length && items.length > 0;
+
+  const handleCheckout = () => {
+    if (!selectedItems.length) {
+      alert("Bạn chưa chọn sản phẩm nào để thanh toán.");
+      return;
+    }
+
+    // Nếu muốn yêu cầu đăng nhập, bạn có thể check useAuth ở đây rồi điều hướng /login
+
+    // Điều hướng tới trang checkout, kèm state chứa các item đã chọn
+    navigate("/checkout", {
+      state: {
+        items: selectedItems,
+        subtotal: selectedSubtotal,
+      },
+    });
+  };
+
 
   const handleChangeVariant = (item, newIndex) => {
     if (!Array.isArray(item.variantOptions) || !item.variantOptions[newIndex]) {
@@ -274,7 +295,8 @@ export default function CartPage() {
 
       {/* Cột phải: tóm tắt đơn hàng (chỉ tính sản phẩm đã tick) */}
       <aside className="cart-aside">
-        <CartSummary cart={{ items: selectedItems }} />
+        <CartSummary cart={{ items: selectedItems }} 
+        onCheckout={handleCheckout}/>
       </aside>
     </main>
   );

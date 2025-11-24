@@ -1,13 +1,16 @@
+// src/lib/client.js
 // Minimal fetch wrapper for frontend API calls
-// - Base URL from Vite env
+// - Base URL từ biến môi trường CRA
 // - JSON by default
-// - Basic error handling and timeout support
-
-const { VITE_API_BASE_URL, VITE_API_URL } = import.meta.env || {};
+// - Basic error handling và timeout support
 
 const API_BASE_URL =
-  VITE_API_BASE_URL ||
-  VITE_API_URL ||
+  // CRA env
+  process.env.REACT_APP_API_BASE_URL ||
+  process.env.REACT_APP_API_URL ||
+  // nếu bạn có inject runtime env qua window._env_ (optional)
+  (typeof window !== 'undefined' && window._env_ && (window._env_.API_BASE_URL || window._env_.API_URL)) ||
+  // fallback local
   'http://localhost:3001/api';
 
 const DEFAULT_TIMEOUT_MS = 15000;
@@ -28,7 +31,7 @@ function applyQuery(url, params) {
   return u.toString();
 }
 
-let authTokenProvider = null; // optional callback to get token
+let authTokenProvider = null; // optional callback để lấy token
 export function setAuthTokenProvider(fn) {
   authTokenProvider = fn;
 }
@@ -52,7 +55,7 @@ async function request(
   let authHeader = null;
   if (authTokenProvider) {
     authHeader = await authTokenProvider();
-  } else {
+  } else if (typeof window !== 'undefined') {
     const token = localStorage.getItem('token');
     if (token) authHeader = `Bearer ${token}`;
   }

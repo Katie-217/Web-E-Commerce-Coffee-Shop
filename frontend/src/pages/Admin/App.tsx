@@ -6,17 +6,11 @@ import Products from './pages/products/Products';
 import Orders from './pages/orders/Orders';
 import Customers from './pages/customers/CustomerList';
 import CustomerDetail from './pages/customers/CustomerDetail';
+import AddCustomer from './pages/customers/AddCustomer';
 import AddProduct from './pages/products/AddProduct';
 import CategoryList from './pages/products/CategoryList';
-import Settings from './pages/settings/Settings';
-import StoreDetails from './pages/settings/StoreDetails';
-import Payments from './pages/settings/Payments';
-import Checkout from './pages/settings/Checkout';
-import ShippingDelivery from './pages/settings/ShippingDelivery';
-import Locations from './pages/settings/Locations';
-import Notifications from './pages/settings/Notifications';
-
-
+import ProductDetail from './pages/products/ProductDetail';
+import { Product } from './types';
 
 const App: React.FC = () => {
   const [activePage, setActivePage] = useState('Dashboard');
@@ -25,17 +19,32 @@ const App: React.FC = () => {
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [orderDetailFromCustomer, setOrderDetailFromCustomer] = useState(false);
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedProductId, setSelectedProductId] = useState<string | number | null>(null);
 
   const renderPage = () => {
     switch (activePage) {
       case 'Dashboard':
         return <Dashboard />;
       case 'Product List':
-        return <Products 
-          setActivePage={setActivePage} 
-          selectedCategory={selectedCategoryFilter}
-          onClearSelectedCategory={() => setSelectedCategoryFilter(null)}
-        />;
+        return (
+          <Products
+            setActivePage={setActivePage}
+            selectedCategory={selectedCategoryFilter}
+            onClearSelectedCategory={() => setSelectedCategoryFilter(null)}
+            onProductClick={(product) => {
+              const derivedId =
+                (product as any)?._id ??
+                (product as any)?.id ??
+                (product as any)?.productId ??
+                product.id ??
+                null;
+              setSelectedProduct(product);
+              setSelectedProductId(derivedId);
+              setActivePage('Product Detail');
+            }}
+          />
+        );
       case 'Add Product':
         return <AddProduct onBack={() => setActivePage('Product List')} setActivePage={setActivePage} />;
       case 'Category List':
@@ -61,36 +70,64 @@ const App: React.FC = () => {
           }}
         />;
       case 'Customers':
-        return <Customers onSelectCustomer={(id) => { setSelectedCustomerId(id); setActivePage('Customer Detail'); }} />;
+        return <Customers 
+          onSelectCustomer={(id) => { 
+            setSelectedCustomerId(id); 
+            setActivePage('Customer Detail'); 
+          }}
+          setActivePage={setActivePage}
+        />;
+      case 'Add Customer':
+        return <AddCustomer 
+          onBack={() => setActivePage('Customers')} 
+          setActivePage={setActivePage} 
+        />;
       case 'Customer Detail':
         return <CustomerDetail 
           customerId={selectedCustomerId} 
-          onBack={() => setActivePage('Customers')} 
+          onBack={() => {
+            setSelectedCustomerId(null);
+            setActivePage('Customers');
+          }} 
           onOrderClick={(orderId) => {
             setSelectedOrderId(orderId);
             setOrderDetailFromCustomer(true);
             setActivePage('Orders');
           }}
         />;
-      case 'Store Details':
-        return <StoreDetails />;
-      case 'Payments':
-        return <Payments />;
-      case 'Checkout':
-        return <Checkout />;
-      case 'Shipping & Delivery':
-        return <ShippingDelivery />;
-      case 'Locations':
-        return <Locations />;
-      case 'Notifications':
-        return <Notifications />;
+      case 'Product Detail':
+        return (
+          <ProductDetail
+            productId={selectedProductId}
+            initialProduct={
+              selectedProduct
+                ? {
+                    name: selectedProduct.name,
+                    sku: (selectedProduct as any).sku,
+                    description: (selectedProduct as any).description,
+                    category: (selectedProduct as any).category,
+                    price: (selectedProduct as any).price,
+                    quantity: (selectedProduct as any).quantity,
+                    status: (selectedProduct as any).status,
+                    stock: (selectedProduct as any).stock,
+                    imageUrl: (selectedProduct as any).imageUrl,
+                  }
+                : undefined
+            }
+            onBack={() => {
+              setSelectedProduct(null);
+              setSelectedProductId(null);
+              setActivePage('Product List');
+            }}
+          />
+        );
       default:
         return <Dashboard />;
     }
   };
 
   return (
-    <div className="flex h-screen bg-background-dark text-text-primary relative">
+    <div className="flex min-h-screen bg-background-dark text-text-primary relative">
       <Sidebar
         activePage={activePage}
         setActivePage={(page) => {
@@ -116,7 +153,7 @@ const App: React.FC = () => {
         <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
       </button>
       {/* Main content */}
-      <div className={`flex-1 flex flex-col overflow-y-auto pt-16 pl-72 pb-8`}>
+      <div className={`flex-1 flex flex-col pt-16 pl-72 pb-8`}>
         <div className="flex-1 p-4 md:p-6 lg:p-8">
           {renderPage()}
         </div>

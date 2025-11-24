@@ -30,7 +30,7 @@ const addressSchema = new mongoose.Schema({
 const paymentMethodSchema = new mongoose.Schema({
   type: {
     type: String,
-    enum: ['cash', 'card', 'bank'],
+    enum: ['cash', 'card', 'bank', 'momo', 'zaloPay'],
     required: true
   },
   isDefault: {
@@ -71,6 +71,11 @@ const customerSchema = new mongoose.Schema({
     lowercase: true,
     trim: true
   },
+  password: {
+  type: String,
+  required: false,   // để không bị lỗi với dữ liệu cũ
+},
+
   phone: {
     type: String,
     trim: true
@@ -96,7 +101,9 @@ const customerSchema = new mongoose.Schema({
   updatedAt: {
     type: Date,
     default: Date.now
-  }
+  },
+  resetPasswordOtp: { type: String },      // mã OTP (6 số)
+    resetPasswordExpires: { type: Date },    // hết hạn
 }, {
   timestamps: true
 });

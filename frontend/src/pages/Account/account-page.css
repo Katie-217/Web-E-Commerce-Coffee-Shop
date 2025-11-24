@@ -1,0 +1,897 @@
+/* ===========================
+   ACCOUNT PAGE – PROFILE CHUYÊN NGHIỆP, DỄ NHÌN
+   =========================== */
+
+.account-page {
+  max-width: 1100px;
+  margin: 140px auto 80px;
+  padding: 0 16px;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  color: #111827;
+}
+
+.account-card {
+  background: #fdfbf7;
+  border-radius: 20px;
+  padding: 24px 24px 28px;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.16);
+  border: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+/* ===== HEADER ===== */
+
+.account-header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 18px 22px;
+  align-items: center;
+  padding-bottom: 18px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.account-avatar {
+  width: 96px;   /* trước là 72 */
+  height: 96px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: radial-gradient(circle at 30% 20%, #fbbf77, #7c2d12);
+  padding: 2px;
+  box-shadow: 0 0 0 3px #fdfbf7, 0 12px 24px rgba(15, 23, 42, 0.35);
+  flex-shrink: 0;
+}
+
+
+.account-avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: cover;
+  display: block;
+}
+
+.account-header-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.account-header-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.account-label {
+  display: inline-block;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #9b8771;
+  margin-bottom: 4px;
+}
+
+.account-name {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #1f2933;
+}
+
+.account-email {
+  margin: 3px 0 0;
+  font-size: 14px;
+  color: #6b7280;
+  word-wrap: break-word;
+}
+
+/* ID khách hàng */
+
+.account-id-wrap {
+  text-align: right;
+  font-size: 11px;
+  line-height: 1.4;
+  color: #9ca3af;
+}
+/* ID khách hàng hiển thị dưới tên */
+
+.account-id-inline {
+  margin-top: 4px;
+  margin-bottom: 4px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: #9ca3af;
+}
+
+
+.account-id-label {
+  display: block;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  margin-bottom: 2px;
+}
+
+.account-id-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.03);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: #4b5563;
+}
+
+/* Loyalty pill */
+
+.account-header-bottom {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.account-loyalty-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: linear-gradient(120deg, #fef3c7, #fbbf24);
+  color: #111827;
+  font-size: 12px;
+  box-shadow: 0 6px 18px rgba(245, 158, 11, 0.35);
+}
+
+.account-loyalty-pill .tier {
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
+.account-loyalty-pill .points {
+  font-weight: 500;
+}
+
+.account-loyalty-note {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* Header actions */
+
+.account-header-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-end;   /* canh phải */
+  align-self: stretch;     /* chiếm full chiều cao ô grid */
+  justify-content: center; /* nút nằm giữa theo chiều dọc */
+}
+
+
+.account-edit-btn,
+.account-logout {
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  cursor: pointer;
+  border-width: 1px;
+  border-style: solid;
+  transition: background 0.16s ease, color 0.16s ease,
+    transform 0.08s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+}
+
+/* Edit / Change password – ghost style */
+.account-edit-btn {
+  background: rgba(15, 23, 42, 0.02);
+  border-color: rgba(15, 23, 42, 0.18);
+  color: #111827;
+}
+
+.account-edit-btn:hover {
+  background: rgba(15, 23, 42, 0.08);
+  border-color: rgba(15, 23, 42, 0.4);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.2);
+  transform: translateY(-1px);
+}
+
+/* Logout – danger style */
+.account-logout {
+  background: #fee2e2;
+  border-color: #b91c1c;
+  color: #b91c1c;
+}
+
+.account-logout:hover {
+  background: #b91c1c;
+  color: #fff;
+  box-shadow: 0 10px 22px rgba(185, 28, 28, 0.35);
+  transform: translateY(-1px);
+}
+
+/* ===== SECTIONS ===== */
+
+.account-section {
+  margin-top: 22px;
+}
+
+.section-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.section-title {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: #8b7255;
+  margin: 0 0 8px;
+}
+
+.section-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-ghost-btn {
+  border-radius: 999px;
+  border: 1px dashed rgba(148, 163, 184, 0.9);
+  background: transparent;
+  color: #4b5563;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: background 0.14s ease, border-color 0.14s ease,
+    transform 0.08s ease;
+}
+
+.section-ghost-btn:hover {
+  background: rgba(15, 23, 42, 0.04);
+  border-color: rgba(15, 23, 42, 0.5);
+  transform: translateY(-1px);
+}
+
+/* ===== INFO GRID ===== */
+
+.account-info {
+  margin: 0;
+  padding: 14px 16px 6px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 24px;
+  row-gap: 10px;
+}
+
+.account-info-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.account-info-row .label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: #9ca3af;
+  margin: 0;
+}
+
+.account-info-row .value {
+  font-size: 14px;
+  color: #374151;
+  margin: 0;
+  word-wrap: break-word;
+}
+
+.account-info-row .value.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+}
+
+/* ===== EMPTY TEXT ===== */
+
+.account-empty {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: #6b7280;
+  font-style: italic;
+}
+
+/* ===== ADDRESS LIST ===== */
+
+.account-list {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 16px;
+}
+
+.account-list-item {
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: #ffffff;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+  font-size: 13px;
+  color: #374151;
+}
+
+.account-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.account-list-item strong {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: #8b5a2b;
+}
+
+.account-list-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.account-list-name {
+  font-weight: 500;
+  margin: 0 0 2px;
+}
+
+.account-list-item p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Badges */
+
+.badge-default {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #047857;
+  color: #ecfdf3;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+
+.badge-type {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: #4b5563;
+  background: rgba(249, 250, 251, 0.9);
+}
+
+/* ===== PAYMENT CARDS ===== */
+
+.account-payments {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 16px;
+}
+
+.payment-card {
+  position: relative;
+  padding: 12px 14px 10px;
+  border-radius: 18px;
+  color: #f9fafb;
+  overflow: hidden;
+  background: linear-gradient(135deg, #f97316, #7c2d12);
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.35);
+}
+
+/* type-specific hues nhẹ */
+.payment-card--cash {
+  background: linear-gradient(135deg, #a7f3d0, #059669);
+}
+
+.payment-card--bank {
+  background: linear-gradient(135deg, #bfdbfe, #1d4ed8);
+}
+
+.payment-card--card {
+  background: linear-gradient(135deg, #fecaca, #b91c1c);
+}
+/* Ví MoMo */
+.payment-card--momo {
+  background: radial-gradient(circle at 0% 0%, #f9a8d4, #be185d);
+}
+
+/* Ví ZaloPay */
+.payment-card--zalopay {
+  background: radial-gradient(circle at 0% 0%, #bfdbfe, #0ea5e9);
+}
+
+/* Top line */
+
+.payment-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.payment-card-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.payment-type-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  background: rgba(15, 23, 42, 0.18);
+  backdrop-filter: blur(4px);
+}
+
+/* Icon màu riêng cho từng loại */
+.payment-type-icon--cash {
+  background: rgba(16, 185, 129, 0.25);
+}
+
+.payment-type-icon--card {
+  background: rgba(220, 38, 38, 0.28);
+}
+
+.payment-type-icon--bank {
+  background: rgba(59, 130, 246, 0.28);
+}
+
+.payment-type-icon--momo {
+  background: rgba(219, 39, 119, 0.32);
+}
+
+.payment-type-icon--zalopay {
+  background: rgba(59, 130, 246, 0.32);
+}
+
+.payment-type-icon--other {
+  background: rgba(15, 23, 42, 0.25);
+}
+
+.payment-card-brand .chip {
+  width: 22px;
+  height: 16px;
+  border-radius: 4px;
+  background: linear-gradient(135deg, #facc15, #f97316);
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.2);
+}
+
+.payment-card-brand .brand-text {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  opacity: 0.9;
+}
+
+/* Card number row */
+
+.payment-card-number {
+  display: flex;
+  gap: 10px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+  font-size: 14px;
+  letter-spacing: 0.2em;
+  margin: 4px 0 6px;
+}
+
+.payment-card-number span {
+  display: inline-block;
+}
+
+.cash-label {
+  font-size: 13px;
+  letter-spacing: 0.03em;
+}
+
+.account-number {
+  font-size: 13px;
+  letter-spacing: 0.12em;
+}
+
+/* Bottom row */
+
+.payment-card-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 11px;
+  opacity: 0.95;
+}
+
+.payment-card-bottom .holder {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.payment-card-bottom .expiry {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+}
+
+/* ===== MODAL ===== */
+
+.account-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 120;
+}
+
+.account-modal {
+  width: min(420px, 100% - 32px);
+  background: #fdfbf7;
+  border-radius: 14px;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.55);
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  padding: 16px 18px 14px;
+}
+
+.account-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.account-modal-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.account-modal-close {
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  color: #6b7280;
+}
+
+.account-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.modal-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.modal-row label {
+  font-size: 13px;
+  color: #4b5563;
+}
+
+.modal-row input,
+.modal-row select {
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  padding: 8px 10px;
+  font-size: 14px;
+  outline: none;
+  background: #ffffff;
+}
+
+.modal-row input:focus,
+.modal-row select:focus {
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+}
+
+.modal-row-inline {
+  display: flex;
+  gap: 10px;
+}
+
+.modal-row-inline > .modal-row {
+  flex: 1;
+}
+
+.account-modal-footer {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.modal-error {
+  color: #b91c1c;
+  font-size: 13px;
+}
+
+.modal-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+}
+
+.btn-secondary,
+.btn-primary {
+  border-radius: 999px;
+  border: 1px solid;
+  padding: 8px 14px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  cursor: pointer;
+}
+
+.btn-secondary {
+  border-color: #d1d5db;
+  background: #f9fafb;
+  color: #374151;
+}
+
+.btn-secondary:hover {
+  background: #e5e7eb;
+}
+
+.btn-primary {
+  border-color: #f59e0b;
+  background: #f59e0b;
+  color: #111827;
+}
+
+.btn-primary:hover {
+  background: #d97706;
+  border-color: #d97706;
+  color: #f9fafb;
+}
+
+.btn-primary[disabled] {
+  opacity: 0.7;
+  cursor: default;
+}
+
+/* ===== RESPONSIVE ===== */
+
+@media (max-width: 900px) {
+  .account-card {
+    padding: 20px 16px 24px;
+  }
+
+  .account-header {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: auto auto;
+  }
+
+  .account-header-actions {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+
+  .account-info {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .account-list,
+  .account-payments {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .account-page {
+    margin-top: 120px;
+  }
+
+  .account-header {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: flex-start;
+  }
+
+  .account-avatar {
+    width: 64px;
+    height: 64px;
+  }
+
+  .account-name {
+    font-size: 19px;
+  }
+
+  .account-id-wrap {
+    text-align: left;
+  }
+}
+/* ===== MODAL (sử dụng chung cho account) ===== */
+
+.account-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1200;
+}
+
+.account-modal {
+  width: min(420px, 100% - 32px);
+  background: #fdfbf7;
+  border-radius: 14px;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.55);
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  padding: 16px 18px 14px;
+}
+
+.account-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.account-modal-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.account-modal-close {
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  color: #6b7280;
+}
+
+.account-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.modal-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.modal-row label {
+  font-size: 13px;
+  color: #4b5563;
+}
+
+.modal-row input,
+.modal-row select {
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  padding: 8px 10px;
+  font-size: 14px;
+  outline: none;
+  background: #ffffff;
+}
+
+.modal-row input:focus,
+.modal-row select:focus {
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+}
+
+.modal-row-inline {
+  display: flex;
+  gap: 10px;
+}
+
+.modal-row-inline > .modal-row {
+  flex: 1;
+}
+
+.account-modal-footer {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.modal-error {
+  color: #b91c1c;
+  font-size: 13px;
+}
+
+.modal-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+}
+
+.btn-secondary,
+.btn-primary {
+  border-radius: 999px;
+  border: 1px solid;
+  padding: 8px 14px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  cursor: pointer;
+}
+
+.btn-secondary {
+  border-color: #d1d5db;
+  background: #f9fafb;
+  color: #374151;
+}
+
+.btn-secondary:hover {
+  background: #e5e7eb;
+}
+
+.btn-primary {
+  border-color: #f59e0b;
+  background: #f59e0b;
+  color: #111827;
+}
+
+.btn-primary:hover {
+  background: #d97706;
+  border-color: #d97706;
+  color: #f9fafb;
+}
+
+/* nút "Sửa" nhỏ trên card */
+.section-ghost-btn--small {
+  padding: 3px 8px;
+  font-size: 10px;
+}
+.account-primary-actions {
+  margin-top: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end; /* muốn căn trái thì đổi thành flex-start, căn giữa thì center */
+}

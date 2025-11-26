@@ -16,7 +16,9 @@ const router = express.Router();
 const productsRouter = require('./products');
 const customersRouter = require('./customers');
 const ordersRouter = require('./orders');
-const debugRouter = require('./debug');
+const addressesRouter = require('./addresses');
+const categoriesRouter = require('./categories');
+const uploadRouter = require('./upload');
 
 /**
  * API Endpoints Documentation
@@ -37,16 +39,15 @@ const debugRouter = require('./debug');
  * - GET    /api/orders/:id            - Lấy chi tiết order
  * - PATCH  /api/orders/:id            - Cập nhật status của order
  * 
- * Debug API (/api/debug):
- * - GET    /api/debug/collections     - Liệt kê tất cả collections
- * - GET    /api/debug/db-info         - Thông tin database
  */
 
 // Mount routes
 router.use('/products', productsRouter);
 router.use('/customers', customersRouter);
 router.use('/orders', ordersRouter);
-router.use('/debug', debugRouter);
+router.use('/addresses', addressesRouter);
+router.use('/categories', categoriesRouter);
+router.use('/upload', uploadRouter);
 
 // API Info endpoint - Tổng hợp thông tin về các API endpoints và collections
 router.get('/info', (req, res) => {

@@ -6,6 +6,99 @@ const Order = require('../models/Order');
 
 const router = express.Router();
 
+// Helper function to find customer and return location info
+async function findCustomerWithLocation(id) {
+  let customer = null;
+  let location = null;
+  
+  // Try 1: 'customers' database > 'customersList' collection
+  try {
+    const customersDb = mongoose.connection.useDb('customers', { useCache: true });
+    const coll = customersDb.collection('customersList');
+    if (Types.ObjectId.isValid(id)) {
+      customer = await coll.findOne({ _id: new Types.ObjectId(id) });
+    }
+    if (!customer) {
+      customer = await coll.findOne({ email: id.toLowerCase() });
+    }
+    if (customer) {
+      location = { type: 'database', dbName: 'customers', collection: 'customersList', db: customersDb, coll: coll };
+      return { customer, location };
+    }
+  } catch (err) {
+    console.error('Error searching in customers database:', err);
+  }
+  
+  // Try 2: Current database (CoffeeDB) > 'customersList' collection
+  try {
+    const coll = mongoose.connection.db.collection('customersList');
+    if (Types.ObjectId.isValid(id)) {
+      customer = await coll.findOne({ _id: new Types.ObjectId(id) });
+    }
+    if (!customer) {
+      customer = await coll.findOne({ email: id.toLowerCase() });
+    }
+    if (customer) {
+      location = { type: 'current', dbName: mongoose.connection.db.databaseName, collection: 'customersList', db: mongoose.connection.db, coll: coll };
+      return { customer, location };
+    }
+  } catch (err) {
+    console.error('Error searching in current database customersList:', err);
+  }
+  
+  // Try 3: Current database > 'customers.customersList' collection
+  try {
+    const coll = mongoose.connection.db.collection('customers.customersList');
+    if (Types.ObjectId.isValid(id)) {
+      customer = await coll.findOne({ _id: new Types.ObjectId(id) });
+    }
+    if (!customer) {
+      customer = await coll.findOne({ email: id.toLowerCase() });
+    }
+    if (customer) {
+      location = { type: 'current', dbName: mongoose.connection.db.databaseName, collection: 'customers.customersList', db: mongoose.connection.db, coll: coll };
+      return { customer, location };
+    }
+  } catch (err) {
+    console.error('Error searching in customers.customersList:', err);
+  }
+  
+  // Try 4: Current database > 'customers' collection
+  try {
+    const coll = mongoose.connection.db.collection('customers');
+    if (Types.ObjectId.isValid(id)) {
+      customer = await coll.findOne({ _id: new Types.ObjectId(id) });
+    }
+    if (!customer) {
+      customer = await coll.findOne({ email: id.toLowerCase() });
+    }
+    if (customer) {
+      location = { type: 'current', dbName: mongoose.connection.db.databaseName, collection: 'customers', db: mongoose.connection.db, coll: coll };
+      return { customer, location };
+    }
+  } catch (err) {
+    console.error('Error searching in customers collection:', err);
+  }
+  
+  // Fallback to default Customer model collection
+  try {
+    if (Types.ObjectId.isValid(id)) {
+      customer = await Customer.findById(id);
+    }
+    if (!customer) {
+      customer = await Customer.findOne({ email: id.toLowerCase() });
+    }
+    if (customer) {
+      location = { type: 'model', model: Customer };
+      return { customer, location };
+    }
+  } catch (err) {
+    console.error('Error searching in Customer model:', err);
+  }
+  
+  return { customer: null, location: null };
+}
+
 // Diagnostics: quick connectivity check
 router.get('/ping', async (req, res) => {
   try {
@@ -131,89 +224,31 @@ router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
-    let customer = null;
-    if (!customer) {
-      try {
-        const customersDb = mongoose.connection.useDb('customers', { useCache: true });
-        const coll = customersDb.collection('customersList');
-        if (Types.ObjectId.isValid(id)) {
-          customer = await coll.findOne({ _id: new Types.ObjectId(id) });
-        }
-        if (!customer) {
-          customer = await coll.findOne({ email: id.toLowerCase() });
-        }
-      } catch (err) {
-      }
-    }
+    const { customer, location } = await findCustomerWithLocation(id);
     
-    // Try 2: Current database (CoffeeDB) > 'customersList' collection
-    if (!customer) {
-      try {
-        const coll = mongoose.connection.db.collection('customersList');
-        if (Types.ObjectId.isValid(id)) {
-          customer = await coll.findOne({ _id: new Types.ObjectId(id) });
-        }
-        if (!customer) {
-          customer = await coll.findOne({ email: id.toLowerCase() });
-        }
-      } catch (err) {
-      }
-    }
-    
-    // Try 3: Current database > 'customers.customersList' collection
-    if (!customer) {
-      try {
-        const coll = mongoose.connection.db.collection('customers.customersList');
-        if (Types.ObjectId.isValid(id)) {
-          customer = await coll.findOne({ _id: new Types.ObjectId(id) });
-        }
-        if (!customer) {
-          customer = await coll.findOne({ email: id.toLowerCase() });
-        }
-      } catch (err) {
-      }
-    }
-    
-    // Try 4: Current database > 'customers' collection
-    if (!customer) {
-      try {
-        const coll = mongoose.connection.db.collection('customers');
-        if (Types.ObjectId.isValid(id)) {
-          customer = await coll.findOne({ _id: new Types.ObjectId(id) });
-        }
-        if (!customer) {
-          customer = await coll.findOne({ email: id.toLowerCase() });
-        }
-      } catch (err) {
-      }
-    }
-    
-    // Fallback to default Customer model collection
-    if (!customer) {
-      try {
-        if (Types.ObjectId.isValid(id)) {
-          customer = await Customer.findById(id);
-        }
-        if (!customer) {
-          customer = await Customer.findOne({ email: id.toLowerCase() });
-        }
-      } catch (err) {
-      }
-    }
     if (!customer) {
       return res.status(404).json({ success: false, message: 'Customer not found' });
     }
+    
     const c = customer.toObject ? customer.toObject() : customer;
     const transformed = {
       _id: c._id ? String(c._id) : undefined,
       id: String(c._id || c.id),
       fullName: c.fullName || [c.firstName, c.lastName].filter(Boolean).join(' '),
+      firstName: c.firstName,
+      lastName: c.lastName,
       email: c.email,
       avatarUrl: c.avatarUrl,
       status: c.status || 'active',
       phone: c.phone,
+      gender: c.gender || 'other',
+      country: c.country || c.addresses?.[0]?.country || c.address?.country || c.billingAddress?.country || c.shippingAddress?.country,
       addresses: c.addresses || [],
+      address: c.address,
+      billingAddress: c.billingAddress,
+      shippingAddress: c.shippingAddress,
       loyalty: c.loyalty,
+      wishlist: c.wishlist || [],
       consents: c.consents,
       preferences: c.preferences,
       createdAt: c.createdAt || null,
@@ -350,6 +385,7 @@ router.get('/:id/orders', async (req, res) => {
     const transformed = items.map(o => ({
       _id: o._id ? String(o._id) : undefined,
       id: String(o._id || o.id || ''),
+      displayCode: (o.displayCode && typeof o.displayCode === 'string' && o.displayCode.trim().length > 0) ? String(o.displayCode).trim() : null, // 4-character alphanumeric code for display
       customerId: o.customerId ? String(o.customerId) : undefined,
       customerEmail: o.customerEmail,
       customerName: o.customerName,
@@ -397,6 +433,15 @@ router.post('/', async (req, res) => {
       });
     }
 
+    // Prevent duplicates
+    const existingCustomer = await findCustomerWithLocation(email);
+    if (existingCustomer.customer) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email already exists',
+      });
+    }
+
     // Generate fullName if not provided
     const customerFullName = fullName || `${firstName} ${lastName}`.trim();
 
@@ -415,55 +460,53 @@ router.post('/', async (req, res) => {
       status: status || 'active',
     };
 
-    // Try to save to default Customer model first
+    // Helper to format duplicate email response
+    const duplicateResponse = () => ({
+      success: false,
+      message: 'Email already exists',
+    });
+
+    // Try to save to customers database first (primary dataset)
     let customer = null;
     try {
-      customer = new Customer(customerData);
-      await customer.save();
-    } catch (err) {
-      // If email already exists, return error
-      if (err.code === 11000 || err.message?.includes('duplicate')) {
-        return res.status(400).json({
-          success: false,
-          message: 'Email already exists',
-        });
+      const customersDb = mongoose.connection.useDb('customers', { useCache: true });
+      const coll = customersDb.collection('customersList');
+      const now = new Date();
+      const result = await coll.insertOne({
+        ...customerData,
+        createdAt: now,
+        updatedAt: now,
+      });
+      customer = { _id: result.insertedId, ...customerData, createdAt: now, updatedAt: now };
+    } catch (errPrimary) {
+      if (errPrimary.code === 11000 || errPrimary.message?.includes('duplicate')) {
+        return res.status(400).json(duplicateResponse());
       }
-      
-      // Try to save to customersList collection
+
+      // Try current database collection
       try {
-        const customersDb = mongoose.connection.useDb('customers', { useCache: true });
-        const coll = customersDb.collection('customersList');
+        const coll = mongoose.connection.db.collection('customersList');
+        const now = new Date();
         const result = await coll.insertOne({
           ...customerData,
-          createdAt: new Date(),
-          updatedAt: new Date(),
+          createdAt: now,
+          updatedAt: now,
         });
-        customer = { _id: result.insertedId, ...customerData };
-      } catch (err2) {
-        if (err2.code === 11000 || err2.message?.includes('duplicate')) {
-          return res.status(400).json({
-            success: false,
-            message: 'Email already exists',
-          });
+        customer = { _id: result.insertedId, ...customerData, createdAt: now, updatedAt: now };
+      } catch (errSecondary) {
+        if (errSecondary.code === 11000 || errSecondary.message?.includes('duplicate')) {
+          return res.status(400).json(duplicateResponse());
         }
-        
-        // Try current database
+
+        // Fallback to default Customer model
         try {
-          const coll = mongoose.connection.db.collection('customersList');
-          const result = await coll.insertOne({
-            ...customerData,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          });
-          customer = { _id: result.insertedId, ...customerData };
-        } catch (err3) {
-          if (err3.code === 11000 || err3.message?.includes('duplicate')) {
-            return res.status(400).json({
-              success: false,
-              message: 'Email already exists',
-            });
+          customer = new Customer(customerData);
+          await customer.save();
+        } catch (modelErr) {
+          if (modelErr.code === 11000 || modelErr.message?.includes('duplicate')) {
+            return res.status(400).json(duplicateResponse());
           }
-          throw err3;
+          throw modelErr;
         }
       }
     }
@@ -491,6 +534,203 @@ router.post('/', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to create customer',
+      error: err.message,
+    });
+  }
+});
+
+// PATCH /api/customers/:id - Update customer
+// IMPORTANT: This endpoint ONLY updates existing customer documents
+// It does NOT create new documents (no upsert option)
+// If customer not found, returns 404 error
+router.patch('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+
+    // Remove _id from updateData if present (cannot update _id)
+    delete updateData._id;
+    delete updateData.id;
+
+    // Add updatedAt timestamp
+    updateData.updatedAt = new Date();
+
+    // CRITICAL: Find customer first to know where it's stored
+    const { customer: existingCustomer, location } = await findCustomerWithLocation(id);
+    
+    if (!existingCustomer || !location) {
+      console.error('❌ Customer not found with id:', id);
+      return res.status(404).json({
+        success: false,
+        message: `Customer not found with id: ${id}`,
+      });
+    }
+    
+    let updated = false;
+    let updatedCustomer = null;
+    let updateLocation = '';
+
+    // Update in the SAME location where customer was found
+    try {
+      if (location.type === 'database' || location.type === 'current') {
+        // Update using collection
+        const coll = location.coll;
+        const query = Types.ObjectId.isValid(id) 
+          ? { _id: new Types.ObjectId(id) }
+          : { email: id.toLowerCase() };
+        
+        // Use updateOne to ensure update is committed
+        const updateResult = await coll.updateOne(
+          query,
+          { $set: updateData }
+        );
+        
+        if (updateResult.matchedCount > 0 && updateResult.acknowledged) {
+          // Wait a bit to ensure write is committed
+          await new Promise(resolve => setTimeout(resolve, 100));
+          
+          // Fetch the updated document
+          const result = await coll.findOne(query);
+          if (result) {
+            // Verify the update
+            const verifyResult = await coll.findOne(query);
+            if (!verifyResult || JSON.stringify(verifyResult.addresses) !== JSON.stringify(result.addresses)) {
+              console.error('❌ VERIFICATION FAILED');
+            }
+            
+            updated = true;
+            updatedCustomer = result;
+            updateLocation = `${location.dbName || 'current'} > ${location.collection}`;
+          }
+        } else {
+          console.error('❌ Update failed: matchedCount:', updateResult.matchedCount, 'acknowledged:', updateResult.acknowledged);
+        }
+      } else if (location.type === 'model') {
+        // Update using Mongoose model
+        const query = Types.ObjectId.isValid(id)
+          ? { _id: id }
+          : { email: id.toLowerCase() };
+        
+        updatedCustomer = await Customer.findOneAndUpdate(
+          query,
+          { $set: updateData },
+          { new: true }
+        );
+        
+        if (updatedCustomer) {
+          updated = true;
+          updateLocation = 'Customer model';
+        }
+      }
+    } catch (err) {
+      console.error('❌ Error updating customer:', err);
+      throw err;
+    }
+
+    if (!updated || !updatedCustomer) {
+      console.error('❌ Failed to update customer');
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to update customer',
+      });
+    }
+
+    // CRITICAL: Verify the update was actually saved to MongoDB using the same location
+    const query = Types.ObjectId.isValid(id) 
+      ? { _id: new Types.ObjectId(id) }
+      : { email: id.toLowerCase() };
+    
+    if (location.type === 'database' || location.type === 'current') {
+      const verifyColl = location.coll;
+      const verifyDoc = await verifyColl.findOne(query);
+      if (verifyDoc) {
+        if (JSON.stringify(verifyDoc.addresses) !== JSON.stringify(updatedCustomer.addresses)) {
+          console.error('❌ VERIFICATION WARNING: Addresses do not match!');
+          console.error('Expected:', JSON.stringify(updatedCustomer.addresses, null, 2));
+          console.error('Actual:', JSON.stringify(verifyDoc.addresses, null, 2));
+        }
+      } else {
+        console.error('❌ VERIFICATION FAILED: Document not found after update');
+      }
+    } else if (location.type === 'model') {
+      const verifyDoc = await Customer.findOne(query);
+      if (!verifyDoc) {
+        console.error('❌ VERIFICATION FAILED: Document not found in Customer model');
+      }
+    }
+
+    const c = updatedCustomer.toObject ? updatedCustomer.toObject() : updatedCustomer;
+    const transformed = {
+      _id: c._id ? String(c._id) : undefined,
+      id: String(c._id || c.id),
+      fullName: c.fullName || [c.firstName, c.lastName].filter(Boolean).join(' '),
+      email: c.email,
+      avatarUrl: c.avatarUrl,
+      status: c.status || 'active',
+      phone: c.phone,
+      country: c.country || c.addresses?.[0]?.country || c.address?.country || c.billingAddress?.country || c.shippingAddress?.country,
+      addresses: c.addresses || [],
+      address: c.address,
+      billingAddress: c.billingAddress,
+      shippingAddress: c.shippingAddress,
+      loyalty: c.loyalty,
+      consents: c.consents,
+      preferences: c.preferences,
+      createdAt: c.createdAt || null,
+      updatedAt: c.updatedAt || null,
+      lastLoginAt: c.lastLoginAt || null,
+      tags: c.tags || [],
+      notes: c.notes || '',
+    };
+
+    res.json({ success: true, data: transformed, message: 'Customer updated successfully' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Failed to update customer', error: err.message });
+  }
+});
+
+// DELETE /api/customers/:id - Delete customer from MongoDB
+router.delete('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { customer, location } = await findCustomerWithLocation(id);
+
+    if (!customer || !location) {
+      return res.status(404).json({
+        success: false,
+        message: `Customer not found with id: ${id}`,
+      });
+    }
+
+    const query = Types.ObjectId.isValid(id)
+      ? { _id: new Types.ObjectId(id) }
+      : { email: id.toLowerCase() };
+
+    let deleted = false;
+
+    if (location.type === 'database' || location.type === 'current') {
+      const result = await location.coll.deleteOne(query);
+      deleted = result.deletedCount > 0;
+    } else if (location.type === 'model') {
+      const result = await Customer.deleteOne(query);
+      deleted = result.deletedCount > 0;
+    }
+
+    if (!deleted) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to delete customer',
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Customer deleted successfully',
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete customer',
       error: err.message,
     });
   }

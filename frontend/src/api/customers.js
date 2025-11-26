@@ -49,11 +49,21 @@ export function createCustomer(customerData) {
   return apiClient.post('/customers', customerData);
 }
 
+export function updateCustomer(idOrEmail, customerData) {
+  return apiClient.patch(`/customers/${encodeURIComponent(idOrEmail)}`, customerData);
+}
+
+export function deleteCustomer(idOrEmail) {
+  return apiClient.delete(`/customers/${encodeURIComponent(idOrEmail)}`);
+}
+
 export default {
   fetchCustomers,
   fetchCustomerById,
   fetchCustomerOrders,
   createCustomer,
+  updateCustomer,
+  deleteCustomer,
 };
 
 

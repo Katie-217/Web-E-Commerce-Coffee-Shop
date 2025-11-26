@@ -1,15 +1,43 @@
-import React, { useEffect, useState, useMemo, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { fetchOrders } from '../../../../api/orders';
+import { fetchCustomerById } from '../../../../api/customers';
 import { OrderStatus } from '../../types';
 import Badge from '../../components/Badge';
-import { MoreVertical, Calendar, CheckCircle, Wallet, AlertCircle, ChevronDown, FileDown, FileSpreadsheet, FileText, CreditCard, Banknote, Smartphone, Building2 } from 'lucide-react';
+import { Calendar, CheckCircle, Wallet, AlertCircle, CreditCard, Banknote, Smartphone, Building2 } from 'lucide-react';
 import { formatVND } from '../../../../utils/currency';
+import { getAvatarUrl } from '../../../../utils/avatar';
+import { getOrderStatusColor, getPaymentStatusColor } from '../../../../utils/statusColors';
+import { getOrderDisplayCode, getOrderDisplayCodeRaw } from '../../../../utils/orderDisplayCode';
+import ExportDropdown from '../../../../components/ExportDropdown';
+import { exportRows, ExportColumn, ExportFormat } from '../../../../utils/exportUtils';
 
 interface OrderListProps {
   onOrderClick: (orderId: string, orderData?: any) => void;
 }
 
 const ITEMS_PER_PAGE = 10;
+
+type OrderExportRow = {
+  orderCode: string;
+  date: string;
+  customer: string;
+  email: string;
+  status: string;
+  paymentStatus: string;
+  paymentMethod: string;
+  total: string;
+};
+
+const ORDER_EXPORT_COLUMNS: ExportColumn<OrderExportRow>[] = [
+  { key: 'orderCode', label: 'Order' },
+  { key: 'date', label: 'Date' },
+  { key: 'customer', label: 'Customer' },
+  { key: 'email', label: 'Email' },
+  { key: 'status', label: 'Status' },
+  { key: 'paymentStatus', label: 'Payment Status' },
+  { key: 'paymentMethod', label: 'Payment Method' },
+  { key: 'total', label: 'Total' },
+];
 
 const OrderList: React.FC<OrderListProps> = ({ onOrderClick }) => {
   const [rows, setRows] = useState<any[]>([]);
@@ -20,70 +48,9 @@ const OrderList: React.FC<OrderListProps> = ({ onOrderClick }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [itemsPerPage, setItemsPerPage] = useState(ITEMS_PER_PAGE);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [showExport, setShowExport] = useState(false);
-  const exportRef = useRef<HTMLDivElement>(null);
+  const [customerMap, setCustomerMap] = useState<Record<string, { email?: string; _id?: string; id?: string; avatarUrl?: string }>>({});
+  const [stats, setStats] = useState({ pendingCount: 0, completedCount: 0, refundedCount: 0, failedCount: 0 });
 
-  const getStatusColor = (status: OrderStatus | string) => {
-    if (!status) return 'gray';
-    const s = String(status).toLowerCase();
-    
-    // Completed/Delivered statuses - Green
-    if (s.includes('delivered') || s === 'delivered') {
-      return 'green';
-    }
-    
-    // Ready/Shipped statuses - Green/Blue
-    if (s.includes('ready to pickup') || s.includes('readytopickup') || s.includes('ready')) {
-      return 'green';
-    }
-    if (s.includes('shipped') || s === 'shipped') {
-      return 'blue';
-    }
-    
-    // In progress statuses - Blue/Yellow
-    if (s.includes('processing') || s === 'processing') {
-      return 'blue';
-    }
-    if (s.includes('dispatched') || s === 'dispatched') {
-      return 'blue';
-    }
-    if (s.includes('out for delivery') || s.includes('outfordelivery')) {
-      return 'blue';
-    }
-    
-    // Pending statuses - Yellow
-    if (s.includes('pending') || s === 'pending') {
-      return 'yellow';
-    }
-    
-    // Cancelled/Refunded/Returned - Red
-    if (s.includes('cancelled') || s.includes('canceled') || s === 'cancelled') {
-      return 'red';
-    }
-    if (s.includes('refunded') || s === 'refunded') {
-      return 'red';
-    }
-    if (s.includes('returned') || s === 'returned') {
-      return 'red';
-    }
-    
-    return 'gray';
-  };
-
-  const getPaymentStatusColor = (status?: string) => {
-    switch (status) {
-      case 'Pending':
-        return 'yellow';
-      case 'Paid':
-        return 'green';
-      case 'Failed':
-        return 'red';
-      case 'Refunded':
-        return 'red';
-      default:
-        return 'gray';
-    }
-  };
 
   const getPaymentMethodIcon = (paymentMethod: any) => {
     if (!paymentMethod) return Wallet;
@@ -175,23 +142,8 @@ const OrderList: React.FC<OrderListProps> = ({ onOrderClick }) => {
     return 'COD';
   };
 
-  const getDisplayCode = (val: string | number | undefined | null) => {
-    const s = String(val || '');
-    if (!s) return '';
-    const hex = s.replace(/[^a-fA-F0-9]/g, '') || s;
-    const last4 = hex.slice(-4).padStart(4, '0');
-    return `#${last4}`;
-  };
-
-  useEffect(() => {
-    const onDocClick = (e: MouseEvent) => {
-      if (exportRef.current && !exportRef.current.contains(e.target as Node)) {
-        setShowExport(false);
-      }
-    };
-    document.addEventListener('click', onDocClick);
-    return () => document.removeEventListener('click', onDocClick);
-  }, []);
+  // Import shared utility for order display code
+  const getDisplayCode = (order: any) => getOrderDisplayCode(order);
 
   useEffect(() => {
     let cancelled = false;
@@ -199,12 +151,71 @@ const OrderList: React.FC<OrderListProps> = ({ onOrderClick }) => {
       try {
         setLoading(true);
         setError(null);
-        const res = await fetchOrders({ page: currentPage, limit: itemsPerPage });
+        // Send search query directly - simple like CustomerList
+        // Only send q if searchQuery is not empty
+        const searchParam = searchQuery.trim();
+        const res = await fetchOrders({ 
+          q: searchParam || undefined,
+          page: currentPage, 
+          limit: itemsPerPage 
+        } as any);
         const items = res?.data || res?.items || [];
-        const totalCount = res?.pagination?.total ?? items.length;
+        const totalCount = res?.pagination?.total ?? res?.total ?? items.length;
+        
         if (!cancelled) {
           setRows(items);
           setTotal(totalCount);
+          
+          // Fetch customer data for all unique customer emails/IDs to get avatarUrl
+          const uniqueCustomers = new Set<string>();
+          items.forEach((order: any) => {
+            const email = order.customerEmail ? String(order.customerEmail).toLowerCase().trim() : null;
+            const cid = order.customerId ? (typeof order.customerId === 'object' ? (order.customerId._id || order.customerId.id) : String(order.customerId)) : null;
+            if (email) uniqueCustomers.add(email);
+            if (cid) uniqueCustomers.add(cid);
+          });
+          
+          // Fetch all unique customers in parallel
+          const customerPromises = Array.from(uniqueCustomers).map(async (key) => {
+            try {
+              const cres = await fetchCustomerById(key);
+              const c = cres?.data || cres;
+              if (c && !cancelled) {
+                return {
+                  key: key.toLowerCase(),
+                  email: c.email ? String(c.email).toLowerCase().trim() : null,
+                  _id: c._id || c.id,
+                  id: c.id || c._id,
+                  avatarUrl: c.avatarUrl,
+                };
+              }
+            } catch (e) {
+              // Ignore errors for individual customer fetches
+            }
+            return null;
+          });
+          
+          const customerResults = await Promise.all(customerPromises);
+          const newCustomerMap: Record<string, { email?: string; _id?: string; id?: string; avatarUrl?: string }> = {};
+          customerResults.forEach((result) => {
+            if (result) {
+              // Map by email
+              if (result.email) {
+                newCustomerMap[result.email] = result;
+              }
+              // Map by id
+              if (result._id) {
+                newCustomerMap[result._id] = result;
+              }
+              if (result.id && result.id !== result._id) {
+                newCustomerMap[result.id] = result;
+              }
+            }
+          });
+          
+          if (!cancelled) {
+            setCustomerMap(newCustomerMap);
+          }
         }
       } catch (e: any) {
         if (!cancelled) setError(e?.message || 'Failed to load orders');
@@ -214,7 +225,69 @@ const OrderList: React.FC<OrderListProps> = ({ onOrderClick }) => {
     };
     run();
     return () => { cancelled = true; };
-  }, [currentPage, itemsPerPage]);
+  }, [currentPage, itemsPerPage, searchQuery]);
+
+  // Fetch stats from all orders (separate from paginated data)
+  useEffect(() => {
+    let cancelled = false;
+    const fetchStats = async () => {
+      try {
+        // Fetch all orders for stats (use large limit to get all)
+        const res = await fetchOrders({ 
+          limit: 10000, // Large limit to get all orders for stats
+          includeItems: false // Don't need items for stats
+        } as any);
+        const allItems = res?.data || res?.items || [];
+        
+        // Calculate stats based on order status
+        const newStats = {
+          pendingCount: allItems.filter((o: any) => getOrderStatusCategory(o.status) === 'Pending').length,
+          completedCount: allItems.filter((o: any) => getOrderStatusCategory(o.status) === 'Delivered').length,
+          refundedCount: allItems.filter((o: any) => getOrderStatusCategory(o.status) === 'Refunded').length,
+          failedCount: allItems.filter((o: any) => getOrderStatusCategory(o.status) === 'Cancelled').length,
+        };
+        
+        if (!cancelled) {
+          setStats(newStats);
+        }
+      } catch (e) {
+        // Ignore errors for stats
+      }
+    };
+    
+    fetchStats();
+    // Auto-refresh stats every 30 seconds
+    const interval = setInterval(fetchStats, 30000);
+    
+    return () => { 
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, []);
+
+  // Map order status to stats category
+  const getOrderStatusCategory = (orderStatus?: string): 'Pending' | 'Delivered' | 'Refunded' | 'Cancelled' => {
+    if (!orderStatus) return 'Pending';
+    const s = orderStatus.toLowerCase().trim();
+
+    // Delivered: delivered, shipped
+    if (['delivered', 'shipped'].includes(s)) {
+      return 'Delivered';
+    }
+
+    // Refunded: refunded, returned
+    if (['refunded', 'returned'].includes(s)) {
+      return 'Refunded';
+    }
+
+    // Cancelled: cancelled, canceled, failed
+    if (['cancelled', 'canceled', 'failed'].includes(s)) {
+      return 'Cancelled';
+    }
+
+    // Pending: pending, processing, ready to pickup, dispatched, out for delivery, and any other status
+    return 'Pending';
+  };
 
   const paymentStatusFrom = (status?: string) => {
     if (!status) return 'Pending';
@@ -226,21 +299,26 @@ const OrderList: React.FC<OrderListProps> = ({ onOrderClick }) => {
     return 'Pending';
   };
 
-  // Filter orders by search query
-  const filteredRows = useMemo(() => {
-    if (!searchQuery) return rows;
-    const query = searchQuery.toLowerCase();
-    return rows.filter(order =>
-      getDisplayCode(order.id).toLowerCase().includes(query) ||
-      order.customerEmail?.toLowerCase().includes(query) ||
-      order.customerName?.toLowerCase().includes(query)
-    );
-  }, [rows, searchQuery]);
+  const formatOrderStatusText = (status?: string) => {
+    const value = status || 'Processing';
+    return value
+      .split(' ')
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  };
 
-  // Paginate filtered rows
-  const totalPages = Math.ceil(filteredRows.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedRows = filteredRows.slice(startIndex, startIndex + itemsPerPage);
+  const formatOrderDate = (date?: string) => {
+    if (!date) return '';
+    try {
+      return new Date(date).toLocaleString();
+    } catch {
+      return '';
+    }
+  };
+
+  // Use rows directly from API (server-side pagination and filtering)
+  const totalPages = Math.ceil(total / itemsPerPage);
+  const paginatedRows = rows;
 
   // Calculate selection state based on paginated rows
   const pageOrderIds = paginatedRows.map((order) => String(order.id || order._id)).filter(Boolean);
@@ -265,18 +343,37 @@ const OrderList: React.FC<OrderListProps> = ({ onOrderClick }) => {
     );
   };
 
-  // Calculate stats from all rows (not just filtered)
-  const pendingCount = rows.filter(o => paymentStatusFrom(o.status) === 'Pending').length;
-  const completedCount = rows.filter(o => paymentStatusFrom(o.status) === 'Paid').length;
-  const refundedCount = rows.filter(o => paymentStatusFrom(o.status) === 'Refunded').length;
-  const failedCount = rows.filter(o => paymentStatusFrom(o.status) === 'Failed').length;
+  const buildOrderExportRows = (): OrderExportRow[] => {
+    if (!selectedIds.length) return [];
+    const selectedSet = new Set(selectedIds);
+    return rows
+      .filter((order) => selectedSet.has(String(order.id || order._id)))
+      .map((order) => ({
+        orderCode: getDisplayCode(order),
+        date: formatOrderDate(order.createdAt),
+        customer: order.customerName || order.customerEmail?.split('@')[0]?.replace(/\./g, ' ') || 'Customer',
+        email: order.customerEmail || '',
+        status: formatOrderStatusText(order.status),
+        paymentStatus: paymentStatusFrom(order.paymentStatus || order.status),
+        paymentMethod: getPaymentMethodLabel(order.paymentMethod),
+        total: formatVND(Number(order.total) || 0),
+      }));
+  };
 
-  const displayTotalPages = Math.ceil(total / itemsPerPage);
-  const displayStartIndex = (currentPage - 1) * itemsPerPage + 1;
+  const handleExport = (format: ExportFormat) => {
+    const exportRowsData = buildOrderExportRows();
+    if (!exportRowsData.length) {
+      alert('Please select at least one order to export.');
+      return;
+    }
+    exportRows(exportRowsData, ORDER_EXPORT_COLUMNS, format, 'orders');
+  };
+
+  const displayStartIndex = total > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0;
   const displayEndIndex = Math.min(currentPage * itemsPerPage, total);
 
   const handlePageChange = (page: number) => {
-    if (page >= 1 && page <= displayTotalPages) {
+    if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
     }
   };
@@ -290,8 +387,8 @@ const OrderList: React.FC<OrderListProps> = ({ onOrderClick }) => {
             <Calendar className="w-6 h-6 text-yellow-400" />
           </div>
           <div>
-            <p className="text-2xl font-bold text-text-primary">{pendingCount}</p>
-            <p className="text-sm text-text-secondary">Pending Payment</p>
+            <p className="text-2xl font-bold text-text-primary">{stats.pendingCount}</p>
+            <p className="text-sm text-text-secondary">Pending</p>
           </div>
         </div>
         <div className="bg-background-light p-4 rounded-lg flex items-center gap-4">
@@ -299,8 +396,8 @@ const OrderList: React.FC<OrderListProps> = ({ onOrderClick }) => {
             <CheckCircle className="w-6 h-6 text-green-400" />
           </div>
           <div>
-            <p className="text-2xl font-bold text-text-primary">{completedCount}</p>
-            <p className="text-sm text-text-secondary">Completed</p>
+            <p className="text-2xl font-bold text-text-primary">{stats.completedCount}</p>
+            <p className="text-sm text-text-secondary">Delivered</p>
           </div>
         </div>
         <div className="bg-background-light p-4 rounded-lg flex items-center gap-4">
@@ -308,7 +405,7 @@ const OrderList: React.FC<OrderListProps> = ({ onOrderClick }) => {
             <Wallet className="w-6 h-6 text-gray-400" />
           </div>
           <div>
-            <p className="text-2xl font-bold text-text-primary">{refundedCount}</p>
+            <p className="text-2xl font-bold text-text-primary">{stats.refundedCount}</p>
             <p className="text-sm text-text-secondary">Refunded</p>
           </div>
         </div>
@@ -317,8 +414,8 @@ const OrderList: React.FC<OrderListProps> = ({ onOrderClick }) => {
             <AlertCircle className="w-6 h-6 text-red-400" />
           </div>
           <div>
-            <p className="text-2xl font-bold text-text-primary">{failedCount}</p>
-            <p className="text-sm text-text-secondary">Failed</p>
+            <p className="text-2xl font-bold text-text-primary">{stats.failedCount}</p>
+            <p className="text-sm text-text-secondary">Cancelled</p>
           </div>
         </div>
       </div>
@@ -332,33 +429,18 @@ const OrderList: React.FC<OrderListProps> = ({ onOrderClick }) => {
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);
-              setCurrentPage(1);
+              setCurrentPage(1); // Reset to first page when searching
+            }}
+            onKeyDown={(e) => {
+              // Allow Enter key to trigger search (already handled by useEffect)
+              if (e.key === 'Enter') {
+                e.preventDefault();
+              }
             }}
             className="bg-background-dark border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary text-text-primary w-full md:w-auto"
           />
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 bg-background-dark border border-gray-600 rounded-lg px-3 py-2">
-              <span className="text-sm text-text-secondary">{itemsPerPage}</span>
-              <ChevronDown size={16} className="text-text-secondary" />
-            </div>
-            <div className="relative" ref={exportRef}>
-              <button 
-                type="button" 
-                disabled={noneChecked} 
-                onClick={() => !noneChecked && setShowExport(v => !v)}
-                className={`px-4 py-2 rounded-lg flex items-center gap-2 transition font-semibold ${noneChecked ? 'bg-background-light border border-gray-700 text-text-secondary opacity-50 cursor-not-allowed' : 'bg-primary text-white border border-primary hover:bg-primary/90 cursor-pointer shadow-md'}`}
-              >
-                <span>Export</span>
-                <ChevronDown size={16} />
-              </button>
-              {showExport && !noneChecked && (
-                <div className="absolute right-0 mt-2 w-44 bg-background-light border border-gray-700 rounded-lg shadow-xl z-10 p-2">
-                  <button className="w-full flex items-center gap-2 px-3 py-2 rounded-md hover:bg-background-dark text-text-primary"><FileDown size={16}/> Csv</button>
-                  <button className="w-full flex items-center gap-2 px-3 py-2 rounded-md hover:bg-background-dark text-text-primary"><FileSpreadsheet size={16}/> Excel</button>
-                  <button className="w-full flex items-center gap-2 px-3 py-2 rounded-md hover:bg-background-dark text-text-primary"><FileText size={16}/> Pdf</button>
-                </div>
-              )}
-            </div>
+            <ExportDropdown disabled={noneChecked} onExport={handleExport} />
           </div>
         </div>
 
@@ -422,7 +504,7 @@ const OrderList: React.FC<OrderListProps> = ({ onOrderClick }) => {
                   </td>
                   <td className="p-3 text-center">
                     <span className="font-semibold text-primary">
-                      {getDisplayCode(orderId)}
+                      {getDisplayCode(order)}
                     </span>
                   </td>
                   <td className="p-3 w-48 text-left pl-4 text-text-secondary">
@@ -433,35 +515,43 @@ const OrderList: React.FC<OrderListProps> = ({ onOrderClick }) => {
                   <td className="p-3 w-72 text-left pl-4 pr-4">
                     <div className="flex items-center gap-3 min-w-0">
                       <div className="flex-shrink-0">
-                        <img
-                          src={`https://i.pravatar.cc/40?u=${encodeURIComponent(order.customerEmail || order.id)}`}
-                          alt={order.customerEmail || 'Customer'}
-                          className="w-8 h-8 rounded-full object-cover"
-                        />
+                        {(() => {
+                          // Get customer data from map - same approach as customer component
+                          const normalizedEmail = order.customerEmail ? String(order.customerEmail).toLowerCase().trim() : null;
+                          const cid = order.customerId ? (typeof order.customerId === 'object' ? (order.customerId._id || order.customerId.id) : String(order.customerId)) : null;
+                          const customerData = normalizedEmail ? customerMap[normalizedEmail] : (cid ? customerMap[cid] : null);
+                          
+                          // Use same approach as customer component: email, _id || id, avatarUrl || avatar
+                          return (
+                            <img
+                              src={getAvatarUrl(
+                                customerData?.email || normalizedEmail,
+                                customerData?._id || customerData?.id || cid,
+                                customerData?.avatarUrl,
+                                40
+                              )}
+                              alt={order.customerEmail || 'Customer'}
+                              className="w-8 h-8 rounded-full object-cover"
+                            />
+                          );
+                        })()}
                       </div>
                       <div className="flex flex-col min-w-0 flex-1">
-                        <p className="font-medium text-text-primary truncate">{order.customerName || order.customerEmail?.split('@')[0]?.replace(/\./g, ' ') || 'Customer'}</p>
+                        <p className="font-medium text-text-secondary truncate">{order.customerName || order.customerEmail?.split('@')[0]?.replace(/\./g, ' ') || 'Customer'}</p>
                         <p className="text-xs text-text-secondary truncate">{order.customerEmail}</p>
                       </div>
                     </div>
                   </td>
                   <td className="p-3 text-center">
                     <div className="flex justify-center">
-                      <Badge color={getStatusColor((order.status || 'Processing') as any)}>
-                        {(() => {
-                          const status = order.status || 'Processing';
-                          // Format status text: capitalize first letter of each word
-                          return String(status)
-                            .split(' ')
-                            .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-                            .join(' ');
-                        })()}
+                      <Badge color={getOrderStatusColor(order.status || 'Processing')}>
+                        {formatOrderStatusText(order.status)}
                       </Badge>
                     </div>
                   </td>
                   <td className="p-3 text-center">
                     <div className="flex justify-center">
-                      <Badge color={getPaymentStatusColor(paymentStatusFrom(order.paymentStatus || order.status)) as any}>
+                      <Badge color={getPaymentStatusColor(paymentStatusFrom(order.paymentStatus || order.status))}>
                         {paymentStatusFrom(order.paymentStatus || order.status)}
                       </Badge>
                     </div>
@@ -487,7 +577,7 @@ const OrderList: React.FC<OrderListProps> = ({ onOrderClick }) => {
                     </div>
                   </td>
                   <td className="p-3 text-center">
-                    <span className="text-sm font-semibold text-text-primary">
+                    <span className="text-sm text-text-secondary">
                       {formatVND(Number(order.total) || 0)}
                     </span>
                   </td>

@@ -29,12 +29,6 @@ app.options(/.*/, cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Log all requests for debugging
-app.use((req, res, next) => {
-  console.log(`📥 ${req.method} ${req.path}`);
-  next();
-});
-
 // Routes
 app.get('/', (req, res) => {
   res.send('Hello from Backend!');
@@ -54,6 +48,5 @@ app.use('/api', apiRouter);
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`🚀 Server is running at http://localhost:${PORT}`);
-  console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`Server is running at http://localhost:${PORT}`);
 });

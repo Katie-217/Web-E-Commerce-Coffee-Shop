@@ -2,6 +2,12 @@ const express = require('express');
 const mongoose = require('mongoose');
 const { Types } = mongoose;
 const Order = require('../models/Order');
+const Customer = require('../models/Customer');
+const {
+  calculatePointsEarned,
+  calculateDiscountFromPoints,
+  validatePointsUsage
+} = require('../utils/loyalty');
 
 const router = express.Router();
 
@@ -12,15 +18,44 @@ router.get('/', async (req, res) => {
     const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 20, 1), 100);
     const skip = (page - 1) * limit;
     const { q, status, email, range, startDate, endDate } = req.query;
+    
 
     const filters = {};
     if (status) filters.status = status;
-    if (email) filters.customerEmail = new RegExp(String(email), 'i');
-    if (q) {
-      filters.$or = [
-        { id: { $regex: q, $options: 'i' } },
-        { customerEmail: { $regex: q, $options: 'i' } }
-      ];
+    // Only apply email filter if there's no search query (q parameter)
+    // When searching by ID, we don't want to filter by email
+    if (email && (!q || q === '' || String(q).trim() === '')) {
+      filters.customerEmail = new RegExp(String(email), 'i');
+    }
+    
+    // Handle search query - search in displayCode field
+    // When user types, filter immediately and narrow down results
+    // User can search by display code without "#" - e.g., "2ff" or "2ffa" will find orders with displayCode starting with "2ff"
+    // IMPORTANT: Search works with displayCode field from database
+    // Frontend will generate displayCode from ID if not present, but backend search only works with displayCode in DB
+    // UI displays ID as #XXXX where XXXX is the displayCode (4-character hex)
+    if (q !== undefined && q !== null && String(q).trim() !== '') {
+      let searchTerm = String(q).trim();
+      // Remove "#" if user typed it - allow searching without "#"
+      searchTerm = searchTerm.replace(/^#+/, '');
+      
+      if (searchTerm) {
+        // Escape special regex characters to prevent regex injection
+        const escapedTerm = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        
+        // Search in displayCode field - 4-character alphanumeric code (e.g., "A3f2", "75a0")
+        // UI displays ID as #XXXX where XXXX is the displayCode (used to hide real order ID)
+        // When user types "A3", match displayCodes STARTING with "A3": "A3f2", "A3bc", etc.
+        // When user types "75a", match displayCodes STARTING with "75a": "75a0", "75a1", etc.
+        // Pattern: ^[searchTerm] matches displayCodes that start with the search term (case-insensitive)
+        // Only search orders that have displayCode (not null/undefined)
+        filters.displayCode = { 
+          $exists: true,
+          $ne: null,
+          $regex: `^${escapedTerm}`, 
+          $options: 'i' 
+        };
+      }
     }
 
     // Time range filtering
@@ -76,7 +111,19 @@ router.get('/', async (req, res) => {
     }
 
     
+    // Determine sort order: if searching, sort by displayCode (alphabetical order), otherwise by createdAt
+    // When searching, we want to prioritize orders where the search term appears at the beginning of displayCode
+    let sortOrder = { createdAt: -1 }; // Default: newest first
+    if (q !== undefined && q !== null && String(q).trim() !== '') {
+      // When searching, sort by displayCode to show results in order
+      // This will naturally show orders with the search term at the beginning first
+      // (e.g., "3" will show "3abc", "a3bc", "ab3c", "abc3" in order)
+      // When user types "a3", it will show: "a3bc", "a3cd", etc.
+      sortOrder = { displayCode: 1 }; // Sort by displayCode ascending (alphabetical order)
+    }
+    
     // Try different databases: 'orders' database first, then 'CoffeeDB'
+    // When searching, try all databases to find matching orders
     let items = [];
     let total = 0;
     
@@ -84,62 +131,53 @@ router.get('/', async (req, res) => {
     try {
       const ordersDb = mongoose.connection.useDb('orders', { useCache: true });
       const coll = ordersDb.collection('ordersList');
-      const totalCount = await coll.countDocuments({});
-      if (totalCount > 0) {
         [items, total] = await Promise.all([
-          coll.find(filters).sort({ createdAt: -1 }).skip(skip).limit(limit).toArray(),
+        coll.find(filters).sort(sortOrder).skip(skip).limit(limit).toArray(),
           coll.countDocuments(filters)
         ]);
-        if (total === 0 && totalCount > 0) {
-          [items, total] = await Promise.all([
-            coll.find({}).sort({ createdAt: -1 }).skip(skip).limit(limit).toArray(),
-            coll.countDocuments({})
-          ]);
-        }
-      }
     } catch (err) {
+      console.error("Error querying 'orders' database:", err);
     }
     
     // Try 2: Current database (CoffeeDB) > ordersList collection
+    // Always try next database if no results yet (even with search query)
     if (total === 0) {
       try {
         const coll = mongoose.connection.db.collection('ordersList');
-        const totalCount = await coll.countDocuments({});
-        if (totalCount > 0) {
           [items, total] = await Promise.all([
-            coll.find(filters).sort({ createdAt: -1 }).skip(skip).limit(limit).toArray(),
+          coll.find(filters).sort(sortOrder).skip(skip).limit(limit).toArray(),
             coll.countDocuments(filters)
           ]);
-          if (total === 0 && totalCount > 0) {
-            [items, total] = await Promise.all([
-              coll.find({}).sort({ createdAt: -1 }).skip(skip).limit(limit).toArray(),
-              coll.countDocuments({})
-            ]);
-          }
-        }
       } catch (err) {
+        console.error("Error querying current database ordersList:", err);
       }
     }
 
     // Fallback to default Order model collection
+    // Always try fallback if no results yet (even with search query)
     if (total === 0) {
       try {
         [items, total] = await Promise.all([
-          Order.find(filters).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+          Order.find(filters).sort(sortOrder).skip(skip).limit(limit).lean(),
           Order.countDocuments(filters)
         ]);
       } catch (err) {
+        console.error("Error querying default Order model:", err);
       }
     }
 
     const transformed = items.map(o => ({
       _id: o._id ? String(o._id) : undefined,
-      id: String(o._id || o.id || ''),
+      // IMPORTANT: Use o.id (order ID like "ORD-2025-0093") first, fallback to _id only if id doesn't exist
+      id: String(o.id || o._id || ''),
+      displayCode: (o.displayCode && typeof o.displayCode === 'string' && o.displayCode.trim().length > 0) ? String(o.displayCode).trim() : null, // 4-character alphanumeric code for display
       customerEmail: o.customerEmail,
       customerName: o.customerName,
       total: o.total,
       subtotal: o.subtotal,
       discount: o.discount,
+      pointsUsed: o.pointsUsed || 0,
+      pointsEarned: o.pointsEarned || 0,
       shippingFee: o.shippingFee,
       currency: o.currency || 'VND',
       status: o.status || 'created',
@@ -247,12 +285,17 @@ router.get('/:id', async (req, res) => {
     const transformed = {
       _id: o._id ? String(o._id) : undefined,
       id: String(o._id || o.id || ''),
+      displayCode: (o.displayCode && typeof o.displayCode === 'string' && o.displayCode.trim().length > 0) ? String(o.displayCode).trim() : null, // 4-character alphanumeric code for display
       customerEmail: o.customerEmail,
       customerId: o.customerId,
+      customerName: o.customerName,
+      customerPhone: o.customerPhone,
       items: o.items || [],
       subtotal: o.subtotal,
       shippingFee: o.shippingFee,
       discount: o.discount,
+      pointsUsed: o.pointsUsed || 0,
+      pointsEarned: o.pointsEarned || 0,
       tax: o.tax,
       total: o.total,
       currency: o.currency || 'VND',
@@ -271,16 +314,155 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+// Helper function to update customer loyalty points when order is delivered
+async function updateCustomerLoyaltyPoints(order) {
+  try {
+    if (!order || order.status !== 'delivered') return;
+    
+    const customerEmail = order.customerEmail?.toLowerCase()?.trim();
+    if (!customerEmail) return;
+    
+    // Find customer by email
+    let customer = null;
+    
+    // Try to find in customers database
+    try {
+      const customersDb = mongoose.connection.useDb('customers', { useCache: true });
+      const customersColl = customersDb.collection('customersList');
+      customer = await customersColl.findOne({ email: customerEmail });
+    } catch (err) {
+      console.error('Error finding customer in customers DB:', err);
+    }
+    
+    // Try current database
+    if (!customer) {
+      try {
+        const customersColl = mongoose.connection.db.collection('customersList');
+        customer = await customersColl.findOne({ email: customerEmail });
+      } catch (err) {
+        console.error('Error finding customer in current DB:', err);
+      }
+    }
+    
+    // Try Customer model
+    if (!customer) {
+      try {
+        customer = await Customer.findOne({ email: customerEmail }).lean();
+      } catch (err) {
+        console.error('Error finding customer in Customer model:', err);
+      }
+    }
+    
+    if (!customer) {
+      console.warn(`Customer not found for email: ${customerEmail}`);
+      return;
+    }
+    
+    // Calculate points earned (10% of orderTotal BEFORE discount)
+    const orderTotal = order.subtotal + (order.shippingFee || 0);
+    const pointsEarned = calculatePointsEarned(orderTotal);
+    
+    if (pointsEarned <= 0) return;
+    
+    // Update customer loyalty points
+    const customerId = customer._id || customer.id;
+    const currentPoints = customer.loyalty?.currentPoints || customer.loyalty?.points || 0;
+    const totalEarned = (customer.loyalty?.totalEarned || 0) + pointsEarned;
+    const newPoints = currentPoints + pointsEarned;
+    
+    // Add to history
+    const historyEntry = {
+      orderId: order.id || order._id?.toString(),
+      orderDate: order.createdAt || new Date(),
+      type: 'earned',
+      points: pointsEarned,
+      description: `Earned ${pointsEarned} points from order ${order.id}`,
+      createdAt: new Date()
+    };
+    
+    const updateData = {
+      'loyalty.totalEarned': totalEarned,
+      'loyalty.currentPoints': newPoints,
+      'loyalty.lastAccrualAt': new Date(),
+      $push: { 'loyalty.history': historyEntry }
+    };
+    
+    // Update in same location where customer was found
+    try {
+      const customersDb = mongoose.connection.useDb('customers', { useCache: true });
+      const customersColl = customersDb.collection('customersList');
+      await customersColl.updateOne(
+        { _id: Types.ObjectId.isValid(customerId) ? new Types.ObjectId(customerId) : customerId },
+        { $set: updateData, $push: { 'loyalty.history': historyEntry } }
+      );
+    } catch (err) {
+      try {
+        const customersColl = mongoose.connection.db.collection('customersList');
+        await customersColl.updateOne(
+          { _id: Types.ObjectId.isValid(customerId) ? new Types.ObjectId(customerId) : customerId },
+          { $set: updateData, $push: { 'loyalty.history': historyEntry } }
+        );
+      } catch (err2) {
+        try {
+          await Customer.findByIdAndUpdate(customerId, {
+            $set: updateData,
+            $push: { 'loyalty.history': historyEntry }
+          });
+        } catch (err3) {
+          console.error('Error updating customer loyalty points:', err3);
+        }
+      }
+    }
+    
+  } catch (err) {
+    console.error('Error in updateCustomerLoyaltyPoints:', err);
+  }
+}
+
 // PATCH /api/orders/:id - Update order status and/or shipping activity
 router.patch('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { status, shippingActivity } = req.body;
+    const { status, shippingActivity, pointsUsed } = req.body;
+    
+    // Get current order to check previous status
+    let currentOrder = null;
+    try {
+      const ordersDb = mongoose.connection.useDb('orders', { useCache: true });
+      const coll = ordersDb.collection('ordersList');
+      currentOrder = await coll.findOne({ id: id }) || await coll.findOne({ _id: Types.ObjectId.isValid(id) ? new Types.ObjectId(id) : id });
+    } catch (err) {
+      try {
+        const coll = mongoose.connection.db.collection('ordersList');
+        currentOrder = await coll.findOne({ id: id }) || await coll.findOne({ _id: Types.ObjectId.isValid(id) ? new Types.ObjectId(id) : id });
+      } catch (err2) {
+        currentOrder = await Order.findOne({ id: id }) || await Order.findById(id);
+      }
+    }
     
     // Build update data
     const updateData = {};
     if (status !== undefined) updateData.status = status;
     if (shippingActivity !== undefined) updateData.shippingActivity = shippingActivity;
+    if (pointsUsed !== undefined) {
+      updateData.pointsUsed = Math.max(0, parseInt(pointsUsed, 10) || 0);
+      // Calculate discount from points used (1 point = 1,000 VND)
+      updateData.discount = calculateDiscountFromPoints(updateData.pointsUsed);
+      
+      // Recalculate total if discount changed
+      if (currentOrder) {
+        const subtotal = currentOrder.subtotal || 0;
+        const shippingFee = currentOrder.shippingFee || 0;
+        updateData.total = Math.max(0, subtotal + shippingFee - updateData.discount);
+      }
+    }
+    
+    // Calculate points earned when order is delivered
+    if (status === 'delivered' && currentOrder) {
+      const orderTotal = (currentOrder.subtotal || 0) + (currentOrder.shippingFee || 0);
+      updateData.pointsEarned = calculatePointsEarned(orderTotal);
+    }
+    
     updateData.updatedAt = new Date();
     
     if (Object.keys(updateData).length === 0) {
@@ -486,6 +668,98 @@ router.patch('/:id', async (req, res) => {
         success: false, 
         message: `Order not found with id: ${id}`
       });
+    }
+    
+    // If order status changed to 'delivered', update customer loyalty points
+    if (status === 'delivered' && currentOrder && currentOrder.status !== 'delivered') {
+      // Get updated order
+      let updatedOrder = null;
+      try {
+        const ordersDb = mongoose.connection.useDb('orders', { useCache: true });
+        const coll = ordersDb.collection('ordersList');
+        updatedOrder = await coll.findOne({ id: id }) || await coll.findOne({ _id: Types.ObjectId.isValid(id) ? new Types.ObjectId(id) : id });
+      } catch (err) {
+        try {
+          const coll = mongoose.connection.db.collection('ordersList');
+          updatedOrder = await coll.findOne({ id: id }) || await coll.findOne({ _id: Types.ObjectId.isValid(id) ? new Types.ObjectId(id) : id });
+        } catch (err2) {
+          updatedOrder = await Order.findOne({ id: id }) || await Order.findById(id);
+        }
+      }
+      
+      if (updatedOrder) {
+        await updateCustomerLoyaltyPoints(updatedOrder);
+      }
+    }
+    
+    // If points were used, deduct from customer
+    if (pointsUsed !== undefined && pointsUsed > 0 && currentOrder) {
+      const customerEmail = currentOrder.customerEmail?.toLowerCase()?.trim();
+      if (customerEmail) {
+        try {
+          // Find customer
+          let customer = null;
+          try {
+            const customersDb = mongoose.connection.useDb('customers', { useCache: true });
+            const customersColl = customersDb.collection('customersList');
+            customer = await customersColl.findOne({ email: customerEmail });
+          } catch (err) {
+            const customersColl = mongoose.connection.db.collection('customersList');
+            customer = await customersColl.findOne({ email: customerEmail });
+          }
+          
+          if (!customer) {
+            customer = await Customer.findOne({ email: customerEmail }).lean();
+          }
+          
+          if (customer) {
+            const customerId = customer._id || customer.id;
+            const currentPoints = customer.loyalty?.currentPoints || customer.loyalty?.points || 0;
+            const newPoints = Math.max(0, currentPoints - pointsUsed);
+            
+            // Add to history
+            const historyEntry = {
+              orderId: currentOrder.id || currentOrder._id?.toString(),
+              orderDate: currentOrder.createdAt || new Date(),
+              type: 'used',
+              points: pointsUsed,
+              description: `Used ${pointsUsed} points for order ${currentOrder.id}`,
+              createdAt: new Date()
+            };
+            
+            try {
+              const customersDb = mongoose.connection.useDb('customers', { useCache: true });
+              const customersColl = customersDb.collection('customersList');
+              await customersColl.updateOne(
+                { _id: Types.ObjectId.isValid(customerId) ? new Types.ObjectId(customerId) : customerId },
+                { 
+                  $set: { 'loyalty.currentPoints': newPoints },
+                  $push: { 'loyalty.history': historyEntry }
+                }
+              );
+            } catch (err) {
+              try {
+                const customersColl = mongoose.connection.db.collection('customersList');
+                await customersColl.updateOne(
+                  { _id: Types.ObjectId.isValid(customerId) ? new Types.ObjectId(customerId) : customerId },
+                  { 
+                    $set: { 'loyalty.currentPoints': newPoints },
+                    $push: { 'loyalty.history': historyEntry }
+                  }
+                );
+              } catch (err2) {
+                await Customer.findByIdAndUpdate(customerId, {
+                  $set: { 'loyalty.currentPoints': newPoints },
+                  $push: { 'loyalty.history': historyEntry }
+                });
+              }
+            }
+            
+          }
+        } catch (err) {
+          console.error('Error deducting points from customer:', err);
+        }
+      }
     }
     
     res.json({ success: true, message: 'Order updated successfully' });

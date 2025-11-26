@@ -1,15 +1,14 @@
 import React from 'react';
-import { User, Lock, MapPin, Bell } from 'lucide-react';
-import OverviewCards from './OverviewCards';
-import OrdersPlacedTable from './OrdersPlacedTable';
-import SecurityTab from './SecurityTab';
-import NotificationsTab from './NotificationsTab';
+import { User, MapPin } from 'lucide-react';
+import OverviewCards from './overview/OverviewCards';
+import OrdersPlacedTable from './overview/OrdersPlacedTable';
 import AddressBillingTab from './AddressBillingTab';
 
 type CustomerTabsProps = {
-  activeTab: 'Overview' | 'Security' | 'Address & Billing' | 'Notifications';
-  onTabChange: (tab: 'Overview' | 'Security' | 'Address & Billing' | 'Notifications') => void;
+  activeTab: 'Overview' | 'Address & Billing';
+  onTabChange: (tab: 'Overview' | 'Address & Billing') => void;
   orders: any[];
+  allOrders?: any[];
   searchOrder: string;
   onSearchChange: (value: string) => void;
   currentPage: number;
@@ -19,12 +18,14 @@ type CustomerTabsProps = {
   onDeleteOrder?: (orderId: string) => void;
   onUpdateOrderStatus?: (orderId: string, status: string) => void;
   customer?: any;
+  onCustomerUpdate?: (updatedCustomer: any) => void;
 };
 
 const CustomerTabs: React.FC<CustomerTabsProps> = ({
   activeTab,
   onTabChange,
   orders,
+  allOrders = [],
   searchOrder,
   onSearchChange,
   currentPage,
@@ -34,12 +35,13 @@ const CustomerTabs: React.FC<CustomerTabsProps> = ({
   onDeleteOrder,
   onUpdateOrderStatus,
   customer,
+  onCustomerUpdate,
 }) => {
   return (
     <>
       {/* Tabs */}
       <div className="flex gap-4 border-b border-gray-700">
-        {(['Overview', 'Security', 'Address & Billing', 'Notifications'] as const).map((tab) => (
+        {(['Overview', 'Address & Billing'] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => onTabChange(tab)}
@@ -51,9 +53,7 @@ const CustomerTabs: React.FC<CustomerTabsProps> = ({
           >
             <div className="flex items-center gap-2">
               {tab === 'Overview' && <User size={16} />}
-              {tab === 'Security' && <Lock size={16} />}
               {tab === 'Address & Billing' && <MapPin size={16} />}
-              {tab === 'Notifications' && <Bell size={16} />}
               {tab}
             </div>
           </button>
@@ -62,7 +62,7 @@ const CustomerTabs: React.FC<CustomerTabsProps> = ({
 
       {activeTab === 'Overview' && (
         <>
-          <OverviewCards />
+          <OverviewCards customer={customer} orders={allOrders} />
           <OrdersPlacedTable
             orders={orders}
             searchOrder={searchOrder}
@@ -77,11 +77,9 @@ const CustomerTabs: React.FC<CustomerTabsProps> = ({
         </>
       )}
 
-      {activeTab === 'Security' && <SecurityTab customer={customer} />}
-
-      {activeTab === 'Address & Billing' && <AddressBillingTab customer={customer} />}
-
-      {activeTab === 'Notifications' && <NotificationsTab />}
+      {activeTab === 'Address & Billing' && (
+        <AddressBillingTab customer={customer} onCustomerUpdate={onCustomerUpdate} />
+      )}
     </>
   );
 };

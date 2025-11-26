@@ -2,8 +2,17 @@ import React, { useState, useRef, useEffect } from 'react';
 import { X, Plus, Trash2, UploadCloud, ChevronDown } from 'lucide-react';
 import { createCustomer } from '../../../../api/customers';
 import { COUNTRY_CODE_MAP } from './constants/countries';
-import CountrySelect from './components/shared/CountrySelect';
+import CountrySelectWithAlphabet from './components/shared/CountrySelectWithAlphabet';
+import CitySelectWithAlphabet from './components/shared/CitySelectWithAlphabet';
+import DistrictSelectWithAlphabet from './components/shared/DistrictSelectWithAlphabet';
+import WardSelectWithAlphabet from './components/shared/WardSelectWithAlphabet';
 import JoinDatePicker from './components/shared/JoinDatePicker';
+import AddNewAddressModal from './components/detail/AddNewAddressModal';
+import {
+  fetchCitiesByCountry,
+  fetchDistrictsByCity,
+  fetchWardsByDistrict,
+} from '../../../../api/addresses';
 
 // Phone country codes
 const PHONE_COUNTRY_CODES = [
@@ -51,6 +60,7 @@ type AddCustomerProps = {
 const AddCustomer: React.FC<AddCustomerProps> = ({ onBack, setActivePage }) => {
   const [saving, setSaving] = useState(false);
   const [useAsBilling, setUseAsBilling] = useState(true);
+  const [isDiscardModalOpen, setIsDiscardModalOpen] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<{ file: File; url: string } | null>(null);
   const [isDragActive, setIsDragActive] = useState(false);
@@ -68,6 +78,20 @@ const AddCustomer: React.FC<AddCustomerProps> = ({ onBack, setActivePage }) => {
   const [phoneCodeMenuOpen, setPhoneCodeMenuOpen] = useState(false);
   const phoneCodeDropdownRef = useRef<HTMLDivElement | null>(null);
 
+  // State for address dropdown options
+  const [cities, setCities] = useState<Array<{ code: string; name: string; provinceCode?: string }>>([]);
+  const [districts, setDistricts] = useState<Array<{ code: string; name: string }>>([]);
+  const [wards, setWards] = useState<Array<{ code: string; name: string }>>([]);
+  const [loadingOptions, setLoadingOptions] = useState({
+    cities: false,
+    districts: false,
+    wards: false,
+  });
+  const [featuresAvailable, setFeaturesAvailable] = useState({
+    districts: false,
+    wards: false,
+  });
+
   const [formData, setFormData] = useState({
     // Basic Information
     firstName: '',
@@ -80,11 +104,9 @@ const AddCustomer: React.FC<AddCustomerProps> = ({ onBack, setActivePage }) => {
     
     // Shipping Information
     addressLine1: '',
-    addressLine2: '',
     ward: '',
     district: '',
     city: '',
-    provinceCode: '',
     country: '',
   });
 
@@ -99,8 +121,178 @@ const AddCustomer: React.FC<AddCustomerProps> = ({ onBack, setActivePage }) => {
   }, []);
 
   const handleInputChange = (field: string, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData(prev => {
+      const newData = { ...prev, [field]: value };
+      
+      // Reset dependent fields when parent changes
+      if (field === 'country') {
+        newData.city = '';
+        newData.district = '';
+        newData.ward = '';
+        setFeaturesAvailable({ districts: false, wards: false });
+      } else if (field === 'city') {
+        newData.district = '';
+        newData.ward = '';
+        setFeaturesAvailable((prev) => ({ ...prev, wards: false }));
+      } else if (field === 'district') {
+        newData.ward = '';
+        setFeaturesAvailable((prev) => ({ ...prev, wards: false }));
+      }
+      
+      return newData;
+    });
   };
+
+  // Fetch cities when country changes
+  useEffect(() => {
+    const loadCities = async () => {
+      if (!formData.country) {
+        setCities([]);
+        return;
+      }
+
+      setLoadingOptions((prev) => ({ ...prev, cities: true }));
+      try {
+        const response = await fetchCitiesByCountry(formData.country);
+        let citiesData: Array<{ code: string; name: string; provinceCode?: string }> = [];
+        if (response?.success && response?.data && Array.isArray(response.data)) {
+          citiesData = response.data;
+        } else if (Array.isArray(response)) {
+          citiesData = response;
+        }
+        setCities(citiesData);
+      } catch (err) {
+        console.error('Failed to load cities:', err);
+        setCities([]);
+      } finally {
+        setLoadingOptions((prev) => ({ ...prev, cities: false }));
+      }
+    };
+
+    if (formData.country) {
+      loadCities();
+    }
+  }, [formData.country]);
+
+  // Fetch districts when city changes
+  useEffect(() => {
+    const loadDistricts = async () => {
+      if (!formData.country || !formData.city) {
+        setDistricts([]);
+        setFeaturesAvailable((prev) => ({ ...prev, districts: false, wards: false }));
+        return;
+      }
+
+      if (cities.length === 0) return;
+
+      const cityObj = cities.find(c => c.code === formData.city || c.name === formData.city);
+      if (!cityObj) return;
+
+      const cityCode = cityObj.code;
+      if (!cityCode) return;
+
+      setLoadingOptions((prev) => ({ ...prev, districts: true }));
+      try {
+        const response = await fetchDistrictsByCity(formData.country, cityCode);
+        let districtsData: Array<{ code: string; name: string }> = [];
+        if (response?.success && response?.data && Array.isArray(response.data)) {
+          districtsData = response.data;
+        } else if (Array.isArray(response)) {
+          districtsData = response;
+        }
+        setDistricts(districtsData);
+        const hasDistricts = districtsData.length > 0;
+        setFeaturesAvailable((prev) => ({ 
+          ...prev, 
+          districts: hasDistricts,
+          wards: false
+        }));
+      } catch (err) {
+        console.error('Failed to load districts:', err);
+        setDistricts([]);
+        setFeaturesAvailable((prev) => ({ ...prev, districts: false, wards: false }));
+      } finally {
+        setLoadingOptions((prev) => ({ ...prev, districts: false }));
+      }
+    };
+
+    loadDistricts();
+  }, [formData.country, formData.city, cities]);
+
+  // Fetch wards when district changes
+  useEffect(() => {
+    const loadWards = async () => {
+      if (!formData.country || !formData.city) {
+        setWards([]);
+        setFeaturesAvailable((prev) => ({ ...prev, wards: false }));
+        return;
+      }
+
+      if (cities.length === 0) return;
+
+      const cityObj = cities.find(c => c.code === formData.city || c.name === formData.city);
+      if (!cityObj) return;
+      const cityCode = cityObj.code;
+
+      if (featuresAvailable.districts && !formData.district) {
+        setWards([]);
+        setFeaturesAvailable((prev) => ({ ...prev, wards: false }));
+        return;
+      }
+
+      if (featuresAvailable.districts && formData.district) {
+        if (districts.length === 0) return;
+
+        const districtObj = districts.find(d => d.code === formData.district || d.name === formData.district);
+        if (!districtObj) return;
+        const districtCode = districtObj.code;
+        if (!districtCode) return;
+
+        setLoadingOptions((prev) => ({ ...prev, wards: true }));
+        try {
+          const response = await fetchWardsByDistrict(formData.country, cityCode, districtCode);
+          let wardsData: Array<{ code: string; name: string }> = [];
+          if (response?.success && response?.data && Array.isArray(response.data)) {
+            wardsData = response.data;
+          } else if (Array.isArray(response)) {
+            wardsData = response;
+          }
+          setWards(wardsData);
+          const hasWards = wardsData.length > 0;
+          setFeaturesAvailable((prev) => ({ ...prev, wards: hasWards }));
+        } catch (err) {
+          console.error('Failed to load wards:', err);
+          setWards([]);
+          setFeaturesAvailable((prev) => ({ ...prev, wards: false }));
+        } finally {
+          setLoadingOptions((prev) => ({ ...prev, wards: false }));
+        }
+      } else {
+        // Try to load wards directly from city if no districts
+        setLoadingOptions((prev) => ({ ...prev, wards: true }));
+        try {
+          const response = await fetchWardsByDistrict(formData.country, cityCode, '');
+          let wardsData: Array<{ code: string; name: string }> = [];
+          if (response?.success && response?.data && Array.isArray(response.data)) {
+            wardsData = response.data;
+          } else if (Array.isArray(response)) {
+            wardsData = response;
+          }
+          setWards(wardsData);
+          const hasWards = wardsData.length > 0;
+          setFeaturesAvailable((prev) => ({ ...prev, wards: hasWards }));
+        } catch (err) {
+          console.error('Failed to load wards:', err);
+          setWards([]);
+          setFeaturesAvailable((prev) => ({ ...prev, wards: false }));
+        } finally {
+          setLoadingOptions((prev) => ({ ...prev, wards: false }));
+        }
+      }
+    };
+
+    loadWards();
+  }, [formData.country, formData.city, formData.district, featuresAvailable.districts, districts, cities]);
 
   const convertDateToISO = (dateStr: string): string | undefined => {
     if (!dateStr) return undefined;
@@ -225,6 +417,14 @@ const AddCustomer: React.FC<AddCustomerProps> = ({ onBack, setActivePage }) => {
         alert('City is required');
         return;
       }
+      if (!formData.gender) {
+        alert('Gender is required');
+        return;
+      }
+      if (!formData.status) {
+        alert('Status is required');
+        return;
+      }
 
       // Email validation
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -243,6 +443,32 @@ const AddCustomer: React.FC<AddCustomerProps> = ({ onBack, setActivePage }) => {
         ? `${phoneCountryCode}${formData.phone.trim()}` 
         : undefined;
 
+      // Helper functions to get name from code or keep name if already a name
+      const getCityName = () => {
+        if (!formData.city) return undefined;
+        const cityObj = cities.find((c) => c.code === formData.city || c.name === formData.city);
+        if (cityObj) return cityObj.name;
+        return formData.city;
+      };
+
+      const getDistrictName = () => {
+        if (!formData.district) return undefined;
+        const districtObj = districts.find((d) => d.code === formData.district || d.name === formData.district);
+        if (districtObj) return districtObj.name;
+        return formData.district;
+      };
+
+      const getWardName = () => {
+        if (!formData.ward) return undefined;
+        const wardObj = wards.find((w) => w.code === formData.ward || w.name === formData.ward);
+        if (wardObj) return wardObj.name;
+        return formData.ward;
+      };
+
+      const cityName = getCityName();
+      const districtName = getDistrictName();
+      const wardName = getWardName();
+
       const addresses: any[] = [
         {
           label: 'home',
@@ -251,12 +477,10 @@ const AddCustomer: React.FC<AddCustomerProps> = ({ onBack, setActivePage }) => {
           fullName: fullName,
           phone: fullPhone,
           addressLine1: formData.addressLine1.trim(),
-          addressLine2: formData.addressLine2.trim() || undefined,
-                ward: formData.ward.trim() || undefined,
-                district: formData.district.trim() || undefined,
-                city: formData.city.trim(),
-                provinceCode: formData.provinceCode.trim() || undefined,
-                country: COUNTRY_CODE_MAP[formData.country] || formData.country,
+          ward: wardName || undefined,
+          district: districtName || undefined,
+          city: cityName || formData.city.trim(),
+          country: COUNTRY_CODE_MAP[formData.country] || formData.country,
         }
       ];
 
@@ -269,12 +493,10 @@ const AddCustomer: React.FC<AddCustomerProps> = ({ onBack, setActivePage }) => {
           fullName: fullName,
           phone: fullPhone,
           addressLine1: formData.addressLine1.trim(),
-          addressLine2: formData.addressLine2.trim() || undefined,
-                ward: formData.ward.trim() || undefined,
-                district: formData.district.trim() || undefined,
-                city: formData.city.trim(),
-                provinceCode: formData.provinceCode.trim() || undefined,
-                country: COUNTRY_CODE_MAP[formData.country] || formData.country,
+          ward: wardName || undefined,
+          district: districtName || undefined,
+          city: cityName || formData.city.trim(),
+          country: COUNTRY_CODE_MAP[formData.country] || formData.country,
         });
       }
 
@@ -306,13 +528,13 @@ const AddCustomer: React.FC<AddCustomerProps> = ({ onBack, setActivePage }) => {
         fullName: fullName,
         email: formData.email.trim().toLowerCase(),
         phone: fullPhone,
-        gender: formData.gender || undefined,
+        gender: formData.gender,
         dateOfBirth: formData.dateOfBirth ? (() => {
           const isoDate = convertDateToISO(formData.dateOfBirth);
           return isoDate ? new Date(isoDate).toISOString() : undefined;
         })() : undefined,
         avatarUrl: avatarPreview?.url || undefined,
-        status: formData.status || undefined,
+        status: formData.status,
         addresses: addresses,
         paymentMethods: preparedPaymentMethods,
       };
@@ -337,12 +559,18 @@ const AddCustomer: React.FC<AddCustomerProps> = ({ onBack, setActivePage }) => {
   };
 
   const handleDiscard = () => {
-    if (window.confirm('Are you sure you want to discard this customer? All unsaved changes will be lost.')) {
-      if (setActivePage) {
-        setActivePage('Customers');
-      } else if (onBack) {
-        onBack();
-      }
+    setIsDiscardModalOpen(true);
+  };
+
+  const handleCloseDiscardModal = () => {
+    setIsDiscardModalOpen(false);
+  };
+
+  const handleConfirmDiscard = () => {
+    if (setActivePage) {
+      setActivePage('Customers');
+    } else if (onBack) {
+      onBack();
     }
   };
 
@@ -452,7 +680,7 @@ const AddCustomer: React.FC<AddCustomerProps> = ({ onBack, setActivePage }) => {
 
             <div>
               <label className="block text-sm font-medium text-text-secondary mb-1">
-                Gender
+                Gender <span className="text-red-400">*</span>
               </label>
               <select
                 value={formData.gender}
@@ -460,6 +688,7 @@ const AddCustomer: React.FC<AddCustomerProps> = ({ onBack, setActivePage }) => {
                 className={`w-full bg-background-dark border border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary ${
                   formData.gender === '' ? 'text-text-secondary' : 'text-text-primary'
                 }`}
+                required
               >
                 <option value="" disabled>Select gender</option>
                 <option value="male">Male</option>
@@ -479,7 +708,7 @@ const AddCustomer: React.FC<AddCustomerProps> = ({ onBack, setActivePage }) => {
 
             <div>
               <label className="block text-sm font-medium text-text-secondary mb-1">
-                Status
+                Status <span className="text-red-400">*</span>
               </label>
               <select
                 value={formData.status}
@@ -487,6 +716,7 @@ const AddCustomer: React.FC<AddCustomerProps> = ({ onBack, setActivePage }) => {
                 className={`w-full bg-background-dark border border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary ${
                   formData.status === '' ? 'text-text-secondary' : 'text-text-primary'
                 }`}
+                required
               >
                 <option value="" disabled>Select status</option>
                 <option value="active">Active</option>
@@ -564,91 +794,68 @@ const AddCustomer: React.FC<AddCustomerProps> = ({ onBack, setActivePage }) => {
         <div className="bg-background-dark/40 border border-gray-700 rounded-lg p-6">
           <h3 className="text-lg font-semibold mb-4 text-text-primary">Shipping Information</h3>
           <div className="space-y-4">
+            {/* Country */}
+            <CountrySelectWithAlphabet
+              value={formData.country}
+              onChange={(code) => handleInputChange('country', code)}
+              label="Country"
+              required
+            />
+
+            {/* City */}
+            <CitySelectWithAlphabet
+              value={formData.city}
+              onChange={(code) => handleInputChange('city', code)}
+              countryCode={formData.country}
+              cities={cities}
+              loading={loadingOptions.cities}
+              label="City / Province"
+              required
+              onLoadingChange={(loading) => setLoadingOptions(prev => ({ ...prev, cities: loading }))}
+            />
+
+            {/* District */}
+            <DistrictSelectWithAlphabet
+              value={formData.district}
+              onChange={(code) => handleInputChange('district', code)}
+              countryCode={formData.country}
+              cityCode={formData.city}
+              districts={districts}
+              loading={loadingOptions.districts}
+              label="District / County"
+              featuresAvailable={featuresAvailable.districts}
+              onLoadingChange={(loading) => setLoadingOptions(prev => ({ ...prev, districts: loading }))}
+            />
+
+            {/* Ward */}
+            <WardSelectWithAlphabet
+              value={formData.ward}
+              onChange={(code) => handleInputChange('ward', code)}
+              countryCode={formData.country}
+              cityCode={formData.city}
+              districtCode={formData.district}
+              wards={wards}
+              loading={loadingOptions.wards}
+              label="Ward / Commune"
+              featuresAvailable={featuresAvailable}
+              onLoadingChange={(loading) => setLoadingOptions(prev => ({ ...prev, wards: loading }))}
+            />
+
+            {/* Address Line 1 */}
             <div>
-              <label className="block text-sm font-medium text-text-secondary mb-1">
+              <label className="block text-sm font-medium text-text-secondary mb-2">
                 Address Line 1 <span className="text-red-400">*</span>
               </label>
               <input
                 type="text"
                 value={formData.addressLine1}
                 onChange={(e) => handleInputChange('addressLine1', e.target.value)}
-                className="w-full bg-background-dark border border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary text-text-primary"
+                className="w-full h-10 bg-background-dark border border-gray-600 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary text-text-primary"
+                placeholder="e.g., 123 Main Street"
                 required
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-text-secondary mb-1">
-                Address Line 2
-              </label>
-              <input
-                type="text"
-                value={formData.addressLine2}
-                onChange={(e) => handleInputChange('addressLine2', e.target.value)}
-                className="w-full bg-background-dark border border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary text-text-primary"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-text-secondary mb-1">
-                  Ward
-                </label>
-                <input
-                  type="text"
-                  value={formData.ward}
-                  onChange={(e) => handleInputChange('ward', e.target.value)}
-                  className="w-full bg-background-dark border border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary text-text-primary"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-text-secondary mb-1">
-                  District
-                </label>
-                <input
-                  type="text"
-                  value={formData.district}
-                  onChange={(e) => handleInputChange('district', e.target.value)}
-                  className="w-full bg-background-dark border border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary text-text-primary"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-text-secondary mb-1">
-                  Town / City <span className="text-red-400">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={formData.city}
-                  onChange={(e) => handleInputChange('city', e.target.value)}
-                  className="w-full bg-background-dark border border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary text-text-primary"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-text-secondary mb-1">
-                  State / Province
-                </label>
-                <input
-                  type="text"
-                  value={formData.provinceCode}
-                  onChange={(e) => handleInputChange('provinceCode', e.target.value)}
-                  className="w-full bg-background-dark border border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary text-text-primary"
-                />
-              </div>
-            </div>
-
-            <div>
-              <CountrySelect
-                value={formData.country}
-                onChange={(value) => handleInputChange('country', value)}
-                label="Country"
-              />
-            </div>
           </div>
         </div>
 
@@ -863,6 +1070,32 @@ const AddCustomer: React.FC<AddCustomerProps> = ({ onBack, setActivePage }) => {
           </button>
         </div>
       </div>
+
+      {/* Discard Confirmation Modal */}
+      {isDiscardModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+          <div className="bg-background-light rounded-xl shadow-2xl max-w-md w-full p-6">
+            <h3 className="text-xl font-semibold text-text-primary mb-2">Discard changes</h3>
+            <p className="text-text-secondary text-sm">
+              Are you sure you want to discard this customer? All unsaved changes will be lost.
+            </p>
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={handleCloseDiscardModal}
+                className="px-4 py-2 rounded-lg border border-gray-600 text-text-primary hover:bg-gray-700/40 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmDiscard}
+                className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors"
+              >
+                Discard
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -2,6 +2,8 @@ import React from 'react';
 import Badge from '../../../../components/Badge';
 import { ShoppingCart, DollarSign } from 'lucide-react';
 import { formatVND } from '../../../../../../utils/currency';
+import { normalizeCountry } from '../../constants/countries';
+import { getCustomerCountry, formatMemberSinceDate, formatCustomerStatus } from '../../utils/helpers';
 
 const getDisplayCode = (val: string | number | undefined | null) => {
   const s = String(val || '');
@@ -66,7 +68,7 @@ const CustomerProfileCard: React.FC<CustomerProfileCardProps> = ({
           <div className="flex justify-between items-center">
             <span className="text-text-secondary">Status:</span>
             <Badge color={customer?.status === 'inactive' ? 'yellow' : customer?.status === 'banned' ? 'red' : 'green'}>
-              {(customer?.status || 'active').charAt(0).toUpperCase() + (customer?.status || 'active').slice(1)}
+              {formatCustomerStatus(customer?.status)}
             </Badge>
           </div>
           <div className="flex justify-between">
@@ -75,20 +77,16 @@ const CustomerProfileCard: React.FC<CustomerProfileCardProps> = ({
           </div>
           <div className="flex justify-between">
             <span className="text-text-secondary">Country:</span>
-            <span className="text-text-primary">{primaryAddress?.country || customer?.country || '-'}</span>
+            <span className="text-text-primary">
+              {getCustomerCountry(customer, undefined, normalizeCountry) || '-'}
+            </span>
           </div>
-          {customer?.createdAt && (
-            <div className="flex justify-between">
-              <span className="text-text-secondary">Member since:</span>
-              <span className="text-text-primary">
-                {new Date(customer.createdAt).toLocaleDateString('en-US', { 
-                  month: 'short', 
-                  day: 'numeric', 
-                  year: 'numeric' 
-                })}
-              </span>
-            </div>
-          )}
+          <div className="flex justify-between">
+            <span className="text-text-secondary">Member since:</span>
+            <span className="text-text-primary">
+              {formatMemberSinceDate(customer?.createdAt || customer?.joinedAt)}
+            </span>
+          </div>
         </div>
       </div>
 

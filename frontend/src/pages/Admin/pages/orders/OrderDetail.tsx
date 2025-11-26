@@ -1,12 +1,15 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { OrderDetail as OrderDetailType, ShippingActivity } from '../../types';
+import { OrderDetail as OrderDetailType, ShippingActivity, OrderStatus } from '../../types';
 import Badge from '../../components/Badge';
 import { Edit, ShoppingCart, CheckCircle2, Plus, X, ChevronDown, Calendar } from 'lucide-react';
 import { formatVND } from '../../../../utils/currency';
 import { fetchCustomerById } from '../../../../api/customers';
 import { OrdersApi } from '../../../../api/orders';
+import { getAvatarUrl } from '../../../../utils/avatar';
+import { getOrderStatusColor, getPaymentStatusColor } from '../../../../utils/statusColors';
 import BackButton from '../../components/BackButton';
 import { saveState, loadState, clearState } from '../../../../utils/statePersistence';
+import { getOrderDisplayCode } from '../../../../utils/orderDisplayCode';
 
 interface OrderDetailProps {
   order: OrderDetailType;
@@ -82,13 +85,8 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order, onBack, onRefresh }) =
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const getDisplayCode = (val: string | number | undefined | null) => {
-    const s = String(val || '');
-    if (!s) return '';
-    const hex = s.replace(/[^a-fA-F0-9]/g, '') || s;
-    const last4 = hex.slice(-4).padStart(4, '0');
-    return `#${last4}`;
-  };
+  // Import shared utility for order display code
+  const getDisplayCode = (orderOrVal: any) => getOrderDisplayCode(orderOrVal);
 
   const formatAddress = (addr: any) => {
     if (!addr) return '';
@@ -144,72 +142,6 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order, onBack, onRefresh }) =
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [order]);
-  const getStatusColor = (status: string) => {
-    if (!status) return 'gray';
-    const s = String(status).toLowerCase();
-    
-    if (s === 'paid' || s.includes('paid')) {
-        return 'green';
-    }
-    if (s === 'pending' || s.includes('pending')) {
-        return 'yellow';
-    }
-    if (s === 'failed' || s.includes('failed')) {
-      return 'red';
-    }
-    if (s === 'refunded' || s.includes('refunded')) {
-        return 'red';
-    }
-    
-    return 'gray';
-  };
-
-  const getOrderStatusColor = (status: string): 'green' | 'yellow' | 'red' | 'gray' | 'blue' => {
-    if (!status) return 'gray';
-    const s = status.toLowerCase();
-    
-    // Completed/Delivered statuses - Green
-    if (s.includes('delivered') || s === 'delivered') {
-        return 'green';
-    }
-    
-    // Ready/Shipped statuses - Green/Blue
-    if (s.includes('ready to pickup') || s.includes('readytopickup') || s.includes('ready')) {
-        return 'green';
-    }
-    if (s.includes('shipped') || s === 'shipped') {
-      return 'blue';
-    }
-    
-    // In progress statuses - Blue/Yellow
-    if (s.includes('processing') || s === 'processing') {
-      return 'blue';
-    }
-    if (s.includes('dispatched') || s === 'dispatched') {
-      return 'blue';
-    }
-    if (s.includes('out for delivery') || s.includes('outfordelivery')) {
-        return 'blue';
-    }
-    
-    // Pending statuses - Yellow
-    if (s.includes('pending') || s === 'pending') {
-        return 'yellow';
-    }
-    
-    // Cancelled/Refunded/Returned - Red
-    if (s.includes('cancelled') || s.includes('canceled') || s === 'cancelled') {
-      return 'red';
-    }
-    if (s.includes('refunded') || s === 'refunded') {
-      return 'red';
-    }
-    if (s.includes('returned') || s === 'returned') {
-        return 'red';
-    }
-    
-        return 'gray';
-  };
 
   const handleOpenEditModal = (index: number | null = null) => {
     if (index !== null) {
@@ -406,8 +338,8 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order, onBack, onRefresh }) =
             <BackButton onClick={onBack} label="Back to orders" className="mt-1" />
             <div>
               <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-2xl font-bold text-text-primary">Order {getDisplayCode(order.id)}</h1>
-                <Badge color={getStatusColor(order.paymentStatus || 'Pending')}>
+                <h1 className="text-2xl font-bold text-text-primary">Order {getDisplayCode(order)}</h1>
+                <Badge color={getPaymentStatusColor(order.paymentStatus || 'Pending')}>
                   {order.paymentStatus || 'Pending'}
                 </Badge>
                 <Badge color={getOrderStatusColor(order.status)}>
@@ -447,9 +379,9 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order, onBack, onRefresh }) =
                 <thead>
                   <tr className="border-b border-gray-700 text-sm text-text-secondary">
                     <th className="p-3">PRODUCTS</th>
-                    <th className="p-3">PRICE</th>
-                    <th className="p-3">QTY</th>
-                    <th className="p-3">TOTAL</th>
+                    <th className="p-3 text-center">PRICE</th>
+                    <th className="p-3 text-center">QTY</th>
+                    <th className="p-3 text-right">TOTAL</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -464,9 +396,9 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order, onBack, onRefresh }) =
                             )}
                           </div>
                         </td>
-                        <td className="p-3 text-text-secondary">{formatVND(item.price || 0)}</td>
-                        <td className="p-3 text-text-secondary">{item.quantity || 1}</td>
-                        <td className="p-3 font-semibold text-text-primary">{formatVND((item.price || 0) * (item.quantity || 1))}</td>
+                        <td className="p-3 text-text-secondary text-center">{formatVND(item.price || 0)}</td>
+                        <td className="p-3 text-text-secondary text-center">{item.quantity || 1}</td>
+                        <td className="p-3 text-text-secondary text-right">{formatVND((item.price || 0) * (item.quantity || 1))}</td>
                       </tr>
                     ))
                   ) : (
@@ -482,24 +414,52 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order, onBack, onRefresh }) =
             <div className="mt-4 pt-4 border-t border-gray-700 space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-text-secondary">Subtotal:</span>
-                <span className="text-text-primary font-medium">{formatVND(order.subtotal)}</span>
+                <span className="text-text-primary font-medium">{formatVND(order.subtotal || 0)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-text-secondary">Loyalty Points Used:</span>
+                <span className="text-text-primary font-medium">
+                  {(order.pointsUsed || 0)} points
+                  {order.pointsUsed > 0 && (
+                    <span className="text-xs text-text-secondary ml-2">
+                      (giảm {formatVND(order.pointsUsed * 1000)})
+                    </span>
+                  )}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-text-secondary">Discount:</span>
-                <span className="text-text-primary font-medium">-{formatVND(Math.abs(order.discount))}</span>
+                <span className="text-text-primary font-medium">
+                  {order.discount > 0 ? `-${formatVND(Math.abs(order.discount))}` : formatVND(0)}
+                  {order.pointsUsed > 0 && order.discount > 0 && (
+                    <span className="text-xs text-text-secondary ml-2">
+                      (từ {order.pointsUsed} points)
+                    </span>
+                  )}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-text-secondary">Shipping Fee:</span>
                 <span className="text-text-primary font-medium">{formatVND(order.shippingFee || 0)}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-text-secondary">Tax:</span>
-                <span className="text-text-primary font-medium">{formatVND(order.tax)}</span>
-              </div>
               <div className="flex justify-between pt-2 border-t border-gray-700 font-bold text-lg">
                 <span className="text-text-primary font-semibold">Total:</span>
-                <span className="text-primary font-semibold">{formatVND(order.total)}</span>
+                <span className="text-text-primary font-medium">{formatVND(order.total || 0)}</span>
               </div>
+              {/* Show Points Earned for paid orders (not just delivered) */}
+              {order.paymentStatus && (order.paymentStatus === 'Paid' || order.paymentStatus?.toLowerCase() === 'paid') && (
+                <div className="flex justify-between pt-2 border-t border-gray-700 mt-2">
+                  <span className="text-text-secondary">Points Earned:</span>
+                  <span className="text-green-400 font-medium">
+                    +{(order.pointsEarned || 0)} points
+                    {order.pointsEarned > 0 && (
+                      <span className="text-xs text-text-secondary ml-2">
+                        (trị giá {formatVND((order.pointsEarned || 0) * 1000)})
+                      </span>
+                    )}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -522,8 +482,10 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order, onBack, onRefresh }) =
             </div>
             <div className="relative pl-8">
               {/* Vertical line */}
-              <div className={`absolute left-4 top-0 bottom-0 w-0.5 transition-colors ${
-                shippingActivity.length > 0 ? 'bg-gradient-to-b from-primary via-primary/50 to-gray-700' : 'bg-gray-700'
+              <div className={`absolute left-[14px] top-0 bottom-0 w-0.5 transition-colors ${
+                shippingActivity.length > 0 
+                  ? 'bg-gradient-to-b from-primary via-primary/50 to-gray-700' 
+                  : 'bg-gray-700'
               }`}></div>
               
               {shippingActivity.length === 0 ? (
@@ -537,27 +499,21 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order, onBack, onRefresh }) =
               ) : (
                 shippingActivity.map((activity, index) => {
                   const isLast = index === shippingActivity.length - 1;
-                  const getStatusColor = (status: string) => {
-                    const s = status.toLowerCase();
-                    if (s.includes('delivered') || s.includes('completed')) return 'bg-green-500/20 text-green-400 border-green-500/30';
-                    if (s.includes('shipped') || s.includes('dispatched') || s.includes('delivery')) return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
-                    if (s.includes('processing') || s.includes('ready')) return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
-                    if (s.includes('cancelled') || s.includes('refunded') || s.includes('returned')) return 'bg-red-500/20 text-red-400 border-red-500/30';
-                    return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
-                  };
+                  
+                  // Show tick for all activities that have a status
+                  // If an activity has a status, it means it has occurred and should show tick
+                  const shouldShowTick = Boolean(activity.status);
                   
                   return (
                     <div key={index} className="relative mb-6 last:mb-0 group">
                   {/* Circle marker */}
-                      <div className={`absolute -left-10 top-2 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
-                    activity.completed 
+                      <div className={`absolute -left-10 top-2 w-7 h-7 rounded-full border-2 flex items-center justify-center transition-all ${
+                        shouldShowTick 
                           ? 'bg-primary border-primary shadow-lg shadow-primary/50' 
                           : 'bg-background-dark border-gray-600'
                       }`}>
-                        {activity.completed ? (
-                          <CheckCircle2 size={14} className="text-white" />
-                        ) : (
-                          <div className="w-2 h-2 rounded-full bg-gray-500"></div>
+                        {shouldShowTick && (
+                          <CheckCircle2 size={16} className="text-white" strokeWidth={2.5} />
                         )}
                       </div>
                       
@@ -567,15 +523,7 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order, onBack, onRefresh }) =
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-2">
                               <Badge 
-                                color={(() => {
-                                  const s = activity.status?.toLowerCase() || '';
-                                  if (s.includes('delivered') || s.includes('completed')) return 'green';
-                                  if (s.includes('shipped') || s.includes('dispatched') || s.includes('delivery')) return 'blue';
-                                  if (s.includes('processing') || s.includes('ready')) return 'yellow';
-                                  if (s.includes('cancelled') || s.includes('refunded') || s.includes('returned')) return 'red';
-                                  if (s.includes('pending')) return 'yellow';
-                                  return activity.completed ? 'green' : 'gray';
-                                })()}
+                                color={getOrderStatusColor(activity.status)}
                               >
                                 {activity.status}
                               </Badge>
@@ -772,7 +720,12 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order, onBack, onRefresh }) =
             <h2 className="text-xl font-bold text-text-primary mb-4">Customer details</h2>
             <div className="flex flex-col items-center mb-4">
               <img 
-                src={order.customer?.avatar} 
+                src={getAvatarUrl(
+                  order.customer?.email ? String(order.customer.email).toLowerCase().trim() : undefined,
+                  order.customer?._id || order.customer?.id,
+                  order.customer?.avatarUrl || order.customer?.avatar, // Use same approach as customer component
+                  80
+                )} 
                 alt={order.customer?.name || 'Customer'} 
                 className="w-20 h-20 rounded-xl mb-3"
               />

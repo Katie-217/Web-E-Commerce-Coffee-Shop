@@ -1,6 +1,6 @@
 import React from 'react';
 import { RotateCcw } from 'lucide-react';
-import CountrySelect from '../shared/CountrySelect';
+import CountrySelectWithAlphabet from '../shared/CountrySelectWithAlphabet';
 import NumberFilterInput from '../shared/NumberFilterInput';
 import JoinDatePicker from '../shared/JoinDatePicker';
 
@@ -59,7 +59,7 @@ const FilterSection: React.FC<FilterSectionProps> = ({
             <option value="banned">Banned</option>
           </select>
         </div>
-        <CountrySelect
+        <CountrySelectWithAlphabet
           value={countryFilter}
           onChange={onCountryFilterChange}
           label="Country"

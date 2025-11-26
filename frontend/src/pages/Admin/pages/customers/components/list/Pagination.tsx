@@ -13,14 +13,16 @@ const Pagination: React.FC<PaginationProps> = ({
   itemsPerPage = 50,
   onPageChange,
 }) => {
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const totalPages = Math.max(1, Math.ceil(Math.max(totalItems, 1) / itemsPerPage));
+  const displayStart = totalItems === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
+  const displayEnd = totalItems === 0 ? 0 : Math.min(currentPage * itemsPerPage, totalItems);
 
   return (
     <div className="flex justify-between items-center mt-6 text-sm text-text-secondary">
       <p>
-        Showing {totalItems} entr{totalItems === 1 ? 'y' : 'ies'}
+        Showing {displayStart} to {displayEnd} of {totalItems} entr{totalItems === 1 ? 'y' : 'ies'}
       </p>
-      {totalPages > 1 && (
+      {totalItems > 0 && (
         <div className="flex items-center gap-1">
           <button
             onClick={() => onPageChange && onPageChange(Math.max(1, currentPage - 1))}

@@ -37,3 +37,51 @@ export const getCustomerCountry = (customer: any, fallback?: string, normalizeCo
   ) || '—';
 };
 
+/**
+ * Format date consistently across the app
+ * Format: "Jan 28, 2024" (month short, day numeric, year numeric)
+ */
+export const formatMemberSinceDate = (date?: string | Date | null): string => {
+  if (!date) return '—';
+  try {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    if (Number.isNaN(dateObj.getTime())) return '—';
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    }).format(dateObj);
+  } catch {
+    return '—';
+  }
+};
+
+/**
+ * Get member since date consistently
+ * Priority: customer.createdAt > customer.joinedAt > firstOrder (from stats)
+ */
+export const getMemberSinceDate = (customer: any, firstOrder?: string | Date | null): string | Date | null => {
+  return customer?.createdAt || customer?.joinedAt || firstOrder || null;
+};
+
+/**
+ * Format status consistently
+ * Returns capitalized status: "Active", "Inactive", "Banned"
+ */
+export const formatCustomerStatus = (status?: string | null): string => {
+  const s = (status || 'active').toString().toLowerCase();
+  return s.charAt(0).toUpperCase() + s.slice(1);
+};
+
+/**
+ * Normalize provinceCode to string format consistently
+ * Converts number to string, handles null/undefined, trims whitespace
+ * Returns empty string if invalid, otherwise returns string representation
+ */
+export const normalizeProvinceCode = (provinceCode?: string | number | null): string => {
+  if (provinceCode === null || provinceCode === undefined) return '';
+  // Convert to string and trim
+  const normalized = String(provinceCode).trim();
+  return normalized;
+};
+

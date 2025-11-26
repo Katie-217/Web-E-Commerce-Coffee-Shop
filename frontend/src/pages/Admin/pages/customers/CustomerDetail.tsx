@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { fetchCustomerById } from '../../../../api/customers';
-import { fetchCustomerOrders } from '../../../../api/customers';
+import { fetchCustomerById, fetchCustomerOrders, deleteCustomer } from '../../../../api/customers';
 import { OrdersApi } from '../../../../api/orders';
 import BackButton from '../../components/BackButton';
 import CustomerProfileCard from './components/detail/CustomerProfileCard';
 import CustomerTabs from './components/detail/CustomerTabs';
+import EditUserInformationModal from './components/detail/EditUserInformationModal';
+import { getOrderDisplayCode, getOrderDisplayCodeRaw } from '../../../../utils/orderDisplayCode';
 
+// For customer ID display (not order)
 const getDisplayCode = (val: string | number | undefined | null) => {
   const s = String(val || '');
   if (!s) return '';
@@ -25,10 +27,15 @@ const CustomerDetail: React.FC<Props> = ({ customerId, onBack, onOrderClick }) =
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [orders, setOrders] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState<'Overview' | 'Security' | 'Address & Billing' | 'Notifications'>('Overview');
+  const [activeTab, setActiveTab] = useState<'Overview' | 'Address & Billing'>('Overview');
   const [currentPage, setCurrentPage] = useState(1);
   const [searchOrder, setSearchOrder] = useState('');
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const ITEMS_PER_PAGE = 6;
+  const customerDisplayCode = customer ? getDisplayCode(customer._id || customer.id) : '';
 
   const primaryAddress = useMemo(() => {
     const arr: any[] = customer?.addresses || [];
@@ -53,14 +60,34 @@ const CustomerDetail: React.FC<Props> = ({ customerId, onBack, onOrderClick }) =
     return { ordersCount, totalSpent };
   }, [orders]);
 
-  // Filter and paginate orders
+  // Helper function to get display code for search (use shared utility)
+  const getDisplayCodeForSearch = (order: any): string => {
+    return getOrderDisplayCodeRaw(order);
+  };
+
+  // Filter and paginate orders - search by displayCode (same logic as OrderList)
   const filteredOrders = useMemo(() => {
     let filtered = orders;
     if (searchOrder) {
-      filtered = orders.filter(o =>
-        String(o.id || o._id || '').toLowerCase().includes(searchOrder.toLowerCase()) ||
-        String(o.orderNumber || '').toLowerCase().includes(searchOrder.toLowerCase())
-      );
+      const searchTerm = searchOrder.trim().toLowerCase();
+      // Remove "#" if user typed it - allow searching without "#"
+      const cleanSearchTerm = searchTerm.replace(/^#+/, '');
+      
+      if (cleanSearchTerm) {
+        // Search by displayCode - match orders where displayCode starts with search term
+        // This matches the backend search logic: ^${escapedTerm}
+        filtered = orders.filter(o => {
+          const displayCode = getDisplayCodeForSearch(o);
+          return displayCode.startsWith(cleanSearchTerm);
+        });
+        
+        // Sort by displayCode ascending (same as OrderList when searching)
+        filtered.sort((a, b) => {
+          const codeA = getDisplayCodeForSearch(a);
+          const codeB = getDisplayCodeForSearch(b);
+          return codeA.localeCompare(codeB);
+        });
+      }
     }
     return filtered;
   }, [orders, searchOrder]);
@@ -110,9 +137,9 @@ const CustomerDetail: React.FC<Props> = ({ customerId, onBack, onOrderClick }) =
           
           setCustomer(cust);
           
-          // Load orders
+          // Load orders - fetch more to ensure we have all orders for history mapping
           try {
-            const o = await fetchCustomerOrders(idStr, { page: 1, limit: 100 });
+            const o = await fetchCustomerOrders(idStr, { page: 1, limit: 1000 });
             const orderList = o?.data || o?.items || [];
             const ordersArray = Array.isArray(orderList) ? orderList : [];
             setOrders(ordersArray);
@@ -142,12 +169,41 @@ const CustomerDetail: React.FC<Props> = ({ customerId, onBack, onOrderClick }) =
   };
 
   const handleEditDetails = () => {
-    // TODO: Implement edit details functionality
+    setIsEditModalOpen(true);
+  };
+
+  const handleCloseEditModal = () => {
+    setIsEditModalOpen(false);
+  };
+
+  const handleSaveCustomer = async (updatedCustomer: any) => {
+    // Update local customer state with updated data
+    setCustomer(updatedCustomer);
+    // Optionally refresh customer data from API
+    try {
+      const idStr = String(customerId).trim();
+      const res = await fetchCustomerById(idStr);
+      if (res?.success !== false) {
+        const cust = res?.data || res;
+        if (cust) {
+          setCustomer(cust);
+        }
+      }
+    } catch (e) {
+      // If refresh fails, use the updated customer from modal
+      setCustomer(updatedCustomer);
+    }
   };
 
 
   const handleDeleteOrder = async (orderId: string) => {
-    if (!window.confirm(`Are you sure you want to delete order ${getDisplayCode(orderId)}?`)) {
+    // Find order object to get displayCode
+    const order = orders.find(o => String(o.id || o._id) === orderId);
+    if (!order) {
+      console.error('Order not found:', orderId);
+      return;
+    }
+    if (!window.confirm(`Are you sure you want to delete order ${getOrderDisplayCode(order)}?`)) {
       return;
     }
     try {
@@ -176,37 +232,157 @@ const CustomerDetail: React.FC<Props> = ({ customerId, onBack, onOrderClick }) =
     }
   };
 
+  const handleDeleteCustomer = () => {
+    setDeleteError(null);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleCloseDeleteModal = () => {
+    if (isDeleting) return;
+    setIsDeleteModalOpen(false);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!customer || isDeleting) return;
+
+    const fallbackIdentifierList = (() => {
+      const seen = new Set<string>();
+      const add = (value?: string | number | null) => {
+        if (value === undefined || value === null) return;
+        const str = String(value).trim();
+        if (!str) return;
+        if (seen.has(str)) return;
+        seen.add(str);
+      };
+      add(customer?._id);
+      add(customer?.id);
+      add(customerId);
+      if (typeof customer?.email === 'string') {
+        add(customer.email.trim().toLowerCase());
+      }
+      return Array.from(seen);
+    })();
+
+    if (fallbackIdentifierList.length === 0) {
+      setDeleteError('Unable to identify this customer. Please refresh and try again.');
+      return;
+    }
+
+    try {
+      setIsDeleting(true);
+      setDeleteError(null);
+      let deleted = false;
+      let lastError: any = null;
+
+      for (const identifier of fallbackIdentifierList) {
+        try {
+          await deleteCustomer(identifier);
+          deleted = true;
+          break;
+        } catch (error: any) {
+          lastError = error;
+          if (error?.status !== 404) {
+            throw error;
+          }
+        }
+      }
+
+      if (!deleted) {
+        throw lastError || new Error('Failed to delete customer');
+      }
+
+      setCustomer(null);
+      setOrders([]);
+      onBack?.();
+      setIsDeleteModalOpen(false);
+    } catch (error: any) {
+      const message = error?.data?.message || error?.message || 'Failed to delete customer';
+      setDeleteError(message);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-in fade-in duration-300">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <BackButton onClick={onBack} className="w-fit" />
           <div>
             <h2 className="text-2xl font-bold text-text-primary">
-              {customer?._id ? `Customer ID ${getDisplayCode(customer._id)}` : 'Customer'}
+              {loading ? (
+                <span className="inline-block h-7 w-48 bg-gray-700 rounded animate-pulse"></span>
+              ) : customer?._id ? (
+                `Customer ID ${getDisplayCode(customer._id)}`
+              ) : (
+                'Customer'
+              )}
             </h2>
             <p className="text-sm text-text-secondary">
-              {customer?.createdAt ? formatDate(customer.createdAt) : 'Aug 17, 2020, 5:48 (ET)'}
+              {loading ? (
+                <span className="inline-block h-4 w-32 bg-gray-700 rounded animate-pulse mt-1"></span>
+              ) : customer?.createdAt ? (
+                formatDate(customer.createdAt)
+              ) : (
+                '—'
+              )}
             </p>
           </div>
         </div>
-        <button 
-          className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors"
-          onClick={() => {
-            if (window.confirm(`Are you sure you want to delete customer ${getDisplayCode(customer?._id || customer?.id)}?`)) {
-              // TODO: Implement delete customer functionality
-            }
-          }}
-        >
-          Delete Customer
-        </button>
+        {!loading && customer && (
+          <button 
+            className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+            onClick={handleDeleteCustomer}
+            disabled={isDeleting}
+          >
+            {isDeleting ? 'Deleting...' : 'Delete Customer'}
+          </button>
+        )}
       </div>
 
-      {loading && (
-        <div className="p-6 rounded-lg bg-background-light border border-gray-700">
-          <div className="flex items-center gap-3">
-            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div>
-            <p className="text-text-secondary">Loading customer...</p>
+      {loading && !error && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in duration-200">
+          {/* Left Section - Skeleton */}
+          <div className="space-y-6">
+            <div className="bg-background-light p-6 rounded-lg shadow-lg">
+              <div className="flex flex-col items-center mb-6">
+                <div className="w-24 h-24 rounded-full bg-gray-700 animate-pulse mb-4"></div>
+                <div className="h-6 w-32 bg-gray-700 rounded animate-pulse mb-2"></div>
+                <div className="h-4 w-24 bg-gray-700 rounded animate-pulse"></div>
+              </div>
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div className="bg-background-dark p-4 rounded-lg">
+                  <div className="h-5 w-5 bg-gray-700 rounded mx-auto mb-2 animate-pulse"></div>
+                  <div className="h-8 w-12 bg-gray-700 rounded mx-auto mb-2 animate-pulse"></div>
+                  <div className="h-4 w-16 bg-gray-700 rounded mx-auto animate-pulse"></div>
+                </div>
+                <div className="bg-background-dark p-4 rounded-lg">
+                  <div className="h-5 w-5 bg-gray-700 rounded mx-auto mb-2 animate-pulse"></div>
+                  <div className="h-8 w-20 bg-gray-700 rounded mx-auto mb-2 animate-pulse"></div>
+                  <div className="h-4 w-12 bg-gray-700 rounded mx-auto animate-pulse"></div>
+                </div>
+              </div>
+              <div className="space-y-3">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div key={i} className="flex justify-between">
+                    <div className="h-4 w-20 bg-gray-700 rounded animate-pulse"></div>
+                    <div className="h-4 w-32 bg-gray-700 rounded animate-pulse"></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Right Section - Skeleton */}
+          <div className="lg:col-span-2 space-y-6">
+            <div className="bg-background-light p-6 rounded-lg">
+              <div className="h-6 w-32 bg-gray-700 rounded animate-pulse mb-4"></div>
+              <div className="space-y-3">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="h-16 bg-gray-700 rounded animate-pulse"></div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -248,6 +424,7 @@ const CustomerDetail: React.FC<Props> = ({ customerId, onBack, onOrderClick }) =
               activeTab={activeTab}
               onTabChange={setActiveTab}
               orders={paginatedOrders}
+              allOrders={orders}
               searchOrder={searchOrder}
               onSearchChange={setSearchOrder}
               currentPage={currentPage}
@@ -257,7 +434,48 @@ const CustomerDetail: React.FC<Props> = ({ customerId, onBack, onOrderClick }) =
               onDeleteOrder={handleDeleteOrder}
               onUpdateOrderStatus={handleUpdateOrderStatus}
               customer={customer}
+              onCustomerUpdate={handleSaveCustomer}
             />
+          </div>
+        </div>
+      )}
+
+      {/* Edit User Information Modal */}
+      {customer && (
+        <EditUserInformationModal
+          customer={customer}
+          isOpen={isEditModalOpen}
+          onClose={handleCloseEditModal}
+          onSave={handleSaveCustomer}
+        />
+      )}
+
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+          <div className="bg-background-light rounded-xl shadow-2xl max-w-md w-full p-6">
+            <h3 className="text-xl font-semibold text-text-primary mb-2">Delete customer</h3>
+            <p className="text-text-secondary text-sm">
+              Are you sure you want to delete customer {customerDisplayCode || 'this record'}? This action cannot be undone.
+            </p>
+            {deleteError && (
+              <p className="text-sm text-red-400 mt-3">{deleteError}</p>
+            )}
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={handleCloseDeleteModal}
+                className="px-4 py-2 rounded-lg border border-gray-600 text-text-primary hover:bg-gray-700/40 transition-colors disabled:opacity-50"
+                disabled={isDeleting}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmDelete}
+                className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={isDeleting}
+              >
+                {isDeleting ? 'Deleting…' : 'Delete'}
+              </button>
+            </div>
           </div>
         </div>
       )}

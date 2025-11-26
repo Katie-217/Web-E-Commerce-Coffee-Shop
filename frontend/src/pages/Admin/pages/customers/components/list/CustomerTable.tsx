@@ -1,7 +1,7 @@
 import React from 'react';
 import Badge from '../../../../components/Badge';
 import { formatVND } from '../../../../../../utils/currency';
-import { getDisplayCode, getCustomerCountry } from '../../utils/helpers';
+import { getDisplayCode, getCustomerCountry, formatMemberSinceDate, getMemberSinceDate, formatCustomerStatus } from '../../utils/helpers';
 import { normalizeCountry } from '../../constants/countries';
 
 type CustomerTableProps = {
@@ -71,8 +71,9 @@ const CustomerTable: React.FC<CustomerTableProps> = ({
               const stats = orderStats[(customer.email || '').toLowerCase()];
               const totalOrders = stats?.totalOrders ?? customer.totalOrders ?? customer.orderCount ?? 0;
               const totalSpent = stats?.totalSpent ?? Number(customer.totalSpent ?? customer.totalPayment ?? 0);
-              const memberSince = stats?.firstOrder || customer.createdAt || customer.joinedAt;
-              const countryDisplay = getCustomerCountry(customer, stats?.country, normalizeCountry) || '—';
+              const memberSince = getMemberSinceDate(customer, stats?.firstOrder);
+              // Always use customer data from MongoDB only - no fallback to orders data
+              const countryDisplay = getCustomerCountry(customer, undefined, normalizeCountry) || '—';
               return (
                 <tr
                   key={id}
@@ -112,7 +113,7 @@ const CustomerTable: React.FC<CustomerTableProps> = ({
                             : 'green'
                       }
                     >
-                      {(customer.status || 'active').toString()}
+                      {formatCustomerStatus(customer.status)}
                     </Badge>
                   </td>
                   <td className="p-3 text-center text-text-secondary whitespace-nowrap">{totalOrders}</td>
@@ -120,13 +121,7 @@ const CustomerTable: React.FC<CustomerTableProps> = ({
                     {formatVND(totalSpent)}
                   </td>
                   <td className="p-3 text-text-secondary whitespace-nowrap pl-8">
-                    {memberSince
-                      ? new Intl.DateTimeFormat('en-US', {
-                          month: 'short',
-                          day: '2-digit',
-                          year: 'numeric',
-                        }).format(new Date(memberSince))
-                      : '—'}
+                    {formatMemberSinceDate(memberSince)}
                   </td>
                 </tr>
               );

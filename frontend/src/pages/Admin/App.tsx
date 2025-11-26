@@ -7,9 +7,9 @@ import Orders from './pages/orders/Orders';
 import Customers from './pages/customers/CustomerList';
 import CustomerDetail from './pages/customers/CustomerDetail';
 import AddCustomer from './pages/customers/AddCustomer';
-import AddProduct from './pages/products/AddProduct';
-import CategoryList from './pages/products/CategoryList';
-import ProductDetail from './pages/products/ProductDetail';
+import AddProduct from './pages/products/AddProduct/AddProductPage';
+import CategoryList from './pages/products/category/CategoryList';
+import ProductDetail from './pages/products/ProductDetail/ProductDetail';
 import { Product } from './types';
 
 const App: React.FC = () => {
@@ -21,6 +21,7 @@ const App: React.FC = () => {
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedProductId, setSelectedProductId] = useState<string | number | null>(null);
+  const [productsRefreshTrigger, setProductsRefreshTrigger] = useState(0);
 
   const renderPage = () => {
     switch (activePage) {
@@ -32,13 +33,17 @@ const App: React.FC = () => {
             setActivePage={setActivePage}
             selectedCategory={selectedCategoryFilter}
             onClearSelectedCategory={() => setSelectedCategoryFilter(null)}
+            refreshTrigger={productsRefreshTrigger}
             onProductClick={(product) => {
+              // Get product ID
               const derivedId =
                 (product as any)?._id ??
                 (product as any)?.id ??
                 (product as any)?.productId ??
                 product.id ??
                 null;
+              
+              // Set product data and navigate
               setSelectedProduct(product);
               setSelectedProductId(derivedId);
               setActivePage('Product Detail');
@@ -46,7 +51,20 @@ const App: React.FC = () => {
           />
         );
       case 'Add Product':
-        return <AddProduct onBack={() => setActivePage('Product List')} setActivePage={setActivePage} />;
+        return (
+          <AddProduct 
+            onBack={() => {
+              setProductsRefreshTrigger(prev => prev + 1); // Trigger refresh
+              setActivePage('Product List');
+            }} 
+            setActivePage={(page) => {
+              if (page === 'Product List') {
+                setProductsRefreshTrigger(prev => prev + 1); // Trigger refresh
+              }
+              setActivePage(page);
+            }} 
+          />
+        );
       case 'Category List':
         return <CategoryList 
           setActivePage={setActivePage}
@@ -102,6 +120,7 @@ const App: React.FC = () => {
             initialProduct={
               selectedProduct
                 ? {
+                    id: selectedProductId || (selectedProduct as any).id || (selectedProduct as any)._id,
                     name: selectedProduct.name,
                     sku: (selectedProduct as any).sku,
                     description: (selectedProduct as any).description,
@@ -117,6 +136,7 @@ const App: React.FC = () => {
             onBack={() => {
               setSelectedProduct(null);
               setSelectedProductId(null);
+              setProductsRefreshTrigger(prev => prev + 1); // Trigger refresh
               setActivePage('Product List');
             }}
           />
@@ -127,7 +147,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-background-dark text-text-primary relative">
+    <div className="admin-panel-root flex min-h-screen bg-background-dark text-text-primary relative">
       <Sidebar
         activePage={activePage}
         setActivePage={(page) => {

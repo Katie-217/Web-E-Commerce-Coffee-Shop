@@ -28,32 +28,8 @@ const connectDB = async () => {
   try {
     await mongoose.connect(connectionString, options);
     
-    // Ensure we're using the correct database
-    const db = mongoose.connection.db;
-    const actualDbName = db.databaseName;
-    console.log('✅ MongoDB Connected Successfully!');
-    console.log(`📊 Actual Database: ${actualDbName}`);
-    console.log(`🔗 Connection String: ${connectionString}`);
-    
-    // List all collections for debugging
-    try {
-      const collections = await db.listCollections().toArray();
-      console.log(`📋 Collections in ${actualDbName}:`, collections.map(c => c.name));
-    } catch (err) {
-      console.log('⚠️  Could not list collections:', err.message);
-    }
-    
-    // Log connection status
     mongoose.connection.on('error', (err) => {
       console.error('❌ MongoDB connection error:', err);
-    });
-    
-    mongoose.connection.on('disconnected', () => {
-      console.log('⚠️  MongoDB disconnected');
-    });
-    
-    mongoose.connection.on('reconnected', () => {
-      console.log('✅ MongoDB reconnected');
     });
     
   } catch (error) {
@@ -66,7 +42,6 @@ const connectDB = async () => {
 // Graceful shutdown
 process.on('SIGINT', async () => {
   await mongoose.connection.close();
-  console.log('MongoDB connection closed through app termination');
   process.exit(0);
 });
 

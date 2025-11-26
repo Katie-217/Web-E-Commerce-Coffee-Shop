@@ -41,6 +41,8 @@ export interface Order {
     avatar: string;
     email: string;
     id?: string;
+    _id?: string;
+    avatarUrl?: string;
     phone?: string;
     totalOrders?: number;
   };
@@ -85,6 +87,8 @@ export interface OrderDetail extends Order {
     country: string;
   };
   shippingFee?: number;
+  pointsUsed?: number;
+  pointsEarned?: number;
 }
 
 export interface Category {

@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const Product = require('../models/Product');
+const Review = require('../models/Review');
+
 
 // GET /api/products - Lấy danh sách tất cả sản phẩm
 router.get('/', async (req, res) => {
@@ -140,6 +142,112 @@ router.get('/:id', async (req, res) => {
     });
   }
 });
+
+// GET /api/products/:id/reviews
+router.get("/:id/reviews", async (req, res) => {
+  try {
+    const { id } = req.params;
+    let productIdNum = Number(id);
+
+    // Nếu FE truyền _id (Mongo) thì convert sang id number trong Product
+    if (Number.isNaN(productIdNum)) {
+      const product = await Product.findById(id).select("id");
+      if (!product) {
+        return res.status(404).json({
+          success: false,
+          message: "Product not found",
+        });
+      }
+      productIdNum = product.id;
+    }
+
+    const reviews = await Review.find({ productId: productIdNum })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    res.json({
+      success: true,
+      data: reviews,
+    });
+  } catch (err) {
+    console.error("Error fetching reviews:", err);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching reviews",
+    });
+  }
+});
+
+// POST /api/products/:id/reviews
+router.post('/:id/reviews', async (req, res) => {
+  try {
+    const { id } = req.params;
+    let productIdNum = Number(id);
+
+    // Nếu param không phải number -> tìm theo _id để lấy field id (kiểu number)
+    if (Number.isNaN(productIdNum)) {
+      const product = await Product.findById(id).select('id');
+      if (!product) {
+        return res.status(404).json({
+          success: false,
+          message: 'Product not found',
+        });
+      }
+      productIdNum = product.id;
+    }
+
+    // Lấy data từ body (hướng 2: bắt user nhập email + tên)
+    const { rating, comment, customerName, customerEmail, title } = req.body;
+
+    // Validate rating
+    if (!rating || rating < 1 || rating > 5) {
+      return res.status(400).json({
+        success: false,
+        message: 'Rating must be between 1 and 5',
+      });
+    }
+
+    // Validate comment
+    if (!comment || !comment.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Comment is required',
+      });
+    }
+
+    // Validate tên + email
+    if (!customerName || !customerName.trim() || !customerEmail || !customerEmail.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'customerName and customerEmail are required',
+      });
+    }
+
+    // Tạo review trong MongoDB
+    const review = await Review.create({
+      productId: productIdNum,
+      rating,
+      comment: comment.trim(),
+      customerName: customerName.trim(),
+      customerEmail: customerEmail.trim(),
+      title: (title || '').trim(),
+    });
+
+    return res.status(201).json({
+      success: true,
+      data: review,
+    });
+  } catch (error) {
+    console.error('Error creating review:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Error creating review',
+      error: error.message,
+    });
+  }
+});
+
+
 
 // POST /api/products - Tạo sản phẩm mới trong MongoDB
 router.post('/', async (req, res) => {

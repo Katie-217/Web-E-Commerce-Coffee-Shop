@@ -50,6 +50,10 @@ const orderSchema = new Schema({
     unique: true,
     required: true
   },
+  displayCode: {
+    type: String,
+    index: true,
+  },
   customerId: {
     type: Schema.Types.ObjectId,
     ref: 'Customer'

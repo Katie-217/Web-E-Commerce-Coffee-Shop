@@ -2,12 +2,13 @@ require('dotenv').config();
 const path = require('path');
 const fs = require('fs');
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs'); // 👈 THÊM DÒNG NÀY
+const bcrypt = require('bcryptjs'); 
 
 // Mongoose models
 const Customer = require('../models/Customer');
 const Product = require('../models/Product');
 const Order = require('../models/Order');
+const Review = require('../models/Review');
 
 // Thư mục chứa các file JSON
 const DATA_DIR = path.join(__dirname, '..', 'docs');
@@ -90,6 +91,8 @@ async function seed() {
     const customersRaw = readJSON('customersList.json');
     const productsRaw = readJSON('productsList.json');
     const ordersRaw = readJSON('ordersList.json');
+    const reviewsRaw = readJSON('reviewsList.json'); 
+
 
     let shippingRaw = [];
     try {
@@ -105,6 +108,7 @@ async function seed() {
     const customers = await ensureHashedCustomers(customersMapped); // 👈 DÙNG ensureHashedCustomers
     const products = productsRaw.map(mapMongoIds);
     const orders = ordersRaw.map(mapMongoIds);
+    const reviews = reviewsRaw.map(mapMongoIds);
     const shipping = shippingRaw.map(mapMongoIds);
 
     // Xoá data cũ
@@ -112,8 +116,9 @@ async function seed() {
       Customer.deleteMany({}),
       Product.deleteMany({}),
       Order.deleteMany({}),
+      Review.deleteMany({}),
     ]);
-    console.log('🧹 Đã xoá Customer, Product, Order cũ');
+    console.log('🧹 Đã xoá Customer, Product, Order, Review cũ');
 
     if (shipping.length) {
       await mongoose.connection
@@ -131,6 +136,10 @@ async function seed() {
 
     const insertedOrders = await Order.insertMany(orders);
     console.log(`📦 Inserted ${insertedOrders.length} orders`);
+
+    const insertedReviews = await Review.insertMany(reviews);
+    console.log(`⭐ Inserted ${insertedReviews.length} reviews`);
+
 
     if (shipping.length) {
       const res = await mongoose.connection

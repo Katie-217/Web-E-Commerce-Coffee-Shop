@@ -25,7 +25,7 @@
   },
   {
     "id": 2,
-    "name": "Trung Nguyên Legend Arabica Cầu Đất",
+    "name": "Cà Phê Hạt Mộc Trung Nguyên Legend Success 1",
     "imageUrl": "https://static.example.com/coffee/trungnguyen-arabica-caudat.jpg",
     "description": "Arabica Cầu Đất hương hoa quả và vị chua thanh, phù hợp pha pour-over.",
     "category": "Roasted coffee",
@@ -48,7 +48,7 @@
   },
   {
     "id": 3,
-    "name": "Highlands Coffee Premium Blend",
+    "name": "Highlands Coffee Culi Blend",
     "imageUrl": "https://static.example.com/coffee/highlands-premium-blend.jpg",
     "description": "Blend rang vừa, cân bằng giữa Robusta và Arabica, dùng cho cả espresso và phin.",
     "category": "Roasted coffee",
@@ -132,7 +132,7 @@
   },
   {
     "id": 7,
-    "name": "The Coffee House Signature Blend",
+    "name": "The Coffee House - Original Roasted Coffee",
     "imageUrl": "https://static.example.com/coffee/tch-signature-blend.jpg",
     "description": "Blend đặc trưng kết hợp hạt từ Lâm Đồng và Gia Lai cho hương vị cân bằng.",
     "category": "Roasted coffee",
@@ -155,7 +155,7 @@
   },
   {
     "id": 8,
-    "name": "The Coffee House Cold Brew Roast",
+    "name": "Guru 3 blend Cold brew - Strong Cold",
     "imageUrl": "https://static.example.com/coffee/tch-coldbrew.jpg",
     "description": "Rang đặc biệt cho cold brew, vị dịu, hậu ngọt thanh, chỉ bán dạng xay sẵn.",
     "category": "Roasted coffee",
@@ -193,14 +193,14 @@
   },
   {
     "id": 10,
-    "name": "Trung Nguyên Chinh Phục 5",
+    "name": "Bộ Quà Tặng Trung Nguyên Legend",
     "imageUrl": "https://static.example.com/coffee/trungnguyen-chinhphuc5.jpg",
-    "description": "Bộ quà tặng Chinh Phục 5 với 5 loại cà phê rang xay và phụ kiện.",
+    "description": "Cà phê WEASEL quý hiếm và đắt nhất thế giới đến từ Trung Nguyên cùng với các phụ kiện.",
     "category": "Coffee sets",
     "stock": true,
     "sku": "CS-TN-010",
-    "price": 499000,
-    "quantity": 45,
+    "price": 431000,
+    "quantity": 5,
     "status": "Publish",
     "createdAt": "2025-10-01T04:40:00Z",
     "updatedAt": "2025-11-02T08:00:00Z",
@@ -209,7 +209,7 @@
         "name": "size",
         "options": [
           { "label": "Gift", "priceDelta": 0 },
-          { "label": "Premium", "priceDelta": 120000 }
+          { "label": "Premium", "priceDelta": 1500000 }
         ]
       }
     ]
@@ -253,14 +253,14 @@
   },
   {
     "id": 13,
-    "name": "Phúc Long Gift Set Heritage",
+    "name": "Coffee starter kit",
     "imageUrl": "https://static.example.com/coffee/phuclong-heritage.jpg",
-    "description": "Hộp quà Heritage gồm cà phê rang, trà Oolong và bình giữ nhiệt.",
+    "description": "Bộ kit cho người mới bắt đầu, gồm hạt cà phê và các dụng cụ pha chế",
     "category": "Coffee sets",
     "stock": true,
     "sku": "CS-PL-013",
     "price": 415000,
-    "quantity": 52,
+    "quantity": 12,
     "status": "Publish",
     "createdAt": "2025-10-14T07:25:00Z",
     "updatedAt": "2025-10-31T09:55:00Z",
@@ -277,14 +277,14 @@
   },
   {
     "id": 14,
-    "name": "Phúc Long Cold Brew Starter",
+    "name": "Don Pablo Whiskey Infused Coffee Gift Set",
     "imageUrl": "https://static.example.com/coffee/phuclong-coldbrew-kit.jpg",
-    "description": "Bộ cold brew gồm hũ thủy tinh 1L, cà phê xay lạnh và bộ lọc vải.",
+    "description": "Bộ quà tặng Whiskey Don Pablo - 3 hỗn hợp hạt cà phê nguyên chất đậm đà: Bourbon, Maple, Irish Vanilla.",
     "category": "Coffee sets",
     "stock": true,
     "sku": "CS-PL-014",
-    "price": 289000,
-    "quantity": 66,
+    "price": 789000,
+    "quantity": 0,
     "status": "Publish",
     "createdAt": "2025-09-28T08:10:00Z",
     "updatedAt": "2025-10-29T08:10:00Z",
@@ -299,9 +299,9 @@
   },
   {
     "id": 15,
-    "name": "The Coffee House Home Barista",
+    "name": "The Coffee House Gift Box",
     "imageUrl": "https://static.example.com/coffee/tch-home-barista.jpg",
-    "description": "Bộ dụng cụ pha pour-over với nồi rót cổ ngỗng và cà phê signature.",
+    "description": "Hộp quà Tết gồm 2 hộp cà phê sữa đá và 1 ly The Coffee House.",
     "category": "Coffee sets",
     "stock": true,
     "sku": "CS-TCH-015",
@@ -322,9 +322,9 @@
   },
   {
     "id": 16,
-    "name": "The Coffee House Latte Art Kit",
+    "name": "Coffee Christmas Gifts Set",
     "imageUrl": "https://static.example.com/coffee/tch-latte-art-kit.jpg",
-    "description": "Kit latte art gồm pitcher inox, bột cocoa trang trí và cà phê Espresso Blend.",
+    "description": "Bộ quà tặng cà phê xay nguyên chất dành cho mọi người",
     "category": "Coffee sets",
     "stock": true,
     "sku": "CS-TCH-016",
@@ -369,9 +369,9 @@
   },
   {
     "id": 18,
-    "name": "Ly Sứ Trung Nguyên Heritage 400ml",
+    "name": "Ly Thông Điệp Trung Nguyên Legend",
     "imageUrl": "https://static.example.com/coffee/mug-trungnguyen-heritage.jpg",
-    "description": "Phiên bản giới hạn với họa tiết trống đồng, dung tích 400ml.",
+    "description": "Phiên bản giới hạn với họa tiết trống đồng, dung tích 330ml.",
     "category": "Cups & Mugs",
     "stock": false,
     "sku": "CM-TN-018",
@@ -383,9 +383,9 @@
   },
   {
     "id": 19,
-    "name": "Ly Sứ Highlands Coffee 2025 (Set 2)",
+    "name": "Ly Sứ Highlands Coffee 360ml (Set 2)",
     "imageUrl": "https://static.example.com/coffee/mug-highlands-2025.jpg",
-    "description": "Bộ 2 ly sứ đỏ logo Highlands cho quán cà phê tại nhà.",
+    "description": "Bộ 2 ly sứ trắng basic logo Highlands cho gia đình, cặp đôi.",
     "category": "Cups & Mugs",
     "stock": true,
     "sku": "CM-HC-019",
@@ -406,9 +406,9 @@
   },
   {
     "id": 20,
-    "name": "Ly Thủy Tinh Highlands Cold Brew 500ml",
+    "name": "Ly Highlands thân cao hoạ tiết lá",
     "imageUrl": "https://static.example.com/coffee/glass-highlands-coldbrew.jpg",
-    "description": "Ly thủy tinh chịu nhiệt với nắp tre, phù hợp cho cold brew mang đi.",
+    "description": "Ly thân cao, có ống hút, màu sắc nổi bật, tiện dụng, dễ mang đi.",
     "category": "Cups & Mugs",
     "stock": true,
     "sku": "CM-HC-020",
@@ -420,9 +420,9 @@
   },
   {
     "id": 21,
-    "name": "Ly Sứ Phúc Long Heritage 350ml",
+    "name": "Ly Sứ Phúc Long 340ml",
     "imageUrl": "https://static.example.com/coffee/mug-phuclong-heritage.jpg",
-    "description": "Ly men sứ xanh ngọc in nổi logo Phúc Long, tặng kèm nắp silicon.",
+    "description": "Ly caphuchino men sứ trắng in nổi logo Phúc Long, thể tích 340ml.",
     "category": "Cups & Mugs",
     "stock": true,
     "sku": "CM-PL-021",
@@ -458,7 +458,7 @@
   },
   {
     "id": 23,
-    "name": "Ly Giữ Nhiệt The Coffee House On-The-Go 480ml",
+    "name": "Ly Giữ Nhiệt The Coffee House Go Green 480ml",
     "imageUrl": "https://static.example.com/coffee/tumbler-tch-onthego.jpg",
     "description": "Ly giữ nhiệt 480ml với dây xách silicon và logo TCH.",
     "category": "Cups & Mugs",
@@ -473,17 +473,18 @@
       {
         "name": "size",
         "options": [
-          { "label": "1 pc", "priceDelta": 0 },
-          { "label": "2 pcs", "priceDelta": 155000 }
+          { "label": "Đen", "priceDelta": 0 },
+          { "label": "Hồng", "priceDelta": 0 },
+          { "label": "Xanh", "priceDelta": 0 }
         ]
       }
     ]
   },
   {
     "id": 24,
-    "name": "Ly Sứ The Coffee House Moment 250ml",
+    "name": "Ly Sứ The Coffee House Travel Mug",
     "imageUrl": "https://static.example.com/coffee/mug-tch-moment.jpg",
-    "description": "Ly sứ men mờ tông be, thiết kế tối giản dành cho latte.",
+    "description": "Ly sứ Travel Mug phiên bản giới hạn được khoác lên mình màu sắc hiện đại,",
     "category": "Cups & Mugs",
     "stock": false,
     "sku": "CM-TCH-024",
@@ -518,7 +519,7 @@
   },
   {
     "id": 26,
-    "name": "Ống Lọc Cà Phê Giấy Trung Nguyên (100pcs)",
+    "name": "Ống Lọc Cà Phê Giấy (100pcs)",
     "imageUrl": "https://static.example.com/coffee/filter-trungnguyen-paper.jpg",
     "description": "Bộ 100 giấy lọc phù hợp phin Legend và phin gốm.",
     "category": "Coffee makers and grinders",
@@ -556,9 +557,9 @@
   },
   {
     "id": 28,
-    "name": "Bộ Phin Sứ Cao Cấp Highlands",
+    "name": "Máy pha cafe Philips EP2221/40",
     "imageUrl": "https://static.example.com/coffee/phin-highlands-ceramic.jpg",
-    "description": "Phin sứ trắng kèm đĩa lót và nắp giữ nhiệt, dành cho premium blend.",
+    "description": "Máy pha cafe Philips dành cho gia đình. Thưởng thức hương vị cà phê sạch & thơm ngon ngay tại nhà.",
     "category": "Coffee makers and grinders",
     "stock": false,
     "sku": "MG-HC-028",
@@ -570,9 +571,9 @@
   },
   {
     "id": 29,
-    "name": "Bình French Press Phúc Long 600ml",
+    "name": "Bình French Press BODUM Brazil - Đen",
     "imageUrl": "https://static.example.com/coffee/frenchpress-phuclong.jpg",
-    "description": "Bình ép kiểu Pháp thân thủy tinh, khung inox, phù hợp cà phê lẫn trà.",
+    "description": "Bình ép kiểu Pháp thân thủy tinh, màu đen, phù hợp cà phê lẫn trà.",
     "category": "Coffee makers and grinders",
     "stock": true,
     "sku": "MG-PL-029",
@@ -593,7 +594,7 @@
   },
   {
     "id": 30,
-    "name": "Máy Xay Cà Phê Cầm Tay The Coffee House",
+    "name": "Máy Xay Cà Phê Cầm Tay",
     "imageUrl": "https://static.example.com/coffee/grinder-tch-hand.jpg",
     "description": "Máy xay tay burr thép không gỉ, điều chỉnh 18 cấp độ.",
     "category": "Coffee makers and grinders",
@@ -639,7 +640,7 @@
   },
   {
     "id": 32,
-    "name": "Blend Đậm Sáng Tạo",
+    "name": "Cà phê Sáng tạo 1 Trung Nguyên",
     "imageUrl": "https://static.example.com/coffee/dam-sangtao-blend.jpg",
     "description": "Blend Robusta/Arabica rang đậm cho người thích vị cà phê mạnh.",
     "category": "Roasted coffee",

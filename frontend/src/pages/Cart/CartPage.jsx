@@ -3,8 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useCart } from "../../contexts/CartContext";
 import CartSummary from "./CartSummary";
 import "./cart-page.css";
-import { useNavigate } from "react-router-dom"; 
-
+import { useNavigate } from "react-router-dom";
 
 function formatVND(n) {
   return new Intl.NumberFormat("vi-VN", {
@@ -56,9 +55,6 @@ export default function CartPage() {
       return;
     }
 
-    // Nếu muốn yêu cầu đăng nhập, bạn có thể check useAuth ở đây rồi điều hướng /login
-
-    // Điều hướng tới trang checkout, kèm state chứa các item đã chọn
     navigate("/checkout", {
       state: {
         items: selectedItems,
@@ -66,7 +62,6 @@ export default function CartPage() {
       },
     });
   };
-
 
   const handleChangeVariant = (item, newIndex) => {
     if (!Array.isArray(item.variantOptions) || !item.variantOptions[newIndex]) {
@@ -111,6 +106,16 @@ export default function CartPage() {
     });
   };
 
+  // điều hướng sang trang chi tiết sản phẩm
+  const goToProductDetail = (cartItem) => {
+    if (!cartItem) return;
+    const id =
+      cartItem.productId || cartItem._id || cartItem.id || cartItem.slug;
+    if (!id) return;
+    // nếu route khác, sửa lại path này
+    navigate(`/products/${id}`);
+  };
+
   if (!hasItems) {
     return (
       <main className="cart-page cart-page--empty">
@@ -143,6 +148,7 @@ export default function CartPage() {
               <input
                 type="checkbox"
                 checked={allSelected}
+                onClick={(e) => e.stopPropagation()}
                 onChange={(e) => {
                   if (e.target.checked) {
                     setSelectedKeys(items.map((it) => it.key));
@@ -189,11 +195,16 @@ export default function CartPage() {
             }
 
             return (
-              <article className="cart-item" key={item.key}>
+              <article
+                className="cart-item"
+                key={item.key}
+                onClick={() => goToProductDetail(item)}
+              >
                 <div className="cart-item-check">
                   <input
                     type="checkbox"
                     checked={isSelected}
+                    onClick={(e) => e.stopPropagation()}
                     onChange={(e) => {
                       if (e.target.checked) {
                         setSelectedKeys((prev) =>
@@ -227,6 +238,7 @@ export default function CartPage() {
                           <select
                             className="cart-item-option-select"
                             value={variantIndex}
+                            onClick={(e) => e.stopPropagation()}
                             onChange={(e) =>
                               handleChangeVariant(
                                 item,
@@ -259,7 +271,10 @@ export default function CartPage() {
                       <div className="cart-qty-control">
                         <button
                           aria-label="Giảm số lượng"
-                          onClick={() => decreaseQty(item.key)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            decreaseQty(item.key);
+                          }}
                           disabled={item.qty <= 1}
                         >
                           –
@@ -267,7 +282,10 @@ export default function CartPage() {
                         <span aria-live="polite">{item.qty}</span>
                         <button
                           aria-label="Tăng số lượng"
-                          onClick={() => increaseQty(item.key)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            increaseQty(item.key);
+                          }}
                           disabled={item.qty >= maxStock}
                         >
                           +
@@ -281,11 +299,19 @@ export default function CartPage() {
 
                     <button
                       className="cart-item-remove"
-                      onClick={() => removeFromCart(item.key)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeFromCart(item.key);
+                      }}
                     >
                       Xoá
                     </button>
                   </div>
+                </div>
+
+                {/* Hint hover xem chi tiết */}
+                <div className="cart-item-detail-hint">
+                  <span>Nhấn để xem chi tiết sản phẩm</span>
                 </div>
               </article>
             );
@@ -295,8 +321,10 @@ export default function CartPage() {
 
       {/* Cột phải: tóm tắt đơn hàng (chỉ tính sản phẩm đã tick) */}
       <aside className="cart-aside">
-        <CartSummary cart={{ items: selectedItems }} 
-        onCheckout={handleCheckout}/>
+        <CartSummary
+          cart={{ items: selectedItems }}
+          onCheckout={handleCheckout}
+        />
       </aside>
     </main>
   );

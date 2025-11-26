@@ -40,6 +40,8 @@ function AppShell() {
         <Route path="/" element={<HomePage />} />
         <Route path="/category/:categoryId" element={<ProductList />} />
         <Route path="/product/:productId" element={<ProductDetail />} />
+        <Route path="/products/:id" element={<ProductDetail />} />
+
 
         {/* Cart & Checkout */}
         <Route path="/cart" element={<CartPage />} />

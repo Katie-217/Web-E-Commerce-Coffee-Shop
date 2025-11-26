@@ -4,15 +4,23 @@ import { Link, useNavigate } from 'react-router-dom';
 import '../NavBar/navbar.css';
 import { useCart } from '../../contexts/CartContext';
 
+const API_BASE_URL =
+  process.env.REACT_APP_API_BASE_URL || "http://localhost:3001";
+
+
 
 const Navbar = () => {
   const [openMenu, setOpenMenu] = useState(false);           // desktop dropdown (MENU)
   const [openAccount, setOpenAccount] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);       // NEW: mobile drawer
   const [mobileSubmenuOpen, setMobileSubmenuOpen] = useState(false); // NEW: submenu in drawer
+  const [searchTerm, setSearchTerm] = useState("");
   const [isDesktop, setIsDesktop] = useState(
     () => typeof window !== 'undefined' && window.matchMedia('(min-width: 992px)').matches
-  ); // NEW: track breakpoint
+  ); 
+  const [allProducts, setAllProducts] = useState([]);
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   const { user, loading, logout } = useAuth();
   const { items } = useCart();
@@ -28,6 +36,7 @@ const Navbar = () => {
   const navigate = useNavigate();
   const accountRef = useRef(null);
   const closeBtnRef = useRef(null);                          // NEW: focus vào nút Close khi mở drawer
+  const searchBoxRef = useRef(null);
 
   // Close account dropdown when clicking outside
   useEffect(() => {
@@ -55,6 +64,42 @@ const Navbar = () => {
   useEffect(() => {
     if (isDesktop && drawerOpen) setDrawerOpen(false);
   }, [isDesktop, drawerOpen]);
+
+
+  // Lấy toàn bộ sản phẩm 1 lần để dùng cho gợi ý search
+useEffect(() => {
+  const controller = new AbortController();
+
+  async function fetchAllProducts() {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/products`, {
+        signal: controller.signal,
+      });
+      if (!res.ok) return;
+      const json = await res.json();
+      const list = json.data || json.items || json.products || [];
+      setAllProducts(list);
+    } catch (err) {
+      if (err.name !== "AbortError") {
+        console.error("Navbar products error:", err);
+      }
+    }
+  }
+
+  fetchAllProducts();
+  return () => controller.abort();
+}, []);
+// Đóng dropdown gợi ý khi click ra ngoài vùng search
+useEffect(() => {
+  const handleClickOutside = (e) => {
+    if (searchBoxRef.current && !searchBoxRef.current.contains(e.target)) {
+      setShowSuggestions(false);
+    }
+  };
+  window.addEventListener("mousedown", handleClickOutside);
+  return () => window.removeEventListener("mousedown", handleClickOutside);
+}, []);
+
 
   // NEW: khóa scroll khi mở drawer + ESC để đóng
   useEffect(() => {
@@ -85,6 +130,44 @@ const Navbar = () => {
     setOpenAccount(false);
     navigate('/');
   };
+
+  const handleSearchChange = (e) => {
+  const value = e.target.value;
+  setSearchTerm(value);
+
+  const keyword = value.trim().toLowerCase();
+  if (!keyword) {
+    setSuggestions([]);
+    setShowSuggestions(false);
+    return;
+  }
+
+  const matches = allProducts.filter((p) =>
+    (p.name || "").toLowerCase().includes(keyword)
+  );
+
+  setSuggestions(matches.slice(0, 5)); // giới hạn 5 gợi ý
+  setShowSuggestions(true);
+};
+
+const handleSuggestionClick = (id) => {
+  setShowSuggestions(false);
+  setSearchTerm("");
+  setDrawerOpen(false);
+  navigate(`/products/${id}`); // sang trang chi tiết /products/:id
+};
+
+  const handleSearchSubmit = (e) => {
+  e.preventDefault();
+  const value = searchTerm.trim();
+  if (!value) return;
+
+  navigate(`/search?q=${encodeURIComponent(value)}`);
+  setShowSuggestions(false);
+  setDrawerOpen(false);
+};
+
+
 
   const closeDrawer = () => setDrawerOpen(false);            // NEW
 const avatarUrl = user?.avatar || user?.avatarUrl || null;
@@ -118,11 +201,11 @@ const avatarUrl = user?.avatar || user?.avatarUrl || null;
               <a href="#" onClick={(e) => e.preventDefault()}>MENU ▾</a>
               {openMenu && isDesktop && (
                 <ul className="dropdown-menu">
-                  <li>Coffee Sets</li>
-                  <li>Cup & Mugs</li>
-                  <li><Link to="/menu/takeaway">Roast Coffee</Link></li>
-                  <li>Coffee Makers & Grinders</li>
-                </ul>
+                <li><Link to="/menu/coffee-sets">Coffee Sets</Link></li>
+                <li><Link to="/menu/cups-mugs">Cup & Mugs</Link></li>
+                <li><Link to="/menu/roast-coffee">Roast Coffee</Link></li>
+                <li><Link to="/menu/coffee-makers-grinders">Coffee Makers & Grinders</Link></li>
+              </ul>
               )}
             </li>
 
@@ -140,12 +223,45 @@ const avatarUrl = user?.avatar || user?.avatarUrl || null;
         {/* Nav right: Phone + Search + Notification + Cart + Account */}
         <nav className="nav nav-right">
 
-          <div className="searchBox">
-            <input className="searchInput" type="text" placeholder="Search..." />
-            <button className="searchButton" aria-label="Search">
-              <img src="/images/search-icon.svg" alt="Search" />
-            </button>
-          </div>
+          <div className="searchBox-wrapper" ref={searchBoxRef}>
+  <form className="searchBox" onSubmit={handleSearchSubmit}>
+    <input
+      className="searchInput"
+      type="text"
+      placeholder="Search products..."
+      value={searchTerm}
+      onChange={handleSearchChange}
+      onKeyDown={(e) => {
+        if (e.key === "Escape") {
+          setSearchTerm("");
+          setShowSuggestions(false);
+        }
+      }}
+    />
+    <button
+      className="searchButton"
+      aria-label="Search"
+      type="submit"
+    >
+      <img src="/images/search-icon.svg" alt="Search" />
+    </button>
+  </form>
+
+  {showSuggestions && suggestions.length > 0 && (
+    <ul className="search-suggestions">
+      {suggestions.map((p) => (
+        <li
+          key={p._id || p.id}
+          className="search-suggestion-item"
+          onClick={() => handleSuggestionClick(p._id || p.id)}
+        >
+          {p.name}
+        </li>
+      ))}
+    </ul>
+  )}
+</div>
+
 
           <div className="notification">
             <button className="notifi-btn" aria-label="Notifications">

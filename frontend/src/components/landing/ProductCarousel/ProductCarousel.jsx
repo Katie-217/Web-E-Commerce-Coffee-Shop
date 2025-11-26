@@ -299,35 +299,35 @@ const ProductCarousel = () => {
                     </div>
 
                     <button
-  className="pc-add"
-  onClick={() => {
-    const variant = sizeVar ? { name: "size", value: sizeOpt?.label } : null;
+                      className="pc-add"
+                      onClick={() => {
+                        const variant = sizeVar ? { name: "size", value: sizeOpt?.label } : null;
 
-    const basePrice = Number(p.price || 0);
-    const variantOptions = sizeVar?.options?.map((op) => ({
-      label: op.label,
-      priceDelta: Number(op.priceDelta || 0),
-    }));
+                        const basePrice = Number(p.price || 0);
+                        const variantOptions = sizeVar?.options?.map((op) => ({
+                          label: op.label,
+                          priceDelta: Number(op.priceDelta || 0),
+                        }));
 
-    addToCart({
-      productId: id,
-      name: p.name,
-      price: priceNumber,      // giá theo option đang chọn
-      image: thumb,
-      variant,
-      qty: 1,
-      stock: p.quantity ?? 99,
-      category: p.category,
-      basePrice,
-      variantOptions,
-      variantIndex: optIdx,
-    });
+                        addToCart({
+                          productId: id,
+                          name: p.name,
+                          price: priceNumber,      // giá theo option đang chọn
+                          image: thumb,
+                          variant,
+                          qty: 1,
+                          stock: p.quantity ?? 99,
+                          category: p.category,
+                          basePrice,
+                          variantOptions,
+                          variantIndex: optIdx,
+                        });
 
-    showToast(`Đã thêm "${p.name}" vào giỏ hàng`);
-  }}
->
-  + ADD TO CART
-</button>
+                        showToast(`Đã thêm "${p.name}" vào giỏ hàng`);
+                      }}
+                    >
+                      + ADD TO CART
+                    </button>
 
 
 
@@ -403,8 +403,6 @@ const ProductCarousel = () => {
                       </div>
                     ) : null}
 
-
-
                     <div className="pc-price-row">
                       <span className="pc-price">{formatPrice(priceNumber)}</span>
                       {selectedProduct.oldPrice && (
@@ -438,33 +436,29 @@ const ProductCarousel = () => {
                       </div>
 
                       <button
-  className="pc-cart-btn"
-  onClick={() => {
-    const variant = sizeVar ? { name: "size", value: sizeOpt?.label } : null;
-    addToCart({
-      productId: id,
-      name: selectedProduct.name,
-      price: priceNumber,
-      image:
-        selectedProduct.imageUrl ||
-        selectedProduct.images?.[0] ||
-        selectedProduct.img ||
-        "/images/placeholder.png",
-      variant,
-      qty,
-      stock,
-    });
+                        className="pc-cart-btn"
+                        onClick={() => {
+                          const variant = sizeVar ? { name: "size", value: sizeOpt?.label } : null;
+                          addToCart({
+                            productId: id,
+                            name: selectedProduct.name,
+                            price: priceNumber,
+                            image:
+                              selectedProduct.imageUrl ||
+                              selectedProduct.images?.[0] ||
+                              selectedProduct.img ||
+                              "/images/placeholder.png",
+                            variant,
+                            qty,
+                            stock,
+                          });
 
-    showToast(`Đã thêm "${selectedProduct.name}" vào giỏ hàng`);
-  }}
->
-  <ShoppingCart size={16} />
-  Add To Cart
-</button>
-
-
-
-
+                          showToast(`Đã thêm "${selectedProduct.name}" vào giỏ hàng`);
+                        }}
+                      >
+                        <ShoppingCart size={16} />
+                        Add To Cart
+                      </button>
                     </div>
                   </div>
                 </div>

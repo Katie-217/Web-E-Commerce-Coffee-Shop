@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { fetchCustomerById } from '../../../../api/customers';
-import { fetchCustomerOrders } from '../../../../api/customers';
+import { fetchCustomerById, fetchCustomerOrders, deleteCustomer } from '../../../../api/customers';
 import { OrdersApi } from '../../../../api/orders';
 import BackButton from '../../components/BackButton';
 import CustomerProfileCard from './components/detail/CustomerProfileCard';
 import CustomerTabs from './components/detail/CustomerTabs';
 import EditUserInformationModal from './components/detail/EditUserInformationModal';
+import { getOrderDisplayCode, getOrderDisplayCodeRaw } from '../../../../utils/orderDisplayCode';
 
+// For customer ID display (not order)
 const getDisplayCode = (val: string | number | undefined | null) => {
   const s = String(val || '');
   if (!s) return '';
@@ -30,7 +31,11 @@ const CustomerDetail: React.FC<Props> = ({ customerId, onBack, onOrderClick }) =
   const [currentPage, setCurrentPage] = useState(1);
   const [searchOrder, setSearchOrder] = useState('');
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const ITEMS_PER_PAGE = 6;
+  const customerDisplayCode = customer ? getDisplayCode(customer._id || customer.id) : '';
 
   const primaryAddress = useMemo(() => {
     const arr: any[] = customer?.addresses || [];
@@ -55,19 +60,9 @@ const CustomerDetail: React.FC<Props> = ({ customerId, onBack, onOrderClick }) =
     return { ordersCount, totalSpent };
   }, [orders]);
 
-  // Helper function to get display code (same as OrderList)
+  // Helper function to get display code for search (use shared utility)
   const getDisplayCodeForSearch = (order: any): string => {
-    // Use displayCode from backend if available (random 4-character hex)
-    if (order?.displayCode) {
-      return String(order.displayCode).toLowerCase();
-    }
-    // Fallback: extract from ID
-    const val = order?.id || order?._id || '';
-    const s = String(val || '');
-    if (!s) return '';
-    const hex = s.replace(/[^a-fA-F0-9]/g, '') || s;
-    const last4 = hex.slice(-4).padStart(4, '0');
-    return last4.toLowerCase();
+    return getOrderDisplayCodeRaw(order);
   };
 
   // Filter and paginate orders - search by displayCode (same logic as OrderList)
@@ -142,9 +137,9 @@ const CustomerDetail: React.FC<Props> = ({ customerId, onBack, onOrderClick }) =
           
           setCustomer(cust);
           
-          // Load orders
+          // Load orders - fetch more to ensure we have all orders for history mapping
           try {
-            const o = await fetchCustomerOrders(idStr, { page: 1, limit: 100 });
+            const o = await fetchCustomerOrders(idStr, { page: 1, limit: 1000 });
             const orderList = o?.data || o?.items || [];
             const ordersArray = Array.isArray(orderList) ? orderList : [];
             setOrders(ordersArray);
@@ -202,7 +197,13 @@ const CustomerDetail: React.FC<Props> = ({ customerId, onBack, onOrderClick }) =
 
 
   const handleDeleteOrder = async (orderId: string) => {
-    if (!window.confirm(`Are you sure you want to delete order ${getDisplayCode(orderId)}?`)) {
+    // Find order object to get displayCode
+    const order = orders.find(o => String(o.id || o._id) === orderId);
+    if (!order) {
+      console.error('Order not found:', orderId);
+      return;
+    }
+    if (!window.confirm(`Are you sure you want to delete order ${getOrderDisplayCode(order)}?`)) {
       return;
     }
     try {
@@ -228,6 +229,77 @@ const CustomerDetail: React.FC<Props> = ({ customerId, onBack, onOrderClick }) =
       }));
     } catch (error: any) {
       alert(error?.response?.data?.message || error?.message || 'Failed to update order status');
+    }
+  };
+
+  const handleDeleteCustomer = () => {
+    setDeleteError(null);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleCloseDeleteModal = () => {
+    if (isDeleting) return;
+    setIsDeleteModalOpen(false);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!customer || isDeleting) return;
+
+    const fallbackIdentifierList = (() => {
+      const seen = new Set<string>();
+      const add = (value?: string | number | null) => {
+        if (value === undefined || value === null) return;
+        const str = String(value).trim();
+        if (!str) return;
+        if (seen.has(str)) return;
+        seen.add(str);
+      };
+      add(customer?._id);
+      add(customer?.id);
+      add(customerId);
+      if (typeof customer?.email === 'string') {
+        add(customer.email.trim().toLowerCase());
+      }
+      return Array.from(seen);
+    })();
+
+    if (fallbackIdentifierList.length === 0) {
+      setDeleteError('Unable to identify this customer. Please refresh and try again.');
+      return;
+    }
+
+    try {
+      setIsDeleting(true);
+      setDeleteError(null);
+      let deleted = false;
+      let lastError: any = null;
+
+      for (const identifier of fallbackIdentifierList) {
+        try {
+          await deleteCustomer(identifier);
+          deleted = true;
+          break;
+        } catch (error: any) {
+          lastError = error;
+          if (error?.status !== 404) {
+            throw error;
+          }
+        }
+      }
+
+      if (!deleted) {
+        throw lastError || new Error('Failed to delete customer');
+      }
+
+      setCustomer(null);
+      setOrders([]);
+      onBack?.();
+      setIsDeleteModalOpen(false);
+    } catch (error: any) {
+      const message = error?.data?.message || error?.message || 'Failed to delete customer';
+      setDeleteError(message);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -259,14 +331,11 @@ const CustomerDetail: React.FC<Props> = ({ customerId, onBack, onOrderClick }) =
         </div>
         {!loading && customer && (
           <button 
-            className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors"
-            onClick={() => {
-              if (window.confirm(`Are you sure you want to delete customer ${getDisplayCode(customer?._id || customer?.id)}?`)) {
-                // TODO: Implement delete customer functionality
-              }
-            }}
+            className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+            onClick={handleDeleteCustomer}
+            disabled={isDeleting}
           >
-            Delete Customer
+            {isDeleting ? 'Deleting...' : 'Delete Customer'}
           </button>
         )}
       </div>
@@ -337,8 +406,8 @@ const CustomerDetail: React.FC<Props> = ({ customerId, onBack, onOrderClick }) =
         </div>
       )}
 
-      {customer && !loading && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in duration-300">
+      {customer && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Section - Customer Profile */}
           <div className="space-y-6">
             <CustomerProfileCard
@@ -355,6 +424,7 @@ const CustomerDetail: React.FC<Props> = ({ customerId, onBack, onOrderClick }) =
               activeTab={activeTab}
               onTabChange={setActiveTab}
               orders={paginatedOrders}
+              allOrders={orders}
               searchOrder={searchOrder}
               onSearchChange={setSearchOrder}
               currentPage={currentPage}
@@ -364,6 +434,7 @@ const CustomerDetail: React.FC<Props> = ({ customerId, onBack, onOrderClick }) =
               onDeleteOrder={handleDeleteOrder}
               onUpdateOrderStatus={handleUpdateOrderStatus}
               customer={customer}
+              onCustomerUpdate={handleSaveCustomer}
             />
           </div>
         </div>
@@ -377,6 +448,36 @@ const CustomerDetail: React.FC<Props> = ({ customerId, onBack, onOrderClick }) =
           onClose={handleCloseEditModal}
           onSave={handleSaveCustomer}
         />
+      )}
+
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+          <div className="bg-background-light rounded-xl shadow-2xl max-w-md w-full p-6">
+            <h3 className="text-xl font-semibold text-text-primary mb-2">Delete customer</h3>
+            <p className="text-text-secondary text-sm">
+              Are you sure you want to delete customer {customerDisplayCode || 'this record'}? This action cannot be undone.
+            </p>
+            {deleteError && (
+              <p className="text-sm text-red-400 mt-3">{deleteError}</p>
+            )}
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={handleCloseDeleteModal}
+                className="px-4 py-2 rounded-lg border border-gray-600 text-text-primary hover:bg-gray-700/40 transition-colors disabled:opacity-50"
+                disabled={isDeleting}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmDelete}
+                className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={isDeleting}
+              >
+                {isDeleting ? 'Deleting…' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

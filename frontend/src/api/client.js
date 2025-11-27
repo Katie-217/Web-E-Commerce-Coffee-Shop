@@ -4,14 +4,8 @@
 // - JSON by default
 // - Basic error handling và timeout support
 
-const API_BASE_URL =
-  // CRA env
-  process.env.REACT_APP_API_BASE_URL ||
-  process.env.REACT_APP_API_URL ||
-  // nếu bạn có inject runtime env qua window._env_ (optional)
-  (typeof window !== 'undefined' && window._env_ && (window._env_.API_BASE_URL || window._env_.API_URL)) ||
-  // fallback local
-  'http://localhost:3001/api';
+const API_BASE_URL = 'http://localhost:3001/api';
+
 
 const DEFAULT_TIMEOUT_MS = 15000;
 

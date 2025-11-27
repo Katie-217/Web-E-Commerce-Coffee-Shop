@@ -73,3 +73,15 @@ export const formatCustomerStatus = (status?: string | null): string => {
   return s.charAt(0).toUpperCase() + s.slice(1);
 };
 
+/**
+ * Normalize provinceCode to string format consistently
+ * Converts number to string, handles null/undefined, trims whitespace
+ * Returns empty string if invalid, otherwise returns string representation
+ */
+export const normalizeProvinceCode = (provinceCode?: string | number | null): string => {
+  if (provinceCode === null || provinceCode === undefined) return '';
+  // Convert to string and trim
+  const normalized = String(provinceCode).trim();
+  return normalized;
+};
+

@@ -16,7 +16,7 @@ function resolveImage(product) {
 
 function formatPrice(n) {
   const num = Number(n || 0);
-  if (!Number.isFinite(num) || num <= 0) return "Liên hệ";
+  if (!Number.isFinite(num) || num <= 0) return "Contact us";
 
   return new Intl.NumberFormat("vi-VN", {
     style: "currency",
@@ -42,13 +42,13 @@ const OrderModal = ({
   setTempQty,
   tempSize,
   setTempSize,
-  onAdd,   // dùng để đóng modal / side-effect
-  onClose, // đóng modal khi click overlay
+  onAdd,   // used to close modal / trigger side-effects
+  onClose, // close modal when clicking overlay
 }) => {
   const { addToCart } = useCart();
   const navigate = useNavigate();
 
-  // Setup default size + qty theo DB
+  // Setup default size + quantity from DB
   useEffect(() => {
     if (!selectedProduct) return;
 
@@ -76,13 +76,45 @@ const OrderModal = ({
   const description =
     selectedProduct.description || selectedProduct.desc || "";
 
-  const rawStock = Number(selectedProduct.quantity);
-  const stock =
-    Number.isFinite(rawStock) && rawStock > 0 ? rawStock : 99;
+  // Helper: get available stock from product
+  function getAvailableStock(p) {
+    if (!p) return 0;
 
-  const safeQty = tempQty && tempQty > 0 ? tempQty : 1;
+    // 1) Prefer numeric quantity field
+    if (typeof p.quantity === "number") {
+      return Math.max(p.quantity, 0); // 0 stays 0, no fallback
+    }
 
-  // xác định option đang chọn theo label
+    // 2) Some schemas may use "inventory"
+    if (typeof p.inventory === "number") {
+      return Math.max(p.inventory, 0);
+    }
+
+    // 3) If there's a boolean "stock" field
+    if (typeof p.stock === "boolean") {
+      return p.stock ? 99 : 0; // true without exact number → treat as many in stock
+    }
+
+    // 4) Inactive status → consider out of stock
+    if (p.status && String(p.status).toLowerCase() === "inactive") {
+      return 0;
+    }
+
+    // 5) No stock info → temporarily treat as many in stock
+    return 99;
+  }
+
+  const stock = getAvailableStock(selectedProduct);
+  const isOutOfStock = stock <= 0;
+
+  // Quantity displayed on UI (if out of stock keep it 1, but disable buttons)
+  const safeQty = (() => {
+    if (isOutOfStock) return 1;
+    const base = tempQty && tempQty > 0 ? tempQty : 1;
+    return base > stock ? stock : base;
+  })();
+
+  // Determine current option by label
   let currentLabel = tempSize;
   if (sizeVar?.options?.length && !currentLabel) {
     currentLabel = sizeVar.options[0].label;
@@ -100,6 +132,7 @@ const OrderModal = ({
   const total = priceNumber * safeQty;
 
   const handleDecrease = () => {
+    if (isOutOfStock) return;
     setTempQty((prev) => {
       const next = (prev || 1) - 1;
       return next < 1 ? 1 : next;
@@ -107,6 +140,7 @@ const OrderModal = ({
   };
 
   const handleIncrease = () => {
+    if (isOutOfStock) return;
     setTempQty((prev) => {
       const current = prev || 1;
       const next = current + 1;
@@ -118,7 +152,7 @@ const OrderModal = ({
     setTempSize(e.target.value);
   };
 
-  // Tạo object item giống bên ProductCarousel để addToCart
+  // Build cart item object similar to ProductCarousel for addToCart
   const buildCartItem = () => {
     const id = String(selectedProduct._id || selectedProduct.id);
     const variant = sizeVar
@@ -149,22 +183,22 @@ const OrderModal = ({
   const handleAddToCartClick = () => {
     const item = buildCartItem();
     addToCart(item);
-    if (onAdd) onAdd(item); // thường dùng để đóng modal
+    if (onAdd) onAdd(item); // usually used to close modal
   };
 
   const handleBuyNowClick = () => {
-  const item = buildCartItem();
+    const item = buildCartItem();
 
-  // nếu muốn MUA NGAY không ảnh hưởng gì tới giỏ:
-  if (onAdd) onAdd(item); // vẫn đóng modal nếu bạn đang dùng onAdd cho việc đó
+    // If BUY NOW should not affect the cart:
+    if (onAdd) onAdd(item); // still close modal if you use onAdd for that
 
-  // Truyền đúng 1 item sang trang checkout
-  navigate("/checkout", {
-    state: {
-      items: [item],
-    },
-  });
-}
+    // Pass exactly 1 item to checkout page
+    navigate("/checkout", {
+      state: {
+        items: [item],
+      },
+    });
+  };
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -177,7 +211,7 @@ const OrderModal = ({
           <h2>{selectedProduct.name}</h2>
 
           <div className="option-block">
-            <h4>Giá:</h4>
+            <h4>Price:</h4>
             <div className="price-row">
               <span className="price">{formatPrice(priceNumber)}</span>
               {selectedProduct.oldPrice && (
@@ -206,9 +240,9 @@ const OrderModal = ({
                   <option key={i} value={op.label}>
                     {op.label}
                     {op.priceDelta
-                      ? ` (${
-                          op.priceDelta > 0 ? "+" : ""
-                        }${formatPrice(op.priceDelta)})`
+                      ? ` (${op.priceDelta > 0 ? "+" : ""}${formatPrice(
+                          op.priceDelta
+                        )})`
                       : ""}
                   </option>
                 ))}
@@ -224,7 +258,7 @@ const OrderModal = ({
           )}
 
           <div className="option-block">
-            <h4>Số lượng:</h4>
+            <h4>Quantity:</h4>
             <div className="qty-actions">
               <button onClick={handleDecrease} disabled={safeQty <= 1}>
                 -
@@ -237,29 +271,45 @@ const OrderModal = ({
                 +
               </button>
             </div>
-            <div className="stock-info">
+            <div
+              className={`stock-info ${
+                isOutOfStock ? "stock-info-out" : ""
+              }`}
+            >
               {Number.isFinite(stock) && (
-                <small>Còn lại: {stock} sản phẩm</small>
+                <small>
+                  {stock > 0
+                    ? `Remaining: ${stock} item(s)`
+                    : "OUT OF STOCK"}
+                </small>
               )}
             </div>
           </div>
 
           <div className="option-block">
-            <h4>Tổng:</h4>
+            <h4>Total:</h4>
             <strong>{formatPrice(total)}</strong>
           </div>
 
           <div className="option-block">
-            <h4>Ghi chú:</h4>
-            <textarea placeholder="Ví dụ: đóng gói đẹp mắt, giao giờ hành chính..." />
+            <h4>Note:</h4>
+            <textarea placeholder="Example: nicely packed, deliver during business hours..." />
           </div>
 
           <div className="modal-actions">
-            <button className="btn-buy" onClick={handleBuyNowClick}>
-              MUA NGAY
+            <button
+              className={`btn-buy ${isOutOfStock ? "btn-disabled" : ""}`}
+              onClick={handleBuyNowClick}
+              disabled={isOutOfStock}
+            >
+              BUY NOW
             </button>
-            <button className="btn-add" onClick={handleAddToCartClick}>
-              THÊM VÀO GIỎ
+            <button
+              className={`btn-add ${isOutOfStock ? "btn-disabled" : ""}`}
+              onClick={handleAddToCartClick}
+              disabled={isOutOfStock}
+            >
+              ADD TO CART
             </button>
           </div>
         </div>

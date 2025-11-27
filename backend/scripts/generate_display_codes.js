@@ -2,9 +2,9 @@
 const mongoose = require('mongoose');
 require('dotenv').config();
 
-// Function to generate random 4-character hex code
+// Function to generate random 4-character alphanumeric code (0-9, a-z, A-Z)
 const generateDisplayCode = () => {
-  const chars = '0123456789abcdef';
+  const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
   let result = '';
   for (let i = 0; i < 4; i++) {
     result += chars.charAt(Math.floor(Math.random() * chars.length));
@@ -112,4 +112,10 @@ async function generateDisplayCodes() {
 }
 
 generateDisplayCodes();
+
+
+
+
+
+
 

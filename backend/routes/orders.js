@@ -2,6 +2,12 @@ const express = require('express');
 const mongoose = require('mongoose');
 const { Types } = mongoose;
 const Order = require('../models/Order');
+const Customer = require('../models/Customer');
+const {
+  calculatePointsEarned,
+  calculateDiscountFromPoints,
+  validatePointsUsage
+} = require('../utils/loyalty');
 
 const router = express.Router();
 
@@ -40,12 +46,18 @@ router.get('/', async (req, res) => {
         // Escape special regex characters to prevent regex injection
         const escapedTerm = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         
-        // Search in displayCode field - random 4-character hex code (e.g., "a3f2", "1b4c")
-        // UI displays ID as #XXXX where XXXX is the displayCode
-        // When user types "3", match displayCodes STARTING with "3": "3abc", "3bcd", "3def", etc.
-        // When user types "a3", match displayCodes STARTING with "a3": "a3f2", "a3bc", etc.
-        // Pattern: ^[searchTerm] matches displayCodes that start with the search term
-        filters.displayCode = { $regex: `^${escapedTerm}`, $options: 'i' };
+        // Search in displayCode field - 4-character alphanumeric code (e.g., "A3f2", "75a0")
+        // UI displays ID as #XXXX where XXXX is the displayCode (used to hide real order ID)
+        // When user types "A3", match displayCodes STARTING with "A3": "A3f2", "A3bc", etc.
+        // When user types "75a", match displayCodes STARTING with "75a": "75a0", "75a1", etc.
+        // Pattern: ^[searchTerm] matches displayCodes that start with the search term (case-insensitive)
+        // Only search orders that have displayCode (not null/undefined)
+        filters.displayCode = { 
+          $exists: true,
+          $ne: null,
+          $regex: `^${escapedTerm}`, 
+          $options: 'i' 
+        };
       }
     }
 
@@ -161,12 +173,14 @@ router.get('/', async (req, res) => {
       _id: o._id ? String(o._id) : undefined,
       // IMPORTANT: Use o.id (order ID like "ORD-2025-0093") first, fallback to _id only if id doesn't exist
       id: String(o.id || o._id || ''),
-      displayCode: o.displayCode || null, // Random 4-character hex code for display
+      displayCode: (o.displayCode && typeof o.displayCode === 'string' && o.displayCode.trim().length > 0) ? String(o.displayCode).trim() : null, // 4-character alphanumeric code for display
       customerEmail: o.customerEmail,
       customerName: o.customerName,
       total: o.total,
       subtotal: o.subtotal,
       discount: o.discount,
+      pointsUsed: o.pointsUsed || 0,
+      pointsEarned: o.pointsEarned || 0,
       shippingFee: o.shippingFee,
       currency: o.currency || 'VND',
       status: o.status || 'created',
@@ -446,10 +460,14 @@ router.get('/:id', async (req, res) => {
       displayCode: o.displayCode || null, // Random 4-character hex code for display
       customerEmail: o.customerEmail,
       customerId: o.customerId,
+      customerName: o.customerName,
+      customerPhone: o.customerPhone,
       items: o.items || [],
       subtotal: o.subtotal,
       shippingFee: o.shippingFee,
       discount: o.discount,
+      pointsUsed: o.pointsUsed || 0,
+      pointsEarned: o.pointsEarned || 0,
       tax: o.tax,
       total: o.total,
       currency: o.currency || 'VND',
@@ -468,16 +486,155 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+// Helper function to update customer loyalty points when order is delivered
+async function updateCustomerLoyaltyPoints(order) {
+  try {
+    if (!order || order.status !== 'delivered') return;
+    
+    const customerEmail = order.customerEmail?.toLowerCase()?.trim();
+    if (!customerEmail) return;
+    
+    // Find customer by email
+    let customer = null;
+    
+    // Try to find in customers database
+    try {
+      const customersDb = mongoose.connection.useDb('customers', { useCache: true });
+      const customersColl = customersDb.collection('customersList');
+      customer = await customersColl.findOne({ email: customerEmail });
+    } catch (err) {
+      console.error('Error finding customer in customers DB:', err);
+    }
+    
+    // Try current database
+    if (!customer) {
+      try {
+        const customersColl = mongoose.connection.db.collection('customersList');
+        customer = await customersColl.findOne({ email: customerEmail });
+      } catch (err) {
+        console.error('Error finding customer in current DB:', err);
+      }
+    }
+    
+    // Try Customer model
+    if (!customer) {
+      try {
+        customer = await Customer.findOne({ email: customerEmail }).lean();
+      } catch (err) {
+        console.error('Error finding customer in Customer model:', err);
+      }
+    }
+    
+    if (!customer) {
+      console.warn(`Customer not found for email: ${customerEmail}`);
+      return;
+    }
+    
+    // Calculate points earned (10% of orderTotal BEFORE discount)
+    const orderTotal = order.subtotal + (order.shippingFee || 0);
+    const pointsEarned = calculatePointsEarned(orderTotal);
+    
+    if (pointsEarned <= 0) return;
+    
+    // Update customer loyalty points
+    const customerId = customer._id || customer.id;
+    const currentPoints = customer.loyalty?.currentPoints || customer.loyalty?.points || 0;
+    const totalEarned = (customer.loyalty?.totalEarned || 0) + pointsEarned;
+    const newPoints = currentPoints + pointsEarned;
+    
+    // Add to history
+    const historyEntry = {
+      orderId: order.id || order._id?.toString(),
+      orderDate: order.createdAt || new Date(),
+      type: 'earned',
+      points: pointsEarned,
+      description: `Earned ${pointsEarned} points from order ${order.id}`,
+      createdAt: new Date()
+    };
+    
+    const updateData = {
+      'loyalty.totalEarned': totalEarned,
+      'loyalty.currentPoints': newPoints,
+      'loyalty.lastAccrualAt': new Date(),
+      $push: { 'loyalty.history': historyEntry }
+    };
+    
+    // Update in same location where customer was found
+    try {
+      const customersDb = mongoose.connection.useDb('customers', { useCache: true });
+      const customersColl = customersDb.collection('customersList');
+      await customersColl.updateOne(
+        { _id: Types.ObjectId.isValid(customerId) ? new Types.ObjectId(customerId) : customerId },
+        { $set: updateData, $push: { 'loyalty.history': historyEntry } }
+      );
+    } catch (err) {
+      try {
+        const customersColl = mongoose.connection.db.collection('customersList');
+        await customersColl.updateOne(
+          { _id: Types.ObjectId.isValid(customerId) ? new Types.ObjectId(customerId) : customerId },
+          { $set: updateData, $push: { 'loyalty.history': historyEntry } }
+        );
+      } catch (err2) {
+        try {
+          await Customer.findByIdAndUpdate(customerId, {
+            $set: updateData,
+            $push: { 'loyalty.history': historyEntry }
+          });
+        } catch (err3) {
+          console.error('Error updating customer loyalty points:', err3);
+        }
+      }
+    }
+    
+  } catch (err) {
+    console.error('Error in updateCustomerLoyaltyPoints:', err);
+  }
+}
+
 // PATCH /api/orders/:id - Update order status and/or shipping activity
 router.patch('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { status, shippingActivity } = req.body;
+    const { status, shippingActivity, pointsUsed } = req.body;
+    
+    // Get current order to check previous status
+    let currentOrder = null;
+    try {
+      const ordersDb = mongoose.connection.useDb('orders', { useCache: true });
+      const coll = ordersDb.collection('ordersList');
+      currentOrder = await coll.findOne({ id: id }) || await coll.findOne({ _id: Types.ObjectId.isValid(id) ? new Types.ObjectId(id) : id });
+    } catch (err) {
+      try {
+        const coll = mongoose.connection.db.collection('ordersList');
+        currentOrder = await coll.findOne({ id: id }) || await coll.findOne({ _id: Types.ObjectId.isValid(id) ? new Types.ObjectId(id) : id });
+      } catch (err2) {
+        currentOrder = await Order.findOne({ id: id }) || await Order.findById(id);
+      }
+    }
     
     // Build update data
     const updateData = {};
     if (status !== undefined) updateData.status = status;
     if (shippingActivity !== undefined) updateData.shippingActivity = shippingActivity;
+    if (pointsUsed !== undefined) {
+      updateData.pointsUsed = Math.max(0, parseInt(pointsUsed, 10) || 0);
+      // Calculate discount from points used (1 point = 1,000 VND)
+      updateData.discount = calculateDiscountFromPoints(updateData.pointsUsed);
+      
+      // Recalculate total if discount changed
+      if (currentOrder) {
+        const subtotal = currentOrder.subtotal || 0;
+        const shippingFee = currentOrder.shippingFee || 0;
+        updateData.total = Math.max(0, subtotal + shippingFee - updateData.discount);
+      }
+    }
+    
+    // Calculate points earned when order is delivered
+    if (status === 'delivered' && currentOrder) {
+      const orderTotal = (currentOrder.subtotal || 0) + (currentOrder.shippingFee || 0);
+      updateData.pointsEarned = calculatePointsEarned(orderTotal);
+    }
+    
     updateData.updatedAt = new Date();
     
     if (Object.keys(updateData).length === 0) {
@@ -685,6 +842,98 @@ router.patch('/:id', async (req, res) => {
       });
     }
     
+    // If order status changed to 'delivered', update customer loyalty points
+    if (status === 'delivered' && currentOrder && currentOrder.status !== 'delivered') {
+      // Get updated order
+      let updatedOrder = null;
+      try {
+        const ordersDb = mongoose.connection.useDb('orders', { useCache: true });
+        const coll = ordersDb.collection('ordersList');
+        updatedOrder = await coll.findOne({ id: id }) || await coll.findOne({ _id: Types.ObjectId.isValid(id) ? new Types.ObjectId(id) : id });
+      } catch (err) {
+        try {
+          const coll = mongoose.connection.db.collection('ordersList');
+          updatedOrder = await coll.findOne({ id: id }) || await coll.findOne({ _id: Types.ObjectId.isValid(id) ? new Types.ObjectId(id) : id });
+        } catch (err2) {
+          updatedOrder = await Order.findOne({ id: id }) || await Order.findById(id);
+        }
+      }
+      
+      if (updatedOrder) {
+        await updateCustomerLoyaltyPoints(updatedOrder);
+      }
+    }
+    
+    // If points were used, deduct from customer
+    if (pointsUsed !== undefined && pointsUsed > 0 && currentOrder) {
+      const customerEmail = currentOrder.customerEmail?.toLowerCase()?.trim();
+      if (customerEmail) {
+        try {
+          // Find customer
+          let customer = null;
+          try {
+            const customersDb = mongoose.connection.useDb('customers', { useCache: true });
+            const customersColl = customersDb.collection('customersList');
+            customer = await customersColl.findOne({ email: customerEmail });
+          } catch (err) {
+            const customersColl = mongoose.connection.db.collection('customersList');
+            customer = await customersColl.findOne({ email: customerEmail });
+          }
+          
+          if (!customer) {
+            customer = await Customer.findOne({ email: customerEmail }).lean();
+          }
+          
+          if (customer) {
+            const customerId = customer._id || customer.id;
+            const currentPoints = customer.loyalty?.currentPoints || customer.loyalty?.points || 0;
+            const newPoints = Math.max(0, currentPoints - pointsUsed);
+            
+            // Add to history
+            const historyEntry = {
+              orderId: currentOrder.id || currentOrder._id?.toString(),
+              orderDate: currentOrder.createdAt || new Date(),
+              type: 'used',
+              points: pointsUsed,
+              description: `Used ${pointsUsed} points for order ${currentOrder.id}`,
+              createdAt: new Date()
+            };
+            
+            try {
+              const customersDb = mongoose.connection.useDb('customers', { useCache: true });
+              const customersColl = customersDb.collection('customersList');
+              await customersColl.updateOne(
+                { _id: Types.ObjectId.isValid(customerId) ? new Types.ObjectId(customerId) : customerId },
+                { 
+                  $set: { 'loyalty.currentPoints': newPoints },
+                  $push: { 'loyalty.history': historyEntry }
+                }
+              );
+            } catch (err) {
+              try {
+                const customersColl = mongoose.connection.db.collection('customersList');
+                await customersColl.updateOne(
+                  { _id: Types.ObjectId.isValid(customerId) ? new Types.ObjectId(customerId) : customerId },
+                  { 
+                    $set: { 'loyalty.currentPoints': newPoints },
+                    $push: { 'loyalty.history': historyEntry }
+                  }
+                );
+              } catch (err2) {
+                await Customer.findByIdAndUpdate(customerId, {
+                  $set: { 'loyalty.currentPoints': newPoints },
+                  $push: { 'loyalty.history': historyEntry }
+                });
+              }
+            }
+            
+          }
+        } catch (err) {
+          console.error('Error deducting points from customer:', err);
+        }
+      }
+    }
+    
     res.json({ success: true, message: 'Order updated successfully' });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Failed to update order', error: err.message });
@@ -692,3 +941,6 @@ router.patch('/:id', async (req, res) => {
 });
 
 module.exports = router;
+
+
+

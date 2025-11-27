@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { X, Camera } from 'lucide-react';
 import { updateCustomer } from '../../../../../../api/customers';
 import { formatMemberSinceDate } from '../../utils/helpers';
+import CountrySelectWithAlphabet from '../shared/CountrySelectWithAlphabet';
 
 type EditUserInformationModalProps = {
   customer: any;
@@ -28,7 +29,45 @@ const EditUserInformationModal: React.FC<EditUserInformationModalProps> = ({
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [countryDropdownOpen, setCountryDropdownOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const dialogContainerRef = useRef<HTMLDivElement>(null);
+  const actionButtonsRef = useRef<HTMLDivElement>(null);
+
+  // Calculate buttons position - simple: just below dropdown when open
+  const [buttonsMarginTop, setButtonsMarginTop] = useState(24); // mt-6 = 24px
+  
+  useEffect(() => {
+    if (!countryDropdownOpen) {
+      // Dropdown closed, return to original position
+      setButtonsMarginTop(24); // mt-6
+      return;
+    }
+
+    // When dropdown opens, buttons should be below dropdown (210px max height) + padding
+    setButtonsMarginTop(230); // 210px dropdown + 20px padding
+  }, [countryDropdownOpen]);
+
+  // Auto scroll dialog when dropdown opens to ensure buttons are visible after moving
+  useEffect(() => {
+    if (countryDropdownOpen && dialogContainerRef.current && actionButtonsRef.current) {
+      // Wait for buttons to move down (transition duration is 300ms)
+      setTimeout(() => {
+        const actionButtons = actionButtonsRef.current;
+        const dialogContainer = dialogContainerRef.current;
+        
+        if (!actionButtons || !dialogContainer) return;
+        
+        // Scroll buttons into view after they've moved
+        actionButtons.scrollIntoView({
+          behavior: 'smooth',
+          block: 'end',
+          inline: 'nearest'
+        });
+      }, 350); // Wait for transition to complete (300ms) + small buffer
+    }
+  }, [countryDropdownOpen, buttonsMarginTop]);
 
   // Fill form with customer data when modal opens or customer changes
   useEffect(() => {
@@ -38,20 +77,41 @@ const EditUserInformationModal: React.FC<EditUserInformationModalProps> = ({
       const firstName = nameParts[0] || customer.firstName || '';
       const lastName = nameParts.slice(1).join(' ') || customer.lastName || '';
 
-      // Get country from primary address
-      const primaryAddress = customer.addresses?.find((a: any) => a.isDefault) || customer.addresses?.[0];
-      const country = primaryAddress?.country || '';
+      // Get country from customer object first, then from primary address
+      let country = customer.country || '';
+      if (!country) {
+        const primaryAddress = customer.addresses?.find((a: any) => a.isDefault) || customer.addresses?.[0];
+        country = primaryAddress?.country || '';
+      }
+      
+      // Normalize gender value (ensure it matches dropdown options)
+      let gender = customer.gender || 'other';
+      if (gender && !['male', 'female', 'other'].includes(gender.toLowerCase())) {
+        gender = 'other';
+      } else {
+        gender = gender.toLowerCase();
+      }
 
-      setFormData({
+      console.log('📝 Filling form with customer data:', {
+        firstName,
+        lastName,
+        email: customer.email,
+        phone: customer.phone,
+        gender,
+        status: customer.status,
+        country,
+      });
+
+      setFormData((prev) => ({
         firstName,
         lastName,
         email: customer.email || '',
         phone: customer.phone || '',
-        gender: customer.gender || 'other',
+        gender: gender as 'male' | 'female' | 'other',
         avatarUrl: customer.avatarUrl || '',
         status: customer.status || 'active',
-        country,
-      });
+        country: country || prev.country || '',
+      }));
       setError(null);
     }
   }, [customer, isOpen]);
@@ -156,10 +216,10 @@ const EditUserInformationModal: React.FC<EditUserInformationModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="bg-background-light rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto m-4">
+    <div ref={dialogContainerRef} className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 backdrop-blur-sm p-4 overflow-y-auto hide-scrollbar pt-8 pb-8">
+      <div className="bg-background-light rounded-lg shadow-xl w-full max-w-4xl flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-700">
+        <div className="flex items-center justify-between p-6 border-b border-gray-700 flex-shrink-0">
           <div>
             <h2 className="text-2xl font-bold text-text-primary">Edit User Information</h2>
             <p className="text-sm text-text-secondary mt-1">
@@ -176,7 +236,7 @@ const EditUserInformationModal: React.FC<EditUserInformationModalProps> = ({
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6">
+        <form ref={formRef} onSubmit={handleSubmit} className="p-6 flex-1">
           {error && (
             <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-400 text-sm">
               {error}
@@ -321,30 +381,23 @@ const EditUserInformationModal: React.FC<EditUserInformationModalProps> = ({
 
             {/* Row 4: Country (full width or centered) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-text-secondary mb-2">
-                  Country
-                </label>
-                <select
-                  value={formData.country}
-                  onChange={(e) => handleChange('country', e.target.value)}
-                  className="w-full bg-background-dark border border-gray-600 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary text-text-primary h-10"
-                >
-                  <option value="">Select Country</option>
-                  <option value="VN">Vietnam</option>
-                  <option value="US">United States</option>
-                  <option value="UK">United Kingdom</option>
-                  <option value="IN">India</option>
-                  <option value="CA">Canada</option>
-                  <option value="AU">Australia</option>
-                </select>
-              </div>
+              <CountrySelectWithAlphabet
+                value={formData.country}
+                onChange={(code) => handleChange('country', code)}
+                label="Country"
+                onDropdownOpenChange={setCountryDropdownOpen}
+                className=""
+              />
               <div></div>
             </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex gap-3 mt-6 pt-6 border-t border-gray-700">
+          {/* Action Buttons - Move down when dropdown is open */}
+          <div 
+            ref={actionButtonsRef} 
+            className="flex gap-3 pt-6 border-t border-gray-700 flex-shrink-0 transition-all duration-300 ease-in-out"
+            style={{ marginTop: `${buttonsMarginTop}px` }}
+          >
             <button
               type="submit"
               disabled={loading}

@@ -64,6 +64,39 @@ function sortProducts(list, sortBy) {
 
   return sorted;
 }
+function isProductInStock(p) {
+  if (!p) return true;
+
+  // Nếu backend có inStock boolean
+  if (typeof p.inStock === "boolean") return p.inStock;
+
+  // Nếu có status dạng string
+  if (typeof p.status === "string") {
+    const s = p.status.toLowerCase();
+    if (["out-of-stock", "sold-out", "unavailable"].includes(s)) return false;
+    if (["in-stock", "available"].includes(s)) return true;
+  }
+
+  // Các field số lượng thường gặp
+  const candidates = [
+    p.stock,
+    p.countInStock,
+    p.quantity,
+    p.qty,
+    p.inventory,
+    p.unitsInStock,
+  ];
+
+  for (const v of candidates) {
+    if (v == null) continue;
+    const num = Number(v);
+    if (Number.isFinite(num)) return num > 0;
+  }
+
+  // Không có info thì mặc định coi là còn hàng
+  return true;
+}
+
 
 export default function MenuCatalogSection({
   breadcrumbLabel = "Home / Coffee Menu",
@@ -157,48 +190,56 @@ export default function MenuCatalogSection({
   }, [toastItem]);
 
   // --- Lọc theo giá + brand + sort local ---
-  useEffect(() => {
-    if (!rawProducts || rawProducts.length === 0) {
-      setProducts([]);
-      return;
+  // --- Lọc theo giá + brand + sort local ---
+useEffect(() => {
+  if (!rawProducts || rawProducts.length === 0) {
+    setProducts([]);
+    return;
+  }
+
+  // Parse min / max
+  let min = minPrice === "" || minPrice === null ? null : Number(minPrice);
+  let max = maxPrice === "" || maxPrice === null ? null : Number(maxPrice);
+
+  if (Number.isNaN(min)) min = null;
+  if (Number.isNaN(max)) max = null;
+
+  // Nếu user nhập min > max thì đảo lại
+  if (min != null && max != null && min > max) {
+    const tmp = min;
+    min = max;
+    max = tmp;
+  }
+
+  let list = rawProducts.filter((p) => {
+    const price = Number(p.price || 0);
+    const name = (p.name || "").toLowerCase();
+
+    // ====== LỌC THEO AVAILABILITY ======
+    const inStockFlag = isProductInStock(p);
+    if (availability === "in" && !inStockFlag) return false;
+    if (availability === "out" && inStockFlag) return false;
+    // ====================================
+
+    // filter giá
+    if (min != null && price < min) return false;
+    if (max != null && price > max) return false;
+
+    // filter brand = search trong name
+    if (selectedBrands.length > 0) {
+      const matchBrand = selectedBrands.some((b) =>
+        name.includes(b.toLowerCase())
+      );
+      if (!matchBrand) return false;
     }
 
-    // Parse min / max
-    let min = minPrice === "" || minPrice === null ? null : Number(minPrice);
-    let max = maxPrice === "" || maxPrice === null ? null : Number(maxPrice);
+    return true;
+  });
 
-    if (Number.isNaN(min)) min = null;
-    if (Number.isNaN(max)) max = null;
+  const sorted = sortProducts(list, sortBy);
+  setProducts(sorted);
+}, [rawProducts, sortBy, minPrice, maxPrice, selectedBrands, availability]);
 
-    // Nếu user nhập min > max thì đảo lại
-    if (min != null && max != null && min > max) {
-      const tmp = min;
-      min = max;
-      max = tmp;
-    }
-
-    let list = rawProducts.filter((p) => {
-      const price = Number(p.price || 0);
-      const name = (p.name || "").toLowerCase();
-
-      // filter giá
-      if (min != null && price < min) return false;
-      if (max != null && price > max) return false;
-
-      // filter brand = search trong name
-      if (selectedBrands.length > 0) {
-        const matchBrand = selectedBrands.some((b) =>
-          name.includes(b.toLowerCase())
-        );
-        if (!matchBrand) return false;
-      }
-
-      return true;
-    });
-
-    const sorted = sortProducts(list, sortBy);
-    setProducts(sorted);
-  }, [rawProducts, sortBy, minPrice, maxPrice, selectedBrands]);
 
   // ---- Handler mở modal ----
   const handleOpenModal = (product) => {

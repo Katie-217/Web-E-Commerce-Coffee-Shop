@@ -44,6 +44,16 @@ const addressSchema = new Schema({
   }
 }, { _id: false });
 
+// Function to generate random 4-character alphanumeric code (0-9, a-z, A-Z)
+const generateDisplayCode = () => {
+  const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  let result = '';
+  for (let i = 0; i < 4; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+};
+
 const orderSchema = new Schema({
   id: {
     type: String,
@@ -52,7 +62,9 @@ const orderSchema = new Schema({
   },
   displayCode: {
     type: String,
-    index: true,
+    unique: true,
+    default: generateDisplayCode,
+    match: /^[0-9a-zA-Z]{4}$/ // 4 alphanumeric characters (0-9, a-z, A-Z)
   },
   customerId: {
     type: Schema.Types.ObjectId,
@@ -82,6 +94,18 @@ const orderSchema = new Schema({
     default: 0,
     min: 0
   },
+  pointsUsed: {
+    type: Number,
+    default: 0,
+    min: 0,
+    comment: 'Number of loyalty points used in this order'
+  },
+  pointsEarned: {
+    type: Number,
+    default: 0,
+    min: 0,
+    comment: 'Number of loyalty points earned from this order (10% of orderTotal before discount)'
+  },
   tax: {
     type: Number,
     default: 0,
@@ -98,7 +122,7 @@ const orderSchema = new Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled', 'returned'],
+    enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded'],
     default: 'pending'
   },
   paymentMethod: {

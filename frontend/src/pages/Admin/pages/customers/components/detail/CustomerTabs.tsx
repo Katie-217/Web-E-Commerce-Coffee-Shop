@@ -1,13 +1,14 @@
 import React from 'react';
 import { User, MapPin } from 'lucide-react';
-import OverviewCards from './OverviewCards';
-import OrdersPlacedTable from './OrdersPlacedTable';
+import OverviewCards from './overview/OverviewCards';
+import OrdersPlacedTable from './overview/OrdersPlacedTable';
 import AddressBillingTab from './AddressBillingTab';
 
 type CustomerTabsProps = {
   activeTab: 'Overview' | 'Address & Billing';
   onTabChange: (tab: 'Overview' | 'Address & Billing') => void;
   orders: any[];
+  allOrders?: any[];
   searchOrder: string;
   onSearchChange: (value: string) => void;
   currentPage: number;
@@ -17,12 +18,14 @@ type CustomerTabsProps = {
   onDeleteOrder?: (orderId: string) => void;
   onUpdateOrderStatus?: (orderId: string, status: string) => void;
   customer?: any;
+  onCustomerUpdate?: (updatedCustomer: any) => void;
 };
 
 const CustomerTabs: React.FC<CustomerTabsProps> = ({
   activeTab,
   onTabChange,
   orders,
+  allOrders = [],
   searchOrder,
   onSearchChange,
   currentPage,
@@ -32,6 +35,7 @@ const CustomerTabs: React.FC<CustomerTabsProps> = ({
   onDeleteOrder,
   onUpdateOrderStatus,
   customer,
+  onCustomerUpdate,
 }) => {
   return (
     <>
@@ -58,7 +62,7 @@ const CustomerTabs: React.FC<CustomerTabsProps> = ({
 
       {activeTab === 'Overview' && (
         <>
-          <OverviewCards />
+          <OverviewCards customer={customer} orders={allOrders} />
           <OrdersPlacedTable
             orders={orders}
             searchOrder={searchOrder}
@@ -73,7 +77,9 @@ const CustomerTabs: React.FC<CustomerTabsProps> = ({
         </>
       )}
 
-      {activeTab === 'Address & Billing' && <AddressBillingTab customer={customer} />}
+      {activeTab === 'Address & Billing' && (
+        <AddressBillingTab customer={customer} onCustomerUpdate={onCustomerUpdate} />
+      )}
     </>
   );
 };

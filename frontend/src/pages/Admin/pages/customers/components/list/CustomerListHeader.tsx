@@ -1,12 +1,13 @@
 import React from 'react';
-import ExportDropdown from './ExportDropdown';
+import ExportDropdown from '../../../../../../components/ExportDropdown';
+import { ExportFormat } from '../../../../../../utils/exportUtils';
 
 type CustomerListHeaderProps = {
   searchValue: string;
   onSearchChange: (value: string) => void;
   onAddCustomer?: () => void;
   exportDisabled?: boolean;
-  onExport?: (type: 'csv' | 'excel' | 'pdf') => void;
+  onExport?: (type: ExportFormat) => void;
 };
 
 const CustomerListHeader: React.FC<CustomerListHeaderProps> = ({

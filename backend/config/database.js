@@ -39,3 +39,11 @@ async function connectDB() {
 
 // export đúng là 1 function
 module.exports = connectDB;
+
+
+
+
+
+
+
+

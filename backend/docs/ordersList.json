@@ -1405,7 +1405,7 @@
     "discount": 0,
     "total": 2614000,
     "currency": "VND",
-    "status": "returned",
+    "status": "refunded",
     "paymentStatus": "refunded",
     "paymentMethod": "vnpay",
     "shippingAddress": {
@@ -1452,8 +1452,8 @@
         "completed": true
       },
       {
-        "status": "Returned",
-        "description": "Order has been returned.",
+        "status": "refunded",
+        "description": "Order has been refunded.",
         "date": "Tuesday, Jun 4",
         "time": "07:46 AM",
         "completed": true
@@ -1576,7 +1576,7 @@
     "discount": 0,
     "total": 1853000,
     "currency": "VND",
-    "status": "returned",
+    "status": "refunded",
     "paymentStatus": "refunded",
     "paymentMethod": "cod",
     "shippingAddress": {
@@ -1631,8 +1631,8 @@
         "completed": true
       },
       {
-        "status": "Returned",
-        "description": "Order has been returned.",
+        "status": "refunded",
+        "description": "Order has been refunded.",
         "date": "Wednesday, Jun 19",
         "time": "10:16 AM",
         "completed": true
@@ -1756,7 +1756,7 @@
     "discount": 23234,
     "total": 1092766,
     "currency": "VND",
-    "status": "returned",
+    "status": "refunded",
     "paymentStatus": "refunded",
     "paymentMethod": "zaloPay",
     "shippingAddress": {
@@ -1803,8 +1803,8 @@
         "completed": true
       },
       {
-        "status": "Returned",
-        "description": "Order has been returned.",
+        "status": "refunded",
+        "description": "Order has been refunded.",
         "date": "Thursday, Jun 20",
         "time": "10:37 PM",
         "completed": true
@@ -2742,7 +2742,7 @@
     "discount": 239616,
     "total": 3156384,
     "currency": "VND",
-    "status": "returned",
+    "status": "refunded",
     "paymentStatus": "refunded",
     "paymentMethod": "cod",
     "shippingAddress": {
@@ -2797,8 +2797,8 @@
         "completed": true
       },
       {
-        "status": "Returned",
-        "description": "Order has been returned.",
+        "status": "refunded",
+        "description": "Order has been refunded.",
         "date": "Monday, Sep 9",
         "time": "07:31 AM",
         "completed": true
@@ -2907,7 +2907,7 @@
     "discount": 13802,
     "total": 1834198,
     "currency": "VND",
-    "status": "returned",
+    "status": "refunded",
     "paymentStatus": "refunded",
     "paymentMethod": "vnpay",
     "shippingAddress": {
@@ -2962,8 +2962,8 @@
         "completed": true
       },
       {
-        "status": "Returned",
-        "description": "Order has been returned.",
+        "status": "refunded",
+        "description": "Order has been refunded.",
         "date": "Wednesday, Sep 11",
         "time": "02:27 PM",
         "completed": true
@@ -3201,7 +3201,7 @@
     "discount": 0,
     "total": 2014000,
     "currency": "VND",
-    "status": "returned",
+    "status": "refunded",
     "paymentStatus": "refunded",
     "paymentMethod": "zaloPay",
     "shippingAddress": {
@@ -3248,8 +3248,8 @@
         "completed": true
       },
       {
-        "status": "Returned",
-        "description": "Order has been returned.",
+        "status": "refunded",
+        "description": "Order has been refunded.",
         "date": "Friday, Oct 4",
         "time": "12:30 PM",
         "completed": true
@@ -3678,7 +3678,7 @@
     "discount": 126333,
     "total": 773667,
     "currency": "VND",
-    "status": "returned",
+    "status": "refunded",
     "paymentStatus": "refunded",
     "paymentMethod": "cod",
     "shippingAddress": {
@@ -3725,8 +3725,8 @@
         "completed": true
       },
       {
-        "status": "Returned",
-        "description": "Order has been returned.",
+        "status": "refunded",
+        "description": "Order has been refunded.",
         "date": "Saturday, Dec 14",
         "time": "04:09 AM",
         "completed": true
@@ -3889,7 +3889,7 @@
     "discount": 15000,
     "total": 404000,
     "currency": "VND",
-    "status": "returned",
+    "status": "refunded",
     "paymentStatus": "refunded",
     "paymentMethod": "vnpay",
     "shippingAddress": {
@@ -3944,8 +3944,8 @@
         "completed": true
       },
       {
-        "status": "Returned",
-        "description": "Order has been returned.",
+        "status": "refunded",
+        "description": "Order has been refunded.",
         "date": "Tuesday, Jan 14",
         "time": "04:43 AM",
         "completed": true
@@ -4087,7 +4087,7 @@
     "discount": 5257,
     "total": 68743,
     "currency": "VND",
-    "status": "returned",
+    "status": "refunded",
     "paymentStatus": "refunded",
     "paymentMethod": "vnpay",
     "shippingAddress": {
@@ -4134,8 +4134,8 @@
         "completed": true
       },
       {
-        "status": "Returned",
-        "description": "Order has been returned.",
+        "status": "refunded",
+        "description": "Order has been refunded.",
         "date": "Sunday, Jan 19",
         "time": "10:26 AM",
         "completed": true
@@ -4698,7 +4698,7 @@
     "discount": 9460,
     "total": 467540,
     "currency": "VND",
-    "status": "returned",
+    "status": "refunded",
     "paymentStatus": "refunded",
     "paymentMethod": "bank-transfer",
     "shippingAddress": {
@@ -4745,8 +4745,8 @@
         "completed": true
       },
       {
-        "status": "Returned",
-        "description": "Order has been returned.",
+        "status": "refunded",
+        "description": "Order has been refunded.",
         "date": "Saturday, Apr 12",
         "time": "07:09 PM",
         "completed": true
@@ -4862,7 +4862,7 @@
     "discount": 0,
     "total": 2686000,
     "currency": "VND",
-    "status": "returned",
+    "status": "refunded",
     "paymentStatus": "refunded",
     "paymentMethod": "bank-transfer",
     "shippingAddress": {
@@ -4909,8 +4909,8 @@
         "completed": true
       },
       {
-        "status": "Returned",
-        "description": "Order has been returned.",
+        "status": "refunded",
+        "description": "Order has been refunded.",
         "date": "Saturday, Apr 19",
         "time": "03:21 AM",
         "completed": true
@@ -4998,7 +4998,7 @@
     "discount": 101548,
     "total": 1244452,
     "currency": "VND",
-    "status": "returned",
+    "status": "refunded",
     "paymentStatus": "refunded",
     "paymentMethod": "vnpay",
     "shippingAddress": {
@@ -5053,8 +5053,8 @@
         "completed": true
       },
       {
-        "status": "Returned",
-        "description": "Order has been returned.",
+        "status": "refunded",
+        "description": "Order has been refunded.",
         "date": "Thursday, May 22",
         "time": "08:01 PM",
         "completed": true
@@ -5355,7 +5355,7 @@
     "discount": 0,
     "total": 119000,
     "currency": "VND",
-    "status": "returned",
+    "status": "refunded",
     "paymentStatus": "refunded",
     "paymentMethod": "vnpay",
     "shippingAddress": {
@@ -5402,8 +5402,8 @@
         "completed": true
       },
       {
-        "status": "Returned",
-        "description": "Order has been returned.",
+        "status": "refunded",
+        "description": "Order has been refunded.",
         "date": "Sunday, Jun 22",
         "time": "11:37 AM",
         "completed": true
@@ -5505,7 +5505,7 @@
     "discount": 0,
     "total": 1202000,
     "currency": "VND",
-    "status": "returned",
+    "status": "refunded",
     "paymentStatus": "refunded",
     "paymentMethod": "vnpay",
     "shippingAddress": {
@@ -5560,8 +5560,8 @@
         "completed": true
       },
       {
-        "status": "Returned",
-        "description": "Order has been returned.",
+        "status": "refunded",
+        "description": "Order has been refunded.",
         "date": "Saturday, Jun 28",
         "time": "04:35 AM",
         "completed": true
@@ -5692,7 +5692,7 @@
     "discount": 0,
     "total": 3147000,
     "currency": "VND",
-    "status": "returned",
+    "status": "refunded",
     "paymentStatus": "refunded",
     "paymentMethod": "zaloPay",
     "shippingAddress": {
@@ -5747,8 +5747,8 @@
         "completed": true
       },
       {
-        "status": "Returned",
-        "description": "Order has been returned.",
+        "status": "refunded",
+        "description": "Order has been refunded.",
         "date": "Saturday, Jul 5",
         "time": "05:04 AM",
         "completed": true
@@ -6267,7 +6267,7 @@
     "discount": 0,
     "total": 2107000,
     "currency": "VND",
-    "status": "returned",
+    "status": "refunded",
     "paymentStatus": "refunded",
     "paymentMethod": "vnpay",
     "shippingAddress": {
@@ -6314,8 +6314,8 @@
         "completed": true
       },
       {
-        "status": "Returned",
-        "description": "Order has been returned.",
+        "status": "refunded",
+        "description": "Order has been refunded.",
         "date": "Friday, Sep 5",
         "time": "06:50 AM",
         "completed": true
@@ -6349,7 +6349,7 @@
     "discount": 0,
     "total": 1046000,
     "currency": "VND",
-    "status": "returned",
+    "status": "refunded",
     "paymentStatus": "refunded",
     "paymentMethod": "momo",
     "shippingAddress": {
@@ -6396,8 +6396,8 @@
         "completed": true
       },
       {
-        "status": "Returned",
-        "description": "Order has been returned.",
+        "status": "refunded",
+        "description": "Order has been refunded.",
         "date": "Tuesday, Sep 16",
         "time": "02:55 AM",
         "completed": true
@@ -7177,7 +7177,7 @@
     "discount": 0,
     "total": 4946000,
     "currency": "VND",
-    "status": "returned",
+    "status": "refunded",
     "paymentStatus": "refunded",
     "paymentMethod": "bank-transfer",
     "shippingAddress": {
@@ -7232,8 +7232,8 @@
         "completed": true
       },
       {
-        "status": "Returned",
-        "description": "Order has been returned.",
+        "status": "refunded",
+        "description": "Order has been refunded.",
         "date": "Friday, Nov 7",
         "time": "05:41 AM",
         "completed": true

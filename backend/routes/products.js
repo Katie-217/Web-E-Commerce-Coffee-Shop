@@ -1,68 +1,149 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const router = express.Router();
 const Product = require('../models/Product');
 const Review = require('../models/Review');
-
 
 // GET /api/products - Lấy danh sách tất cả sản phẩm
 router.get('/', async (req, res) => {
   try {
     console.log(' GET /api/products - Request received');
     console.log(' Query params:', req.query);
-    
+
     const {
       page = 1,
       limit = 10,
       status,
       category,
       stock,
-      search
+      search,
     } = req.query;
 
     // Build query
     const query = {};
-    
+
     if (status) {
       query.status = status;
     }
-    
+
     if (category) {
       query.category = category;
     }
-    
+
     if (stock !== undefined) {
       query.stock = stock === 'true';
     }
-    
+
     if (search) {
       query.$or = [
         { name: { $regex: search, $options: 'i' } },
         { description: { $regex: search, $options: 'i' } },
-        { sku: { $regex: search, $options: 'i' } }
+        { sku: { $regex: search, $options: 'i' } },
       ];
     }
 
     // Calculate pagination
-    const skip = (parseInt(page) - 1) * parseInt(limit);
-    
-    // Get products with pagination from MongoDB
+    const pageNum = parseInt(page, 10);
+    const limitNum = parseInt(limit, 10);
+    const skip = (pageNum - 1) * limitNum;
+
     console.log('🔍 Query:', JSON.stringify(query, null, 2));
-    console.log('📊 Querying MongoDB collection: products');
-    
-    const products = await Product.find(query)
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(parseInt(limit))
-      .lean();
+    console.log('📊 Pagination:', { page: pageNum, limit: limitNum, skip });
 
-    console.log(`✅ Found ${products.length} products from MongoDB`);
+    let products = [];
+    let total = 0;
 
-    // Get total count from MongoDB
-    const total = await Product.countDocuments(query);
-    console.log(`📊 Total products: ${total}`);
+    // Try 1: 'products' database > 'productsList' collection
+    try {
+      const productsDb = mongoose.connection.useDb('products', { useCache: true });
+      const coll = productsDb.collection('productsList');
+      const totalCount = await coll.countDocuments({});
+      console.log(`📊 products.productsList collection has ${totalCount} documents`);
+
+      if (totalCount > 0) {
+        [products, total] = await Promise.all([
+          coll
+            .find(query)
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limitNum)
+            .toArray(),
+          coll.countDocuments(query),
+        ]);
+
+        // Nếu query không ra kết quả nhưng collection có dữ liệu → fallback lấy all
+        if (total === 0 && totalCount > 0) {
+          [products, total] = await Promise.all([
+            coll
+              .find({})
+              .sort({ createdAt: -1 })
+              .skip(skip)
+              .limit(limitNum)
+              .toArray(),
+            coll.countDocuments({}),
+          ]);
+        }
+      }
+    } catch (err) {
+      console.log('❌ Failed to query products.productsList:', err.message);
+    }
+
+    // Try 2: Current database (CoffeeDB) > productsList collection
+    if (total === 0) {
+      try {
+        const coll = mongoose.connection.db.collection('productsList');
+        const totalCount = await coll.countDocuments({});
+        console.log(`📊 productsList collection has ${totalCount} documents`);
+
+        if (totalCount > 0) {
+          [products, total] = await Promise.all([
+            coll
+              .find(query)
+              .sort({ createdAt: -1 })
+              .skip(skip)
+              .limit(limitNum)
+              .toArray(),
+            coll.countDocuments(query),
+          ]);
+
+          if (total === 0 && totalCount > 0) {
+            [products, total] = await Promise.all([
+              coll
+                .find({})
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limitNum)
+                .toArray(),
+              coll.countDocuments({}),
+            ]);
+          }
+        }
+      } catch (err) {
+        console.log('❌ Failed to query productsList in current DB:', err.message);
+      }
+    }
+
+    // Fallback to default Product model collection
+    if (total === 0) {
+      try {
+        console.log('📊 Querying MongoDB collection via Product model');
+        [products, total] = await Promise.all([
+          Product.find(query)
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limitNum)
+            .lean(),
+          Product.countDocuments(query),
+        ]);
+      } catch (err) {
+        console.log('❌ Failed to query Product model collection:', err.message);
+      }
+    }
+
+    console.log(`✅ Found ${products.length} products (total=${total})`);
 
     // Transform data to match frontend format
-    const transformedProducts = products.map(product => ({
+    const transformedProducts = products.map((product) => ({
       id: product.id || product._id,
       name: product.name,
       imageUrl: product.imageUrl,
@@ -73,18 +154,18 @@ router.get('/', async (req, res) => {
       price: product.price,
       quantity: product.quantity,
       status: product.status,
-      variants: product.variants || []
+      variants: product.variants || [],
     }));
 
     res.json({
       success: true,
       data: transformedProducts,
       pagination: {
-        page: parseInt(page),
-        limit: parseInt(limit),
+        page: pageNum,
+        limit: limitNum,
         total,
-        totalPages: Math.ceil(total / parseInt(limit))
-      }
+        totalPages: Math.ceil(total / limitNum),
+      },
     });
   } catch (error) {
     console.error('❌ Error fetching products:', error);
@@ -92,7 +173,7 @@ router.get('/', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error fetching products',
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -101,17 +182,120 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    
-    // Try to find by id field first, then by _id
-    let product = await Product.findOne({ id: parseInt(id) });
-    if (!product) {
-      product = await Product.findById(id);
+    console.log(
+      '🔍 GET /api/products/:id - Searching for product with ID:',
+      id,
+      'Type:',
+      typeof id,
+    );
+    let product = null;
+
+    const { Types } = mongoose;
+
+    // Build filters: thử theo id number, _id, string id
+    const filters = [];
+    const nId = Number(id);
+    if (!Number.isNaN(nId)) filters.push({ id: nId });
+    if (Types.ObjectId.isValid(id)) {
+      filters.push({ _id: new Types.ObjectId(id) });
     }
-    
+    filters.push({ id: String(id) }); // thêm string id luôn
+
+    // Helper function to try finding product in a collection
+    const tryFindInCollection = async (coll, collectionName) => {
+      try {
+        for (const filter of filters) {
+          const found = await coll.findOne(filter);
+          if (found) {
+            product = found;
+            console.log(`✅ Found in ${collectionName} with filter:`, filter);
+            return true;
+          }
+        }
+
+        // Debug sample
+        const sample = await coll.find({}).limit(3).toArray();
+        if (sample.length > 0) {
+          console.log(
+            `📋 Sample IDs in ${collectionName}:`,
+            sample.map((p) => ({ id: p.id, _id: p._id, name: p.name })),
+          );
+        }
+      } catch (err) {
+        console.log(`❌ Error searching in ${collectionName}:`, err.message);
+      }
+      return false;
+    };
+
+    // Try 1: 'products' database > 'productsList' collection
+    try {
+      const productsDb = mongoose.connection.useDb('products', { useCache: true });
+      const coll = productsDb.collection('productsList');
+      const totalCount = await coll.countDocuments({});
+      console.log(`📊 products.productsList collection has ${totalCount} documents`);
+
+      if (totalCount > 0) {
+        await tryFindInCollection(coll, 'products.productsList');
+      }
+    } catch (err) {
+      console.log('❌ Failed to access products.productsList:', err.message);
+    }
+
+    // Try 2: Current database (CoffeeDB) > productsList collection
     if (!product) {
+      try {
+        const coll = mongoose.connection.db.collection('productsList');
+        const totalCount = await coll.countDocuments({});
+        console.log(`📊 productsList collection has ${totalCount} documents`);
+
+        if (totalCount > 0) {
+          await tryFindInCollection(coll, 'productsList');
+        }
+      } catch (err) {
+        console.log('❌ Failed to access productsList:', err.message);
+      }
+    }
+
+    // Try 3: current DB > products collection
+    if (!product) {
+      try {
+        const coll = mongoose.connection.db.collection('products');
+        const totalCount = await coll.countDocuments({});
+        console.log(`📊 products collection has ${totalCount} documents`);
+
+        if (totalCount > 0) {
+          await tryFindInCollection(coll, 'products');
+        }
+      } catch (err) {
+        console.log('❌ Failed to access products:', err.message);
+      }
+    }
+
+    // Fallback: default Product model collection (mongoose)
+    if (!product) {
+      try {
+        console.log('📊 Trying default Product model collection...');
+        if (filters.length > 0) {
+          product = await Product.findOne({ $or: filters }).lean();
+          if (product) {
+            console.log('✅ Found in default collection with $or filters');
+          }
+        }
+      } catch (err) {
+        console.log('❌ Failed to search in default collection:', err.message);
+      }
+    }
+
+    if (!product) {
+      console.log('❌ Product not found in any collection with ID:', id);
+      console.log('💡 Tried searching with:', {
+        numeric: !Number.isNaN(nId) ? nId : 'N/A',
+        objectId: Types.ObjectId.isValid(id) ? id : 'N/A',
+        string: String(id),
+      });
       return res.status(404).json({
         success: false,
-        message: 'Product not found'
+        message: 'Product not found',
       });
     }
 
@@ -126,36 +310,43 @@ router.get('/:id', async (req, res) => {
       price: product.price,
       quantity: product.quantity,
       status: product.status,
-      variants: product.variants || []
+      variants: product.variants || [],
     };
+
+    console.log(
+      '✅ Product found and transformed. ID:',
+      transformedProduct.id,
+      'Name:',
+      transformedProduct.name,
+    );
 
     res.json({
       success: true,
-      data: transformedProduct
+      data: transformedProduct,
     });
   } catch (error) {
-    console.error('Error fetching product:', error);
+    console.error('❌ Error fetching product:', error);
     res.status(500).json({
       success: false,
       message: 'Error fetching product',
-      error: error.message
+      error: error.message,
     });
   }
 });
 
 // GET /api/products/:id/reviews
-router.get("/:id/reviews", async (req, res) => {
+router.get('/:id/reviews', async (req, res) => {
   try {
     const { id } = req.params;
     let productIdNum = Number(id);
 
     // Nếu FE truyền _id (Mongo) thì convert sang id number trong Product
     if (Number.isNaN(productIdNum)) {
-      const product = await Product.findById(id).select("id");
+      const product = await Product.findById(id).select('id');
       if (!product) {
         return res.status(404).json({
           success: false,
-          message: "Product not found",
+          message: 'Product not found',
         });
       }
       productIdNum = product.id;
@@ -170,10 +361,10 @@ router.get("/:id/reviews", async (req, res) => {
       data: reviews,
     });
   } catch (err) {
-    console.error("Error fetching reviews:", err);
+    console.error('Error fetching reviews:', err);
     res.status(500).json({
       success: false,
-      message: "Error fetching reviews",
+      message: 'Error fetching reviews',
     });
   }
 });
@@ -196,7 +387,6 @@ router.post('/:id/reviews', async (req, res) => {
       productIdNum = product.id;
     }
 
-    // Lấy data từ body (hướng 2: bắt user nhập email + tên)
     const { rating, comment, customerName, customerEmail, title } = req.body;
 
     // Validate rating
@@ -216,14 +406,18 @@ router.post('/:id/reviews', async (req, res) => {
     }
 
     // Validate tên + email
-    if (!customerName || !customerName.trim() || !customerEmail || !customerEmail.trim()) {
+    if (
+      !customerName ||
+      !customerName.trim() ||
+      !customerEmail ||
+      !customerEmail.trim()
+    ) {
       return res.status(400).json({
         success: false,
         message: 'customerName and customerEmail are required',
       });
     }
 
-    // Tạo review trong MongoDB
     const review = await Review.create({
       productId: productIdNum,
       rating,
@@ -247,21 +441,14 @@ router.post('/:id/reviews', async (req, res) => {
   }
 });
 
-
-
-// POST /api/products - Tạo sản phẩm mới trong MongoDB
+// POST /api/products - Tạo sản phẩm mới trong MongoDB / collections liên quan
 router.post('/', async (req, res) => {
   try {
-    console.log('🆕 POST /api/products - Creating new product in MongoDB');
+    console.log('🆕 POST /api/products - Creating new product');
     console.log('📦 Request body:', req.body);
-    
-    // Get the highest id to generate new id
-    const lastProduct = await Product.findOne().sort({ id: -1 }).lean();
-    const newId = lastProduct ? (lastProduct.id || 0) + 1 : 1;
-    
-    // Build product data
+
+    // Build product data (chưa set id, sẽ gán sau)
     const productData = {
-      id: newId,
       name: req.body.name,
       imageUrl: req.body.imageUrl || '',
       description: req.body.description || '',
@@ -273,74 +460,127 @@ router.post('/', async (req, res) => {
       status: req.body.status || 'Publish',
       variants: Array.isArray(req.body.variants) ? req.body.variants : [],
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     };
-    
+
     // Validate required fields
     if (!productData.name || !productData.category || !productData.sku) {
       return res.status(400).json({
         success: false,
-        message: 'Missing required fields: name, category, and sku are required'
+        message: 'Missing required fields: name, category, and sku are required',
       });
     }
-    
-    console.log('📝 Product data:', productData);
-    
-    // Create product in MongoDB
-    const product = await Product.create(productData);
-    
-    console.log(`✅ Product created successfully in MongoDB: ${product.id}`);
-    
-    // Transform response to match frontend format
+
+    let savedProduct = null;
+    let savedToCollection = null;
+
+    // Try 1: 'products' database > 'productsList' collection
+    try {
+      const productsDb = mongoose.connection.useDb('products', { useCache: true });
+      const coll = productsDb.collection('productsList');
+      const totalCount = await coll.countDocuments({});
+
+      if (totalCount > 0) {
+        const lastProduct = await coll.findOne({}, { sort: { id: -1 } });
+        const newId = lastProduct ? (lastProduct.id || 0) + 1 : 1;
+        productData.id = newId;
+
+        await coll.insertOne(productData);
+        savedProduct = productData;
+        savedToCollection = 'products.productsList';
+        console.log('✅ Product saved to products.productsList collection');
+      }
+    } catch (err) {
+      console.log('Failed to save to products.productsList:', err.message);
+    }
+
+    // Try 2: Current database (CoffeeDB) > productsList collection
+    if (!savedProduct) {
+      try {
+        const coll = mongoose.connection.db.collection('productsList');
+        const totalCount = await coll.countDocuments({});
+
+        if (totalCount > 0) {
+          const lastProduct = await coll.findOne({}, { sort: { id: -1 } });
+          const newId = lastProduct ? (lastProduct.id || 0) + 1 : 1;
+          productData.id = newId;
+
+          await coll.insertOne(productData);
+          savedProduct = productData;
+          savedToCollection = 'productsList';
+          console.log('✅ Product saved to productsList collection');
+        }
+      } catch (err) {
+        console.log('Failed to save to productsList:', err.message);
+      }
+    }
+
+    // Fallback: Use Product model (default collection)
+    if (!savedProduct) {
+      try {
+        const lastProduct = await Product.findOne().sort({ id: -1 }).lean();
+        const newId = lastProduct ? (lastProduct.id || 0) + 1 : 1;
+        productData.id = newId;
+
+        const product = await Product.create(productData);
+        savedProduct = product.toObject ? product.toObject() : product;
+        savedToCollection = 'products (default)';
+        console.log('✅ Product saved to default products collection');
+      } catch (err) {
+        console.log('Failed to save to default collection:', err.message);
+        throw err;
+      }
+    }
+
     const transformedProduct = {
-      id: product.id || product._id,
-      name: product.name,
-      imageUrl: product.imageUrl,
-      description: product.description,
-      category: product.category,
-      stock: product.stock,
-      sku: product.sku,
-      price: product.price,
-      quantity: product.quantity,
-      status: product.status,
-      variants: product.variants || [],
-      createdAt: product.createdAt,
-      updatedAt: product.updatedAt
+      id: savedProduct.id || savedProduct._id,
+      name: savedProduct.name,
+      imageUrl: savedProduct.imageUrl,
+      description: savedProduct.description,
+      category: savedProduct.category,
+      stock: savedProduct.stock,
+      sku: savedProduct.sku,
+      price: savedProduct.price,
+      quantity: savedProduct.quantity,
+      status: savedProduct.status,
+      variants: savedProduct.variants || [],
+      createdAt: savedProduct.createdAt,
+      updatedAt: savedProduct.updatedAt,
     };
-    
+
+    console.log('✅ Product created successfully in:', savedToCollection);
+
     res.status(201).json({
       success: true,
       message: 'Product created successfully',
-      data: transformedProduct
+      data: transformedProduct,
     });
   } catch (error) {
-    console.error('❌ Error creating product in MongoDB:', error);
-    console.error('❌ Error stack:', error.stack);
-    
-    // Handle duplicate key error (e.g., duplicate SKU or id)
+    console.error('❌ Error creating product:', error);
+
     if (error.code === 11000) {
       const field = Object.keys(error.keyPattern)[0];
       return res.status(400).json({
         success: false,
-        message: `Duplicate ${field}: ${error.keyValue[field]} already exists`
+        message: `Duplicate ${field}: ${error.keyValue[field]} already exists`,
       });
     }
-    
+
     res.status(500).json({
       success: false,
       message: 'Error creating product',
-      error: error.message
+      error: error.message,
     });
   }
 });
 
-// PUT /api/products/:id - Cập nhật thông tin sản phẩm trong MongoDB
+// PUT /api/products/:id - Cập nhật thông tin sản phẩm trong MongoDB / collections liên quan
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    console.log(`🔄 PUT /api/products/${id} - Updating product in MongoDB`);
+    console.log(`🔄 PUT /api/products/${id} - Updating product`);
     console.log('📦 Request body:', req.body);
-    
+
     // Allowed fields that can be updated
     const allowed = [
       'name',
@@ -355,78 +595,258 @@ router.put('/:id', async (req, res) => {
       'price',
       'quantity',
       'status',
-      'variants'
+      'variants',
     ];
-    
-    // Build update data object with only allowed fields
+
     const data = {};
     for (const key of allowed) {
       if (req.body[key] !== undefined) {
         data[key] = req.body[key];
       }
     }
-    
-    // Add updatedAt timestamp
+
     data.updatedAt = new Date();
 
-    // Build safe filter: try numeric id, else valid ObjectId, else respond 400
+    // Build filters: numeric id, ObjectId, string id
     const filters = [];
     const nId = Number(id);
     if (!Number.isNaN(nId)) filters.push({ id: nId });
-    const { Types } = require('mongoose');
-    if (Types.ObjectId.isValid(id)) filters.push({ _id: id });
+    const { Types } = mongoose;
+    if (Types.ObjectId.isValid(id)) {
+      filters.push({ _id: new Types.ObjectId(id) });
+    }
+    filters.push({ id: String(id) });
+
     if (filters.length === 0) {
       return res.status(400).json({ success: false, message: 'Invalid product id' });
     }
 
-    // Update product in MongoDB
     console.log('🔍 Query filters:', filters);
     console.log('📝 Update data:', data);
-    
-    const product = await Product.findOneAndUpdate(
-      { $or: filters },
-      { $set: data },
-      { new: true, runValidators: true }
-    );
 
-    if (!product) {
-      console.log(`❌ Product not found with id: ${id}`);
-      return res.status(404).json({ success: false, message: 'Product not found' });
+    let updatedProduct = null;
+    let updatedInCollection = null;
+
+    // Try 1: 'products' database > 'productsList' collection
+    try {
+      const productsDb = mongoose.connection.useDb('products', { useCache: true });
+      const coll = productsDb.collection('productsList');
+      const totalCount = await coll.countDocuments({});
+
+      if (totalCount > 0) {
+        for (const filter of filters) {
+          const result = await coll.findOneAndUpdate(
+            filter,
+            { $set: data },
+            { returnDocument: 'after' },
+          );
+          // result.value nếu là driver cũ, nhưng để đơn giản check truthy
+          const doc = result && (result.value || result);
+          if (doc) {
+            updatedProduct = doc;
+            updatedInCollection = 'products.productsList';
+            console.log('✅ Product updated in products.productsList collection');
+            break;
+          }
+        }
+      }
+    } catch (err) {
+      console.log('Failed to update in products.productsList:', err.message);
     }
 
-    console.log(`✅ Product updated successfully in MongoDB: ${product.id}`);
-    
-    // Transform response to match frontend format
+    // Try 2: Current database (CoffeeDB) > productsList collection
+    if (!updatedProduct) {
+      try {
+        const coll = mongoose.connection.db.collection('productsList');
+        const totalCount = await coll.countDocuments({});
+
+        if (totalCount > 0) {
+          for (const filter of filters) {
+            const result = await coll.findOneAndUpdate(
+              filter,
+              { $set: data },
+              { returnDocument: 'after' },
+            );
+            const doc = result && (result.value || result);
+            if (doc) {
+              updatedProduct = doc;
+              updatedInCollection = 'productsList';
+              console.log('✅ Product updated in productsList collection');
+              break;
+            }
+          }
+        }
+      } catch (err) {
+        console.log('Failed to update in productsList:', err.message);
+      }
+    }
+
+    // Fallback: Use Product model (default collection)
+    if (!updatedProduct) {
+      try {
+        const product = await Product.findOneAndUpdate(
+          { $or: filters },
+          { $set: data },
+          { new: true, runValidators: true },
+        );
+        if (product) {
+          updatedProduct = product.toObject ? product.toObject() : product;
+          updatedInCollection = 'products (default)';
+          console.log('✅ Product updated in default products collection');
+        }
+      } catch (err) {
+        console.log('Failed to update in default collection:', err.message);
+      }
+    }
+
+    if (!updatedProduct) {
+      console.log('❌ Product not found in any collection with ID:', id);
+      return res
+        .status(404)
+        .json({ success: false, message: 'Product not found' });
+    }
+
     const transformedProduct = {
-      id: product.id || product._id,
-      name: product.name,
-      imageUrl: product.imageUrl,
-      description: product.description,
-      category: product.category,
-      stock: product.stock,
-      sku: product.sku,
-      price: product.price,
-      quantity: product.quantity,
-      status: product.status,
-      variants: product.variants || [],
-      updatedAt: product.updatedAt
+      id: updatedProduct.id || updatedProduct._id,
+      name: updatedProduct.name,
+      imageUrl: updatedProduct.imageUrl,
+      description: updatedProduct.description,
+      category: updatedProduct.category,
+      stock: updatedProduct.stock,
+      sku: updatedProduct.sku,
+      price: updatedProduct.price,
+      quantity: updatedProduct.quantity,
+      status: updatedProduct.status,
+      variants: updatedProduct.variants || [],
+      updatedAt: updatedProduct.updatedAt || new Date(),
     };
 
-    res.json({ 
-      success: true, 
+    console.log('✅ Product updated successfully in:', updatedInCollection);
+    res.json({
+      success: true,
       message: 'Product updated successfully',
-      data: transformedProduct 
+      data: transformedProduct,
     });
   } catch (error) {
-    console.error('❌ Error updating product in MongoDB:', error);
+    console.error('❌ Error updating product:', error);
     console.error('❌ Error stack:', error.stack);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Error updating product', 
-      error: error.message 
+    res.status(500).json({
+      success: false,
+      message: 'Error updating product',
+      error: error.message,
+    });
+  }
+});
+
+// DELETE /api/products/:id - Xóa sản phẩm khỏi MongoDB / collections liên quan
+router.delete('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { Types } = mongoose;
+    const filters = [];
+    const nId = Number(id);
+    if (!Number.isNaN(nId)) filters.push({ id: nId });
+    if (Types.ObjectId.isValid(id)) {
+      filters.push({ _id: new Types.ObjectId(id) });
+    }
+    filters.push({ id: String(id) });
+
+    const tryDelete = async (coll, collectionName) => {
+      for (const filter of filters) {
+        try {
+          const result = await coll.findOneAndDelete(filter);
+          const doc = result && (result.value || result);
+          if (doc) {
+            console.log(
+              `✅ Deleted product from ${collectionName} with filter`,
+              filter,
+            );
+            return doc;
+          }
+        } catch (err) {
+          console.log(`❌ Failed to delete in ${collectionName}:`, err.message);
+        }
+      }
+      return null;
+    };
+
+    let deletedProduct = null;
+    let deletedFrom = null;
+
+    // Try 1: 'products' database > productsList collection
+    try {
+      const productsDb = mongoose.connection.useDb('products', { useCache: true });
+      const coll = productsDb.collection('productsList');
+      const totalCount = await coll.countDocuments({});
+      if (totalCount > 0) {
+        const result = await tryDelete(coll, 'products.productsList');
+        if (result) {
+          deletedProduct = result;
+          deletedFrom = 'products.productsList';
+        }
+      }
+    } catch (err) {
+      console.log('❌ Failed to access products.productsList:', err.message);
+    }
+
+    // Try 2: Current DB > productsList collection
+    if (!deletedProduct) {
+      try {
+        const coll = mongoose.connection.db.collection('productsList');
+        const totalCount = await coll.countDocuments({});
+        if (totalCount > 0) {
+          const result = await tryDelete(coll, 'productsList');
+          if (result) {
+            deletedProduct = result;
+            deletedFrom = 'productsList';
+          }
+        }
+      } catch (err) {
+        console.log('❌ Failed to access productsList:', err.message);
+      }
+    }
+
+    // Fallback: default Product model collection
+    if (!deletedProduct) {
+      try {
+        const product = await Product.findOneAndDelete({ $or: filters });
+        if (product) {
+          deletedProduct = product.toObject ? product.toObject() : product;
+          deletedFrom = 'products (default)';
+        }
+      } catch (err) {
+        console.log(
+          '❌ Failed to delete in default Product collection:',
+          err.message,
+        );
+      }
+    }
+
+    if (!deletedProduct) {
+      return res.status(404).json({
+        success: false,
+        message: 'Product not found',
+      });
+    }
+
+    console.log('🗑️ Product deleted from:', deletedFrom);
+    return res.json({
+      success: true,
+      message: 'Product deleted successfully',
+      data: {
+        id: deletedProduct.id || deletedProduct._id,
+        name: deletedProduct.name,
+        sku: deletedProduct.sku,
+      },
+    });
+  } catch (error) {
+    console.error('❌ Error deleting product:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Error deleting product',
+      error: error.message,
     });
   }
 });
 
 module.exports = router;
-

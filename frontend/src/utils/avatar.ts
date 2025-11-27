@@ -33,3 +33,20 @@ export function getAvatarUrl(
   // The same identifier will always generate the same avatar
   return `https://i.pravatar.cc/${size}?u=${encodeURIComponent(identifier)}`;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

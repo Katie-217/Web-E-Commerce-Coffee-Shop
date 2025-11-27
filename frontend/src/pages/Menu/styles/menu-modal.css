@@ -454,3 +454,43 @@
     white-space: normal;
   }
 }
+/* ===== STOCK INFO ===== */
+.stock-info {
+  margin-top: 4px;
+  font-size: 13px;
+  color: #666;
+}
+
+.stock-info-out small {
+  color: #ff4d4f;           /* đỏ nổi bật */
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+/* ===== NÚT HẾT HÀNG ===== */
+.modal-actions .btn-buy:disabled,
+.modal-actions .btn-add:disabled,
+.modal-actions .btn-disabled {
+  background: #b8b8b8 !important;  /* xám */
+  color: #f5f5f5 !important;
+  cursor: not-allowed !important;
+  box-shadow: none;
+  transform: none;
+  border-color: transparent;
+  opacity: 0.85;
+}
+
+/* bỏ hover khi disabled */
+.modal-actions .btn-buy:disabled:hover,
+.modal-actions .btn-add:disabled:hover {
+  background: #b8b8b8;
+}
+
+/* Qty buttons khi disabled cũng xám luôn */
+.qty-actions button:disabled {
+  background: #eeeeee;
+  color: #aaaaaa;
+  border-color: #dddddd;
+  cursor: not-allowed;
+  box-shadow: none;
+}

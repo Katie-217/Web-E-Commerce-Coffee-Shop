@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { Schema } = mongoose;
 
 const addressSchema = new mongoose.Schema({
   label: String,
@@ -94,6 +95,62 @@ const customerSchema = new mongoose.Schema({
     enum: ['active', 'inactive', 'banned'],
     default: 'active'
   },
+  loyalty: {
+    totalEarned: {
+      type: Number,
+      default: 0,
+      min: 0,
+      comment: 'Total points earned throughout lifetime'
+    },
+    currentPoints: {
+      type: Number,
+      default: 0,
+      min: 0,
+      comment: 'Current available points'
+    },
+    tier: {
+      type: String,
+      enum: ['bronze', 'silver', 'gold', 'platinum'],
+      default: 'bronze'
+    },
+    lastAccrualAt: Date,
+    history: [{
+      orderId: {
+        type: String,
+        required: true
+      },
+      orderDate: {
+        type: Date,
+        required: true
+      },
+      type: {
+        type: String,
+        enum: ['earned', 'used'],
+        required: true
+      },
+      points: {
+        type: Number,
+        required: true
+      },
+      description: String,
+      createdAt: {
+        type: Date,
+        default: Date.now
+      }
+    }]
+  },
+  wishlist: [{
+    productId: {
+      type: Schema.Types.Mixed,
+      required: true,
+      comment: 'Product ID (can be number or string)'
+    },
+    dateAdded: {
+      type: Date,
+      default: Date.now,
+      required: true
+    }
+  }],
   createdAt: {
     type: Date,
     default: Date.now

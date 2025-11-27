@@ -1575,9 +1575,9 @@ const AdvancedAnalyticsSection: React.FC = () => {
               </div>
                 </div>
               )}
-              <div className="flex-1 border-l border-b border-gray-700 relative px-8 py-6">
+              <div className="flex-1 border-l border-b border-gray-700 relative px-10 py-6">
                 <div className="relative w-full" style={{ height: chartInnerHeight }}>
-            <div className="absolute left-0 top-0 bottom-0 -translate-x-full -ml-6 pr-6 flex flex-col justify-between text-xs text-text-secondary text-right">
+            <div className="absolute left-0 top-0 bottom-0 -translate-x-full -ml-5 pr-6 flex flex-col justify-between text-xs text-text-secondary text-right">
                     {yAxisLabels.map((value, idx) => (
                       <span key={idx}>
                         {shouldUseK
@@ -1586,7 +1586,7 @@ const AdvancedAnalyticsSection: React.FC = () => {
                       </span>
                     ))}
             </div>
-                  <div className="flex h-full justify-around items-end relative">
+                  <div className="flex h-full justify-between items-end relative gap-4">
                     {chartData.current.map((val, i) => {
                       const prevVal = chartData.previous?.[i];
                       const isHighlighted = val === Math.max(...chartData.current);
@@ -1594,7 +1594,7 @@ const AdvancedAnalyticsSection: React.FC = () => {
                       const previousHeightPx = prevVal ? Math.max((prevVal / maxValueK) * chartInnerHeight, 4) : 0;
                       
                       return (
-                        <div key={i} className="flex flex-col items-center w-full h-full justify-end relative group">
+                        <div key={i} className="flex flex-col items-center flex-1 h-full justify-end relative group min-w-[36px]">
                           <div className="flex items-end gap-1 w-full justify-center relative">
                             <div
                               className={`rounded-t-md transition-all duration-300 cursor-pointer relative ${
@@ -1642,16 +1642,16 @@ const AdvancedAnalyticsSection: React.FC = () => {
                 </div>
               </div>
               {chartData.labels.length > 0 && (
-                <div className="flex justify-around gap-4 px-4 mt-4">
+                <div className="flex justify-between gap-4 px-6 mt-4">
                   {chartData.labels.map((label, idx) => (
                     <span
                       key={`chart-label-${idx}`}
-                      className="text-xs text-text-secondary text-center w-full leading-tight break-words"
+                      className="text-xs text-text-secondary text-center flex-1 leading-tight break-words"
                     >
                       {label}
                     </span>
-            ))}
-          </div>
+                  ))}
+                </div>
               )}
       </div>
           )}

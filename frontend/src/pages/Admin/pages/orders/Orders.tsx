@@ -54,6 +54,8 @@ const adaptOrderDetail = (o: any): OrderDetailType => {
   // Get shippingFee directly from backend - handle both undefined and 0 values
   const shippingFee = (o.shippingFee !== undefined && o.shippingFee !== null) ? Number(o.shippingFee) : 0;
   const discount = o.discount != null ? Number(o.discount) : 0;
+  const pointsUsed = o.pointsUsed != null ? Number(o.pointsUsed) : 0;
+  const pointsEarned = o.pointsEarned != null ? Number(o.pointsEarned) : 0;
   const tax = o.tax != null ? Number(o.tax) : 0;
   // Use total directly from backend - don't recalculate
   const total = o.total != null ? Number(o.total) : (subtotal + shippingFee - discount + tax);
@@ -69,7 +71,7 @@ const adaptOrderDetail = (o: any): OrderDetailType => {
   } as any;
   return {
     id: String(o._id || o.id || ''),
-    displayCode: o.displayCode || null, // Random 4-character hex code for display
+    displayCode: (o.displayCode && typeof o.displayCode === 'string' && o.displayCode.trim().length > 0) ? String(o.displayCode).trim() : null, // 4-character alphanumeric code for display
     date: o.createdAt ? new Date(o.createdAt).toLocaleString() : '',
     paymentStatus,
     status: o.status ? (o.status[0].toUpperCase() + o.status.slice(1)) : 'Processing',
@@ -79,6 +81,8 @@ const adaptOrderDetail = (o: any): OrderDetailType => {
     discount,
     tax,
     total,
+    pointsUsed,
+    pointsEarned,
     shippingActivity: (() => {
       const provided = Array.isArray(o.shippingActivity) ? o.shippingActivity : [];
       if (provided.length > 0) {

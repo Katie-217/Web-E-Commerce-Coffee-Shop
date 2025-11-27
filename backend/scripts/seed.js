@@ -2,7 +2,7 @@ require('dotenv').config();
 const path = require('path');
 const fs = require('fs');
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs'); 
+const bcrypt = require('bcryptjs');
 
 // Mongoose models
 const Customer = require('../models/Customer');
@@ -10,7 +10,7 @@ const Product = require('../models/Product');
 const Order = require('../models/Order');
 const Review = require('../models/Review');
 
-// Thư mục chứa các file JSON
+// Thư mục chứa các file JSON (docs/)
 const DATA_DIR = path.join(__dirname, '..', 'docs');
 
 function readJSON(filename) {
@@ -22,19 +22,44 @@ function readJSON(filename) {
   return JSON.parse(raw);
 }
 
+// Random ngày sinh trong khoảng 1990 - 2005
+function randomDateOfBirth() {
+  const start = new Date(1990, 0, 1);  // 01/01/1990
+  const end = new Date(2005, 11, 31);  // 31/12/2005
+
+  const diff = end.getTime() - start.getTime();
+  const randomTime = start.getTime() + Math.random() * diff;
+
+  return new Date(randomTime); // Mongoose sẽ lưu kiểu Date
+}
+
 // Đảm bảo password đã hash, nếu chưa thì hash
 const ensureHashedCustomers = async (raw = []) => {
   const out = [];
   for (const u of raw) {
     const copy = { ...u };
 
+    // provider / name / avatar chuẩn hóa
     if (!copy.provider) copy.provider = 'local';
-    copy.avatar = copy.avatar || copy.avatarUrl || '/images/avatars/default.png';
+
+    copy.avatarUrl =
+      copy.avatarUrl || copy.avatar || '/images/avatars/default.png';
+
+    copy.fullName =
+      copy.fullName ||
+      copy.name ||
+      `${copy.firstName || ''} ${copy.lastName || ''}`.trim();
+
     copy.name = copy.name || copy.fullName;
-    copy.fullName = copy.fullName || copy.name;
+
+    // 🔹 Nếu chưa có dateOfBirth trong JSON thì random
+    if (!copy.dateOfBirth) {
+      copy.dateOfBirth = randomDateOfBirth();
+    }
 
     const pwd = String(copy.password || '');
     const isHashed = pwd.startsWith('$2'); // bcrypt prefix
+
     // nếu không có password thì dùng '123456', rồi hash luôn
     copy.password = isHashed ? pwd : await bcrypt.hash(pwd || '123456', 10);
 
@@ -42,6 +67,7 @@ const ensureHashedCustomers = async (raw = []) => {
   }
   return out;
 };
+
 
 // Đệ quy convert mọi object dạng { "$oid": "..." } → ObjectId
 // và { "$date": "..." } → Date
@@ -78,7 +104,9 @@ async function seed() {
   const mongoUri =
     process.env.MONGO_URI ||
     (process.env.MONGODB_URI && process.env.DATABASE_NAME
-      ? `${process.env.MONGODB_URI.replace(/\/$/, '')}/${process.env.DATABASE_NAME}`
+      ? `${process.env.MONGODB_URI.replace(/\/$/, '')}/${
+          process.env.DATABASE_NAME
+        }`
       : 'mongodb://127.0.0.1:27017/CoffeeDB');
 
   console.log('🔗 Connecting to MongoDB:', mongoUri);
@@ -91,8 +119,7 @@ async function seed() {
     const customersRaw = readJSON('customersList.json');
     const productsRaw = readJSON('productsList.json');
     const ordersRaw = readJSON('ordersList.json');
-    const reviewsRaw = readJSON('reviewsList.json'); 
-
+    const reviewsRaw = readJSON('reviewsList.json');
 
     let shippingRaw = [];
     try {
@@ -104,8 +131,36 @@ async function seed() {
     }
 
     // Convert $oid / $date
-    const customersMapped = customersRaw.map(mapMongoIds);
-    const customers = await ensureHashedCustomers(customersMapped); // 👈 DÙNG ensureHashedCustomers
+    // Convert $oid / $date + map loyalty.points => currentPoints/totalEarned
+const customersMapped = customersRaw.map((raw) => {
+  const mapped = mapMongoIds(raw);
+
+  if (mapped.loyalty && typeof mapped.loyalty === 'object') {
+    const pts = mapped.loyalty.points;
+    if (typeof pts === 'number') {
+      // đẩy vào đúng field schema
+      if (mapped.loyalty.currentPoints == null) {
+        mapped.loyalty.currentPoints = pts;
+      }
+      if (mapped.loyalty.totalEarned == null) {
+        mapped.loyalty.totalEarned = pts;
+      }
+      // optional: xoá field cũ để code về sau đỡ rối
+      delete mapped.loyalty.points;
+    }
+  }
+
+  // nếu sau này em thêm dateOfBirth vào JSON dưới dạng string
+  if (mapped.dateOfBirth && typeof mapped.dateOfBirth === 'string') {
+    mapped.dateOfBirth = new Date(mapped.dateOfBirth);
+  }
+
+  return mapped;
+});
+
+const customers = await ensureHashedCustomers(customersMapped);
+
+
     const products = productsRaw.map(mapMongoIds);
     const orders = ordersRaw.map(mapMongoIds);
     const reviews = reviewsRaw.map(mapMongoIds);
@@ -139,7 +194,6 @@ async function seed() {
 
     const insertedReviews = await Review.insertMany(reviews);
     console.log(`⭐ Inserted ${insertedReviews.length} reviews`);
-
 
     if (shipping.length) {
       const res = await mongoose.connection

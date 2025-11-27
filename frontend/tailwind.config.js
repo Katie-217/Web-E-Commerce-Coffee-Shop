@@ -17,10 +17,24 @@ module.exports = {
         'text-secondary': '#a1a1aa',
         'white': '#ffffff',
       },
+      fontFamily: {
+        sans: ['Inter', 'Segoe UI', 'Helvetica Neue', 'Arial', 'sans-serif'],
+        admin: ['Inter', 'Segoe UI', 'Helvetica Neue', 'Arial', 'sans-serif'],
+      },
     },
   },
   plugins: [],
 }
+
+
+
+
+
+
+
+
+
+
 
 
 

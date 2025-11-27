@@ -7,8 +7,132 @@ const Order = require('../models/Order');
 
 const router = express.Router();
 
+/**
+ * Helper: convert Mongoose doc or plain object về plain object
+ */
 function toPlain(doc) {
   return doc && doc.toObject ? doc.toObject() : doc;
+}
+
+/**
+ * Helper: tìm customer theo id/email và trả về cả vị trí lưu (db/collection/model)
+ */
+async function findCustomerWithLocation(id) {
+  let customer = null;
+  let location = null;
+
+  // Try 1: 'customers' database > 'customersList' collection
+  try {
+    const customersDb = mongoose.connection.useDb('customers', {
+      useCache: true,
+    });
+    const coll = customersDb.collection('customersList');
+    if (Types.ObjectId.isValid(id)) {
+      customer = await coll.findOne({ _id: new Types.ObjectId(id) });
+    }
+    if (!customer) {
+      customer = await coll.findOne({ email: id.toLowerCase() });
+    }
+    if (customer) {
+      location = {
+        type: 'database',
+        dbName: 'customers',
+        collection: 'customersList',
+        db: customersDb,
+        coll,
+      };
+      return { customer, location };
+    }
+  } catch (err) {
+    console.error('Error searching in customers database:', err);
+  }
+
+  // Try 2: Current database > 'customersList' collection
+  try {
+    const coll = mongoose.connection.db.collection('customersList');
+    if (Types.ObjectId.isValid(id)) {
+      customer = await coll.findOne({ _id: new Types.ObjectId(id) });
+    }
+    if (!customer) {
+      customer = await coll.findOne({ email: id.toLowerCase() });
+    }
+    if (customer) {
+      location = {
+        type: 'current',
+        dbName: mongoose.connection.db.databaseName,
+        collection: 'customersList',
+        db: mongoose.connection.db,
+        coll,
+      };
+      return { customer, location };
+    }
+  } catch (err) {
+    console.error('Error searching in current database customersList:', err);
+  }
+
+  // Try 3: Current database > 'customers.customersList' collection
+  try {
+    const coll = mongoose.connection.db.collection('customers.customersList');
+    if (Types.ObjectId.isValid(id)) {
+      customer = await coll.findOne({ _id: new Types.ObjectId(id) });
+    }
+    if (!customer) {
+      customer = await coll.findOne({ email: id.toLowerCase() });
+    }
+    if (customer) {
+      location = {
+        type: 'current',
+        dbName: mongoose.connection.db.databaseName,
+        collection: 'customers.customersList',
+        db: mongoose.connection.db,
+        coll,
+      };
+      return { customer, location };
+    }
+  } catch (err) {
+    console.error('Error searching in customers.customersList:', err);
+  }
+
+  // Try 4: Current database > 'customers' collection
+  try {
+    const coll = mongoose.connection.db.collection('customers');
+    if (Types.ObjectId.isValid(id)) {
+      customer = await coll.findOne({ _id: new Types.ObjectId(id) });
+    }
+    if (!customer) {
+      customer = await coll.findOne({ email: id.toLowerCase() });
+    }
+    if (customer) {
+      location = {
+        type: 'current',
+        dbName: mongoose.connection.db.databaseName,
+        collection: 'customers',
+        db: mongoose.connection.db,
+        coll,
+      };
+      return { customer, location };
+    }
+  } catch (err) {
+    console.error('Error searching in customers collection:', err);
+  }
+
+  // Fallback: Mongoose Customer model
+  try {
+    if (Types.ObjectId.isValid(id)) {
+      customer = await Customer.findById(id);
+    }
+    if (!customer) {
+      customer = await Customer.findOne({ email: id.toLowerCase() });
+    }
+    if (customer) {
+      location = { type: 'model', model: Customer };
+      return { customer, location };
+    }
+  } catch (err) {
+    console.error('Error searching in Customer model:', err);
+  }
+
+  return { customer: null, location: null };
 }
 
 // Diagnostics: quick connectivity check
@@ -25,14 +149,17 @@ router.get('/ping', async (req, res) => {
 /**
  * GET /api/customers
  * Query: q (text search), page, limit
- * Hợp nhất logic từ 2 file:
- *  - thử Customer model
- *  - rồi fallback qua các collection khác (customersList, customers.customersList, customers, useDb('customers').customersList)
+ * - Ưu tiên DB 'customers' > customersList
+ * - Rồi tới các collection khác trong DB hiện tại
+ * - Cuối cùng fallback qua Customer model
  */
 router.get('/', async (req, res) => {
   try {
     const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
-    const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 20, 1), 100);
+    const limit = Math.min(
+      Math.max(parseInt(req.query.limit, 10) || 20, 1),
+      100
+    );
     const skip = (page - 1) * limit;
 
     const { q } = req.query;
@@ -44,37 +171,73 @@ router.get('/', async (req, res) => {
         { firstName: { $regex: q, $options: 'i' } },
         { lastName: { $regex: q, $options: 'i' } },
         { email: { $regex: q, $options: 'i' } },
-        { phone: { $regex: q, $options: 'i' } }
+        { phone: { $regex: q, $options: 'i' } },
       ];
     }
 
     let items = [];
     let total = 0;
 
-    // Try 1: Customer model (collection mặc định)
+    // Try 1: 'customers' database > 'customersList' collection
     try {
-      [items, total] = await Promise.all([
-        Customer.find(filters).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
-        Customer.countDocuments(filters)
-      ]);
+      const customersDb = mongoose.connection.useDb('customers', {
+        useCache: true,
+      });
+      const coll = customersDb.collection('customersList');
+      const totalCount = await coll.countDocuments({});
+      if (totalCount > 0) {
+        [items, total] = await Promise.all([
+          coll
+            .find(filters)
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit)
+            .toArray(),
+          coll.countDocuments(filters),
+        ]);
+
+        // Nếu filter không ra nhưng collection có data thì trả full list
+        if (total === 0 && totalCount > 0) {
+          [items, total] = await Promise.all([
+            coll
+              .find({})
+              .sort({ createdAt: -1 })
+              .skip(skip)
+              .limit(limit)
+              .toArray(),
+            coll.countDocuments({}),
+          ]);
+        }
+      }
     } catch (err) {
-      console.log('[customers] model error:', err.message);
+      console.log("[customers] useDb('customers').customersList error:", err.message);
     }
 
-    // Try 2: current DB > customersList
+    // Try 2: current DB > 'customersList'
     if (total === 0) {
       try {
-        const coll0 = mongoose.connection.db.collection('customersList');
-        const totalCount = await coll0.countDocuments({});
+        const coll = mongoose.connection.db.collection('customersList');
+        const totalCount = await coll.countDocuments({});
         if (totalCount > 0) {
           [items, total] = await Promise.all([
-            coll0.find(filters).sort({ createdAt: -1 }).skip(skip).limit(limit).toArray(),
-            coll0.countDocuments(filters)
+            coll
+              .find(filters)
+              .sort({ createdAt: -1 })
+              .skip(skip)
+              .limit(limit)
+              .toArray(),
+            coll.countDocuments(filters),
           ]);
+
           if (total === 0 && totalCount > 0) {
             [items, total] = await Promise.all([
-              coll0.find({}).sort({ createdAt: -1 }).skip(skip).limit(limit).toArray(),
-              coll0.countDocuments({})
+              coll
+                .find({})
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit)
+                .toArray(),
+              coll.countDocuments({}),
             ]);
           }
         }
@@ -86,39 +249,66 @@ router.get('/', async (req, res) => {
     // Try 3: current DB > 'customers.customersList'
     if (total === 0) {
       try {
-        const coll1 = mongoose.connection.db.collection('customers.customersList');
-        const totalCount = await coll1.countDocuments({});
+        const coll = mongoose.connection.db.collection(
+          'customers.customersList'
+        );
+        const totalCount = await coll.countDocuments({});
         if (totalCount > 0) {
           [items, total] = await Promise.all([
-            coll1.find(filters).sort({ createdAt: -1 }).skip(skip).limit(limit).toArray(),
-            coll1.countDocuments(filters)
+            coll
+              .find(filters)
+              .sort({ createdAt: -1 })
+              .skip(skip)
+              .limit(limit)
+              .toArray(),
+            coll.countDocuments(filters),
           ]);
+
           if (total === 0 && totalCount > 0) {
             [items, total] = await Promise.all([
-              coll1.find({}).sort({ createdAt: -1 }).skip(skip).limit(limit).toArray(),
-              coll1.countDocuments({})
+              coll
+                .find({})
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit)
+                .toArray(),
+              coll.countDocuments({}),
             ]);
           }
         }
       } catch (err) {
-        console.log('[customers] fallback customers.customersList error:', err.message);
+        console.log(
+          '[customers] fallback customers.customersList error:',
+          err.message
+        );
       }
     }
 
     // Try 4: current DB > 'customers' collection
     if (total === 0) {
       try {
-        const coll2 = mongoose.connection.db.collection('customers');
-        const totalCount = await coll2.countDocuments({});
+        const coll = mongoose.connection.db.collection('customers');
+        const totalCount = await coll.countDocuments({});
         if (totalCount > 0) {
           [items, total] = await Promise.all([
-            coll2.find(filters).sort({ createdAt: -1 }).skip(skip).limit(limit).toArray(),
-            coll2.countDocuments(filters)
+            coll
+              .find(filters)
+              .sort({ createdAt: -1 })
+              .skip(skip)
+              .limit(limit)
+              .toArray(),
+            coll.countDocuments(filters),
           ]);
+
           if (total === 0 && totalCount > 0) {
             [items, total] = await Promise.all([
-              coll2.find({}).sort({ createdAt: -1 }).skip(skip).limit(limit).toArray(),
-              coll2.countDocuments({})
+              coll
+                .find({})
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit)
+                .toArray(),
+              coll.countDocuments({}),
             ]);
           }
         }
@@ -127,59 +317,80 @@ router.get('/', async (req, res) => {
       }
     }
 
-    // Try 5: useDb('customers') > customersList
+    // Fallback cuối: Customer model
     if (total === 0) {
       try {
-        const customersDb = mongoose.connection.useDb('customers', { useCache: true });
-        const coll3 = customersDb.collection('customersList');
-        const totalCount = await coll3.countDocuments({});
-        if (totalCount > 0) {
-          [items, total] = await Promise.all([
-            coll3.find(filters).sort({ createdAt: -1 }).skip(skip).limit(limit).toArray(),
-            coll3.countDocuments(filters)
-          ]);
-          if (total === 0 && totalCount > 0) {
-            [items, total] = await Promise.all([
-              coll3.find({}).sort({ createdAt: -1 }).skip(skip).limit(limit).toArray(),
-              coll3.countDocuments({})
-            ]);
-          }
-        }
+        [items, total] = await Promise.all([
+          Customer.find(filters)
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit)
+            .lean(),
+          Customer.countDocuments(filters),
+        ]);
       } catch (err) {
-        console.log("[customers] fallback useDb('customers').customersList error:", err.message);
+        console.log('[customers] model error:', err.message);
       }
     }
 
-    const transformed = items.map((c) => {
-      const plain = toPlain(c);
+        const transformed = items.map((item) => {
+      const c = toPlain(item); // để xử lý cả doc Mongoose và plain object
+
       return {
-        _id: plain._id ? String(plain._id) : undefined,
-        id: String(plain._id || plain.id),
+        _id: c._id ? String(c._id) : undefined,
+        id: String(c._id || c.id),
         fullName:
-          plain.fullName ||
-          [plain.firstName, plain.lastName].filter(Boolean).join(' '),
-        email: plain.email,
-        avatarUrl: plain.avatarUrl,
-        status: plain.status || 'active',
+          c.fullName ||
+          [c.firstName, c.lastName].filter(Boolean).join(' '),
+        firstName: c.firstName,
+        lastName: c.lastName,
+        email: c.email,
+        avatarUrl: c.avatarUrl,
+        status: c.status || 'active',
+        phone: c.phone,
+        gender: c.gender || 'other',
+        // 👇 ngày sinh cho FE, nếu chưa có thì null
+        dateOfBirth: c.dateOfBirth || null,
         country:
-          plain.country ||
-          plain.addresses?.[0]?.country ||
-          plain.address?.country ||
-          plain.billingAddress?.country ||
-          plain.shippingAddress?.country,
-        addresses: plain.addresses || [],
-        address: plain.address,
-        billingAddress: plain.billingAddress,
-        shippingAddress: plain.shippingAddress,
-        createdAt: plain.createdAt || null,
-        joinedAt: plain.joinedAt || plain.createdAt || null,
+          c.country ||
+          c.addresses?.[0]?.country ||
+          c.address?.country ||
+          c.billingAddress?.country ||
+          c.shippingAddress?.country,
+        addresses: c.addresses || [],
+        address: c.address,
+        billingAddress: c.billingAddress,
+        shippingAddress: c.shippingAddress,
+        loyalty: c.loyalty,
+        wishlist: c.wishlist || [],
+        consents: c.consents,
+        preferences: c.preferences,
+        createdAt: c.createdAt || null,
+        updatedAt: c.updatedAt || null,
+        lastLoginAt: c.lastLoginAt || null,
+        tags: c.tags || [],
+        notes: c.notes || '',
       };
     });
 
     res.json({
       success: true,
       data: transformed,
-      items: transformed,
+      items: transformed, // FE đang dùng items, data để backward compat cũng là array
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
+
+
+
+    res.json({
+      success: true,
+      data: transformed,
+      items: transformed, // backward compat
       pagination: {
         page,
         limit,
@@ -200,88 +411,13 @@ router.get('/', async (req, res) => {
 /**
  * GET /api/customers/:id
  * - Hỗ trợ tìm theo ObjectId hoặc email
- * - Dùng logic fallback đầy đủ + trả về nhiều field (phone, addresses, loyalty,...)
+ * - Dùng helper findCustomerWithLocation + trả về nhiều field
  */
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
-    let customer = null;
-
-    // Try 1: useDb('customers').customersList
-    try {
-      const customersDb = mongoose.connection.useDb('customers', {
-        useCache: true,
-      });
-      const coll = customersDb.collection('customersList');
-      if (Types.ObjectId.isValid(id)) {
-        customer = await coll.findOne({ _id: new Types.ObjectId(id) });
-      }
-      if (!customer) {
-        customer = await coll.findOne({ email: id.toLowerCase() });
-      }
-    } catch (err) {
-      console.log("[customers/:id] useDb('customers').customersList error:", err.message);
-    }
-
-    // Try 2: current DB > 'customersList'
-    if (!customer) {
-      try {
-        const coll = mongoose.connection.db.collection('customersList');
-        if (Types.ObjectId.isValid(id)) {
-          customer = await coll.findOne({ _id: new Types.ObjectId(id) });
-        }
-        if (!customer) {
-          customer = await coll.findOne({ email: id.toLowerCase() });
-        }
-      } catch (err) {
-        console.log("[customers/:id] customersList error:", err.message);
-      }
-    }
-
-    // Try 3: current DB > 'customers.customersList'
-    if (!customer) {
-      try {
-        const coll = mongoose.connection.db.collection('customers.customersList');
-        if (Types.ObjectId.isValid(id)) {
-          customer = await coll.findOne({ _id: new Types.ObjectId(id) });
-        }
-        if (!customer) {
-          customer = await coll.findOne({ email: id.toLowerCase() });
-        }
-      } catch (err) {
-        console.log("[customers/:id] customers.customersList error:", err.message);
-      }
-    }
-
-    // Try 4: current DB > 'customers'
-    if (!customer) {
-      try {
-        const coll = mongoose.connection.db.collection('customers');
-        if (Types.ObjectId.isValid(id)) {
-          customer = await coll.findOne({ _id: new Types.ObjectId(id) });
-        }
-        if (!customer) {
-          customer = await coll.findOne({ email: id.toLowerCase() });
-        }
-      } catch (err) {
-        console.log("[customers/:id] customers error:", err.message);
-      }
-    }
-
-    // Fallback: Customer model
-    if (!customer) {
-      try {
-        if (Types.ObjectId.isValid(id)) {
-          customer = await Customer.findById(id);
-        }
-        if (!customer) {
-          customer = await Customer.findOne({ email: id.toLowerCase() });
-        }
-      } catch (err) {
-        console.log('[customers/:id] model error:', err.message);
-      }
-    }
+    const { customer } = await findCustomerWithLocation(id);
 
     if (!customer) {
       return res
@@ -296,10 +432,13 @@ router.get('/:id', async (req, res) => {
       fullName:
         c.fullName ||
         [c.firstName, c.lastName].filter(Boolean).join(' '),
+      firstName: c.firstName,
+      lastName: c.lastName,
       email: c.email,
       avatarUrl: c.avatarUrl,
       status: c.status || 'active',
       phone: c.phone,
+      gender: c.gender || 'other',
       country:
         c.country ||
         c.addresses?.[0]?.country ||
@@ -311,6 +450,7 @@ router.get('/:id', async (req, res) => {
       billingAddress: c.billingAddress,
       shippingAddress: c.shippingAddress,
       loyalty: c.loyalty,
+      wishlist: c.wishlist || [],
       consents: c.consents,
       preferences: c.preferences,
       createdAt: c.createdAt || null,
@@ -332,7 +472,7 @@ router.get('/:id', async (req, res) => {
 
 /**
  * GET /api/customers/:id/orders
- * - ghép logic nhiều DB/collection cho orders
+ * - Lấy orders theo customerId/email, ghép nhiều DB/collection
  */
 router.get('/:id/orders', async (req, res) => {
   try {
@@ -350,11 +490,11 @@ router.get('/:id/orders', async (req, res) => {
     if (id.includes('@')) {
       customerEmail = id.toLowerCase();
     } else if (Types.ObjectId.isValid(id)) {
+      // Thử lấy customer từ nhiều nơi như detail endpoint
       try {
         const objId = new Types.ObjectId(id);
-
-        // giống logic detail: thử nhiều nơi để lấy customer
         let c = null;
+
         try {
           const customersDb = mongoose.connection.useDb('customers', {
             useCache: true,
@@ -398,7 +538,7 @@ router.get('/:id/orders', async (req, res) => {
       } catch {}
     }
 
-    // Build filters
+    // Build filters - search by cả customerId và customerEmail
     const filters = [];
     if (Types.ObjectId.isValid(id)) {
       filters.push({ customerId: new Types.ObjectId(id) });
@@ -428,10 +568,12 @@ router.get('/:id/orders', async (req, res) => {
       console.log('[customers/:id/orders] model Order error:', err.message);
     }
 
-    // Try 2: useDb('orders').ordersList
+    // Try 2: 'orders' database > 'ordersList' collection
     if (total === 0) {
       try {
-        const ordersDb = mongoose.connection.useDb('orders', { useCache: true });
+        const ordersDb = mongoose.connection.useDb('orders', {
+          useCache: true,
+        });
         const coll = ordersDb.collection('ordersList');
         const fbItems = await coll
           .find({ $or: filters })
@@ -445,11 +587,14 @@ router.get('/:id/orders', async (req, res) => {
           total = fbTotal;
         }
       } catch (err) {
-        console.log("[customers/:id/orders] useDb('orders').ordersList error:", err.message);
+        console.log(
+          "[customers/:id/orders] useDb('orders').ordersList error:",
+          err.message
+        );
       }
     }
 
-    // Try 3: current DB > ordersList
+    // Try 3: current DB > 'ordersList' collection
     if (total === 0) {
       try {
         const coll = mongoose.connection.db.collection('ordersList');
@@ -469,7 +614,7 @@ router.get('/:id/orders', async (req, res) => {
       }
     }
 
-    // Try 4: current DB > orders.ordersList
+    // Try 4: current DB > 'orders.ordersList' collection
     if (total === 0) {
       try {
         const coll = mongoose.connection.db.collection('orders.ordersList');
@@ -485,11 +630,14 @@ router.get('/:id/orders', async (req, res) => {
           total = fbTotal;
         }
       } catch (err) {
-        console.log('[customers/:id/orders] orders.ordersList error:', err.message);
+        console.log(
+          '[customers/:id/orders] orders.ordersList error:',
+          err.message
+        );
       }
     }
 
-    // Try 5: current DB > orders
+    // Try 5: current DB > 'orders' collection
     if (total === 0) {
       try {
         const coll = mongoose.connection.db.collection('orders');
@@ -514,6 +662,12 @@ router.get('/:id/orders', async (req, res) => {
       return {
         _id: plain._id ? String(plain._id) : undefined,
         id: String(plain._id || plain.id || ''),
+        displayCode:
+          plain.displayCode &&
+          typeof plain.displayCode === 'string' &&
+          plain.displayCode.trim().length > 0
+            ? String(plain.displayCode).trim()
+            : null, // 4-char code để show
         customerId: plain.customerId ? String(plain.customerId) : undefined,
         customerEmail: plain.customerEmail,
         customerName: plain.customerName,
@@ -553,7 +707,9 @@ router.get('/:id/orders', async (req, res) => {
 
 /**
  * POST /api/customers
- * - Tạo customer mới (lấy logic tạo từ file thứ 2)
+ * - Tạo customer mới
+ * - Check trùng email bằng findCustomerWithLocation
+ * - Ưu tiên lưu vào DB 'customers' > customersList, sau đó current DB, cuối cùng Customer model
  */
 router.post('/', async (req, res) => {
   try {
@@ -571,6 +727,7 @@ router.post('/', async (req, res) => {
       status,
     } = req.body;
 
+    // Validate required fields
     if (!firstName || !lastName || !email) {
       return res.status(400).json({
         success: false,
@@ -578,8 +735,19 @@ router.post('/', async (req, res) => {
       });
     }
 
+    // Prevent duplicates (mọi nơi)
+    const existingCustomer = await findCustomerWithLocation(email);
+    if (existingCustomer.customer) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email already exists',
+      });
+    }
+
+    // Generate fullName if not provided
     const customerFullName = fullName || `${firstName} ${lastName}`.trim();
 
+    // Prepare customer data
     const customerData = {
       firstName: firstName.trim(),
       lastName: lastName.trim(),
@@ -594,48 +762,57 @@ router.post('/', async (req, res) => {
       status: status || 'active',
     };
 
+    // Helper to format duplicate email response
+    const duplicateResponse = () => ({
+      success: false,
+      message: 'Email already exists',
+    });
+
     let customer = null;
 
-    // Try 1: Customer model
+    // Try 1: save vào 'customers' DB > customersList
     try {
-      customer = new Customer(customerData);
-      await customer.save();
-    } catch (err) {
-      if (err.code === 11000 || err.message?.includes('duplicate')) {
-        return res.status(400).json({
-          success: false,
-          message: 'Email already exists',
-        });
+      const customersDb = mongoose.connection.useDb('customers', {
+        useCache: true,
+      });
+      const coll = customersDb.collection('customersList');
+      const now = new Date();
+      const result = await coll.insertOne({
+        ...customerData,
+        createdAt: now,
+        updatedAt: now,
+      });
+      customer = { _id: result.insertedId, ...customerData, createdAt: now, updatedAt: now };
+    } catch (errPrimary) {
+      if (errPrimary.code === 11000 || errPrimary.message?.includes('duplicate')) {
+        return res.status(400).json(duplicateResponse());
       }
 
-      // Try 2: useDb('customers').customersList
+      // Try 2: current DB > customersList
       try {
-        const customersDb = mongoose.connection.useDb('customers', {
-          useCache: true,
-        });
-        const coll = customersDb.collection('customersList');
+        const coll = mongoose.connection.db.collection('customersList');
+        const now = new Date();
         const result = await coll.insertOne({
           ...customerData,
-          createdAt: new Date(),
-          updatedAt: new Date(),
+          createdAt: now,
+          updatedAt: now,
         });
-        customer = { _id: result.insertedId, ...customerData };
-      } catch (err2) {
-        if (err2.code === 11000 || err2.message?.includes('duplicate')) {
-          return res.status(400).json({
-            success: false,
-            message: 'Email already exists',
-          });
+        customer = { _id: result.insertedId, ...customerData, createdAt: now, updatedAt: now };
+      } catch (errSecondary) {
+        if (errSecondary.code === 11000 || errSecondary.message?.includes('duplicate')) {
+          return res.status(400).json(duplicateResponse());
         }
 
-        // Try 3: current DB > customersList
-        const coll = mongoose.connection.db.collection('customersList');
-        const result = await coll.insertOne({
-          ...customerData,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        });
-        customer = { _id: result.insertedId, ...customerData };
+        // Try 3: fallback Customer model
+        try {
+          customer = new Customer(customerData);
+          await customer.save();
+        } catch (modelErr) {
+          if (modelErr.code === 11000 || modelErr.message?.includes('duplicate')) {
+            return res.status(400).json(duplicateResponse());
+          }
+          throw modelErr;
+        }
       }
     }
 
@@ -671,120 +848,116 @@ router.post('/', async (req, res) => {
 
 /**
  * PATCH /api/customers/:id
- * - Update customer (từ file thứ 2)
+ * - Update customer
+ * - Quan trọng: chỉ update nơi document đang tồn tại (theo findCustomerWithLocation)
  */
 router.patch('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const updateData = { ...req.body };
 
+    // Remove _id từ body nếu có
     delete updateData._id;
     delete updateData.id;
 
+    // Add updatedAt
     updateData.updatedAt = new Date();
 
-    let updated = false;
-    let updatedCustomer = null;
+    // Find customer + location trước
+    const { customer: existingCustomer, location } =
+      await findCustomerWithLocation(id);
 
-    // Try 1: useDb('customers').customersList
-    try {
-      const customersDb = mongoose.connection.useDb('customers', {
-        useCache: true,
-      });
-      const coll = customersDb.collection('customersList');
-      if (Types.ObjectId.isValid(id)) {
-        const result = await coll.findOneAndUpdate(
-          { _id: new Types.ObjectId(id) },
-          { $set: updateData },
-          { returnDocument: 'after' }
-        );
-        if (result && result.value) {
-          updated = true;
-          updatedCustomer = result.value;
-        }
-      }
-      if (!updated) {
-        const result = await coll.findOneAndUpdate(
-          { email: id.toLowerCase() },
-          { $set: updateData },
-          { returnDocument: 'after' }
-        );
-        if (result && result.value) {
-          updated = true;
-          updatedCustomer = result.value;
-        }
-      }
-    } catch (err) {
-      console.error("Error updating in 'customers' database:", err.message);
-    }
-
-    // Try 2: current DB > customersList
-    if (!updated) {
-      try {
-        const coll = mongoose.connection.db.collection('customersList');
-        if (Types.ObjectId.isValid(id)) {
-          const result = await coll.findOneAndUpdate(
-            { _id: new Types.ObjectId(id) },
-            { $set: updateData },
-            { returnDocument: 'after' }
-          );
-          if (result && result.value) {
-            updated = true;
-            updatedCustomer = result.value;
-          }
-        }
-        if (!updated) {
-          const result = await coll.findOneAndUpdate(
-            { email: id.toLowerCase() },
-            { $set: updateData },
-            { returnDocument: 'after' }
-          );
-          if (result && result.value) {
-            updated = true;
-            updatedCustomer = result.value;
-          }
-        }
-      } catch (err) {
-        console.error(
-          'Error updating in current database customersList:',
-          err.message
-        );
-      }
-    }
-
-    // Try 3: Customer model
-    if (!updated) {
-      try {
-        if (Types.ObjectId.isValid(id)) {
-          updatedCustomer = await Customer.findByIdAndUpdate(
-            id,
-            { $set: updateData },
-            { new: true }
-          );
-          if (updatedCustomer) {
-            updated = true;
-          }
-        }
-        if (!updated) {
-          updatedCustomer = await Customer.findOneAndUpdate(
-            { email: id.toLowerCase() },
-            { $set: updateData },
-            { new: true }
-          );
-          if (updatedCustomer) {
-            updated = true;
-          }
-        }
-      } catch (err) {
-        console.error('Error updating in default Customer model:', err.message);
-      }
-    }
-
-    if (!updated || !updatedCustomer) {
+    if (!existingCustomer || !location) {
+      console.error('❌ Customer not found with id:', id);
       return res.status(404).json({
         success: false,
         message: `Customer not found with id: ${id}`,
       });
+    }
+
+    let updated = false;
+    let updatedCustomer = null;
+
+    // Update đúng nơi tìm được
+    try {
+      if (location.type === 'database' || location.type === 'current') {
+        const coll = location.coll;
+        const query = Types.ObjectId.isValid(id)
+          ? { _id: new Types.ObjectId(id) }
+          : { email: id.toLowerCase() };
+
+        const updateResult = await coll.updateOne(query, { $set: updateData });
+
+        if (updateResult.matchedCount > 0 && updateResult.acknowledged) {
+          // Chờ 1 chút cho chắc đã commit
+          await new Promise((resolve) => setTimeout(resolve, 100));
+
+          // Fetch lại document đã update
+          const result = await coll.findOne(query);
+          if (result) {
+            updated = true;
+            updatedCustomer = result;
+          } else {
+            console.error(
+              '❌ VERIFICATION FAILED: Document not found after update'
+            );
+          }
+        } else {
+          console.error(
+            '❌ Update failed: matchedCount:',
+            updateResult.matchedCount,
+            'acknowledged:',
+            updateResult.acknowledged
+          );
+        }
+      } else if (location.type === 'model') {
+        const query = Types.ObjectId.isValid(id)
+          ? { _id: id }
+          : { email: id.toLowerCase() };
+
+        updatedCustomer = await Customer.findOneAndUpdate(
+          query,
+          { $set: updateData },
+          { new: true }
+        );
+
+        if (updatedCustomer) {
+          updated = true;
+        }
+      }
+    } catch (err) {
+      console.error('❌ Error updating customer:', err);
+      throw err;
+    }
+
+    if (!updated || !updatedCustomer) {
+      console.error('❌ Failed to update customer');
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to update customer',
+      });
+    }
+
+    // Optional: verify lại trong DB cùng location
+    const verifyQuery = Types.ObjectId.isValid(id)
+      ? { _id: new Types.ObjectId(id) }
+      : { email: id.toLowerCase() };
+
+    if (location.type === 'database' || location.type === 'current') {
+      const verifyColl = location.coll;
+      const verifyDoc = await verifyColl.findOne(verifyQuery);
+      if (!verifyDoc) {
+        console.error(
+          '❌ VERIFICATION FAILED: Document not found after update'
+        );
+      }
+    } else if (location.type === 'model') {
+      const verifyDoc = await Customer.findOne(verifyQuery);
+      if (!verifyDoc) {
+        console.error(
+          '❌ VERIFICATION FAILED: Document not found in Customer model'
+        );
+      }
     }
 
     const c = toPlain(updatedCustomer);
@@ -827,6 +1000,56 @@ router.patch('/:id', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to update customer',
+      error: err.message,
+    });
+  }
+});
+
+/**
+ * DELETE /api/customers/:id
+ * - Xoá customer ở đúng nơi nó đang nằm (db/collection/model)
+ */
+router.delete('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { customer, location } = await findCustomerWithLocation(id);
+
+    if (!customer || !location) {
+      return res.status(404).json({
+        success: false,
+        message: `Customer not found with id: ${id}`,
+      });
+    }
+
+    const query = Types.ObjectId.isValid(id)
+      ? { _id: new Types.ObjectId(id) }
+      : { email: id.toLowerCase() };
+
+    let deleted = false;
+
+    if (location.type === 'database' || location.type === 'current') {
+      const result = await location.coll.deleteOne(query);
+      deleted = result.deletedCount > 0;
+    } else if (location.type === 'model') {
+      const result = await Customer.deleteOne(query);
+      deleted = result.deletedCount > 0;
+    }
+
+    if (!deleted) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to delete customer',
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Customer deleted successfully',
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete customer',
       error: err.message,
     });
   }

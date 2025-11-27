@@ -1,18 +1,43 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { fetchOrders } from '../../../../api/orders';
 import { fetchCustomerById } from '../../../../api/customers';
 import { OrderStatus } from '../../types';
 import Badge from '../../components/Badge';
-import { MoreVertical, Calendar, CheckCircle, Wallet, AlertCircle, ChevronDown, FileDown, FileSpreadsheet, FileText, CreditCard, Banknote, Smartphone, Building2 } from 'lucide-react';
+import { Calendar, CheckCircle, Wallet, AlertCircle, CreditCard, Banknote, Smartphone, Building2 } from 'lucide-react';
 import { formatVND } from '../../../../utils/currency';
 import { getAvatarUrl } from '../../../../utils/avatar';
 import { getOrderStatusColor, getPaymentStatusColor } from '../../../../utils/statusColors';
+import { getOrderDisplayCode, getOrderDisplayCodeRaw } from '../../../../utils/orderDisplayCode';
+import ExportDropdown from '../../../../components/ExportDropdown';
+import { exportRows, ExportColumn, ExportFormat } from '../../../../utils/exportUtils';
 
 interface OrderListProps {
   onOrderClick: (orderId: string, orderData?: any) => void;
 }
 
 const ITEMS_PER_PAGE = 10;
+
+type OrderExportRow = {
+  orderCode: string;
+  date: string;
+  customer: string;
+  email: string;
+  status: string;
+  paymentStatus: string;
+  paymentMethod: string;
+  total: string;
+};
+
+const ORDER_EXPORT_COLUMNS: ExportColumn<OrderExportRow>[] = [
+  { key: 'orderCode', label: 'Order' },
+  { key: 'date', label: 'Date' },
+  { key: 'customer', label: 'Customer' },
+  { key: 'email', label: 'Email' },
+  { key: 'status', label: 'Status' },
+  { key: 'paymentStatus', label: 'Payment Status' },
+  { key: 'paymentMethod', label: 'Payment Method' },
+  { key: 'total', label: 'Total' },
+];
 
 const OrderList: React.FC<OrderListProps> = ({ onOrderClick }) => {
   const [rows, setRows] = useState<any[]>([]);
@@ -23,8 +48,6 @@ const OrderList: React.FC<OrderListProps> = ({ onOrderClick }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [itemsPerPage, setItemsPerPage] = useState(ITEMS_PER_PAGE);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [showExport, setShowExport] = useState(false);
-  const exportRef = useRef<HTMLDivElement>(null);
   const [customerMap, setCustomerMap] = useState<Record<string, { email?: string; _id?: string; id?: string; avatarUrl?: string }>>({});
   const [stats, setStats] = useState({ pendingCount: 0, completedCount: 0, refundedCount: 0, failedCount: 0 });
 
@@ -119,26 +142,8 @@ const OrderList: React.FC<OrderListProps> = ({ onOrderClick }) => {
     return 'COD';
   };
 
-  const getDisplayCode = (order: any) => {
-    // Use displayCode from backend (random 4-character hex: a-f, 0-9)
-    // displayCode should always be present after running the migration script
-    if (order?.displayCode) {
-      return `#${order.displayCode}`;
-    }
-    // Fallback: if displayCode is missing, show placeholder
-    // This should not happen after migration, but handle gracefully
-    return '#----';
-  };
-
-  useEffect(() => {
-    const onDocClick = (e: MouseEvent) => {
-      if (exportRef.current && !exportRef.current.contains(e.target as Node)) {
-        setShowExport(false);
-      }
-    };
-    document.addEventListener('click', onDocClick);
-    return () => document.removeEventListener('click', onDocClick);
-  }, []);
+  // Import shared utility for order display code
+  const getDisplayCode = (order: any) => getOrderDisplayCode(order);
 
   useEffect(() => {
     let cancelled = false;
@@ -294,6 +299,23 @@ const OrderList: React.FC<OrderListProps> = ({ onOrderClick }) => {
     return 'Pending';
   };
 
+  const formatOrderStatusText = (status?: string) => {
+    const value = status || 'Processing';
+    return value
+      .split(' ')
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  };
+
+  const formatOrderDate = (date?: string) => {
+    if (!date) return '';
+    try {
+      return new Date(date).toLocaleString();
+    } catch {
+      return '';
+    }
+  };
+
   // Use rows directly from API (server-side pagination and filtering)
   const totalPages = Math.ceil(total / itemsPerPage);
   const paginatedRows = rows;
@@ -319,6 +341,32 @@ const OrderList: React.FC<OrderListProps> = ({ onOrderClick }) => {
         ? prev.filter((id) => id !== orderId)
         : [...prev, orderId]
     );
+  };
+
+  const buildOrderExportRows = (): OrderExportRow[] => {
+    if (!selectedIds.length) return [];
+    const selectedSet = new Set(selectedIds);
+    return rows
+      .filter((order) => selectedSet.has(String(order.id || order._id)))
+      .map((order) => ({
+        orderCode: getDisplayCode(order),
+        date: formatOrderDate(order.createdAt),
+        customer: order.customerName || order.customerEmail?.split('@')[0]?.replace(/\./g, ' ') || 'Customer',
+        email: order.customerEmail || '',
+        status: formatOrderStatusText(order.status),
+        paymentStatus: paymentStatusFrom(order.paymentStatus || order.status),
+        paymentMethod: getPaymentMethodLabel(order.paymentMethod),
+        total: formatVND(Number(order.total) || 0),
+      }));
+  };
+
+  const handleExport = (format: ExportFormat) => {
+    const exportRowsData = buildOrderExportRows();
+    if (!exportRowsData.length) {
+      alert('Please select at least one order to export.');
+      return;
+    }
+    exportRows(exportRowsData, ORDER_EXPORT_COLUMNS, format, 'orders');
   };
 
   const displayStartIndex = total > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0;
@@ -392,24 +440,7 @@ const OrderList: React.FC<OrderListProps> = ({ onOrderClick }) => {
             className="bg-background-dark border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary text-text-primary w-full md:w-auto"
           />
           <div className="flex items-center gap-3">
-            <div className="relative" ref={exportRef}>
-              <button 
-                type="button" 
-                disabled={noneChecked} 
-                onClick={() => !noneChecked && setShowExport(v => !v)}
-                className={`px-4 py-2 rounded-lg flex items-center gap-2 transition font-semibold ${noneChecked ? 'bg-background-light border border-gray-700 text-text-secondary opacity-50 cursor-not-allowed' : 'bg-primary text-white border border-primary hover:bg-primary/90 cursor-pointer shadow-md'}`}
-              >
-                <span>Export</span>
-                <ChevronDown size={16} />
-              </button>
-              {showExport && !noneChecked && (
-                <div className="absolute right-0 mt-2 w-44 bg-background-light border border-gray-700 rounded-lg shadow-xl z-10 p-2">
-                  <button className="w-full flex items-center gap-2 px-3 py-2 rounded-md hover:bg-background-dark text-text-primary"><FileDown size={16}/> Csv</button>
-                  <button className="w-full flex items-center gap-2 px-3 py-2 rounded-md hover:bg-background-dark text-text-primary"><FileSpreadsheet size={16}/> Excel</button>
-                  <button className="w-full flex items-center gap-2 px-3 py-2 rounded-md hover:bg-background-dark text-text-primary"><FileText size={16}/> Pdf</button>
-                </div>
-              )}
-            </div>
+            <ExportDropdown disabled={noneChecked} onExport={handleExport} />
           </div>
         </div>
 
@@ -514,14 +545,7 @@ const OrderList: React.FC<OrderListProps> = ({ onOrderClick }) => {
                   <td className="p-3 text-center">
                     <div className="flex justify-center">
                       <Badge color={getOrderStatusColor(order.status || 'Processing')}>
-                        {(() => {
-                          const status = order.status || 'Processing';
-                          // Format status text: capitalize first letter of each word
-                          return String(status)
-                            .split(' ')
-                            .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-                            .join(' ');
-                        })()}
+                        {formatOrderStatusText(order.status)}
                       </Badge>
                     </div>
                   </td>

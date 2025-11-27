@@ -1,14 +1,36 @@
 /* eslint-disable */
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ProductStatus, Product } from '../../types';
 import { ProductsApi } from '../../../../api/products';
 import Badge from '../../components/Badge';
 import { formatVND } from '../../../../utils/currency';
-import ProductForm, { ProductFormValues } from './components/ProductForm';
-import { Plus, MoreVertical, Edit, Trash2, ChevronDown, FileDown, FileSpreadsheet, FileText } from 'lucide-react';
+import { Plus, Edit, Trash2 } from 'lucide-react';
+import ExportDropdown from '../../../../components/ExportDropdown';
+import { exportRows, ExportColumn, ExportFormat } from '../../../../utils/exportUtils';
+import ModalDialog from '../../../../components/ModalDialog';
 
 const ITEMS_PER_PAGE = 10;
 const API_FETCH_LIMIT = 1000;
+
+type ProductExportRow = {
+  name: string;
+  category: string;
+  sku: string;
+  price: string;
+  quantity: number;
+  status: string;
+  stock: string;
+};
+
+const PRODUCT_EXPORT_COLUMNS: ExportColumn<ProductExportRow>[] = [
+  { key: 'name', label: 'Product' },
+  { key: 'category', label: 'Category' },
+  { key: 'sku', label: 'SKU' },
+  { key: 'price', label: 'Price' },
+  { key: 'quantity', label: 'Quantity' },
+  { key: 'status', label: 'Status' },
+  { key: 'stock', label: 'Stock' },
+];
 
 type ProductsProps = {
   setActivePage: (page: string) => void;
@@ -16,6 +38,7 @@ type ProductsProps = {
   onClearSelectedCategory?: () => void;
   embedded?: boolean;
   onProductClick?: (product: Product) => void;
+  refreshTrigger?: number;
 };
 
   const Products: React.FC<ProductsProps> = ({ setActivePage, selectedCategory = null, onClearSelectedCategory, embedded = false, onProductClick }) => {
@@ -23,15 +46,47 @@ type ProductsProps = {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
-  const [showExport, setShowExport] = useState(false);
-  const [isEditOpen, setIsEditOpen] = useState<boolean>(false);
-  const [editProduct, setEditProduct] = useState<Product | null>(null);
-  const [saving, setSaving] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [categoryFilter, setCategoryFilter] = useState<string>(selectedCategory || '');
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [stockFilter, setStockFilter] = useState<string>('');
-  const exportRef = useRef<HTMLDivElement>(null);
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [pendingDelete, setPendingDelete] = useState<Product | null>(null);
+  const [pendingDeleteIdentifiers, setPendingDeleteIdentifiers] = useState<string[]>([]);
+  const [deletingIdentifier, setDeletingIdentifier] = useState<string | null>(null);
+  const [dialog, setDialog] = useState<{
+    title: string;
+    message: string;
+    confirmLabel?: string;
+    cancelLabel?: string;
+    variant?: 'default' | 'danger';
+    onConfirm?: () => void;
+  } | null>(null);
+  const isCategoryLocked = Boolean(selectedCategory);
+
+  const categoryOptions = useMemo(() => {
+    const unique = new Set<string>();
+    products.forEach((product) => {
+      const name = (product.category || '').trim();
+      if (name) unique.add(name);
+    });
+    if (selectedCategory && selectedCategory.trim() && !unique.has(selectedCategory)) {
+      unique.add(selectedCategory);
+    }
+    return Array.from(unique).sort((a, b) => a.localeCompare(b));
+  }, [products, selectedCategory]);
+
+  const resetFilters = (options?: { forceCategory?: boolean }) => {
+    setStatusFilter('');
+    setStockFilter('');
+    if (options?.forceCategory || !isCategoryLocked) {
+      setCategoryFilter('');
+      onClearSelectedCategory?.();
+    }
+    setSearchQuery('');
+    setSelectedIds([]);
+    setCurrentPage(1);
+  };
 
   // Fetch products from API
   useEffect(() => {
@@ -56,26 +111,37 @@ type ProductsProps = {
   }, []);
 
   useEffect(() => {
-    const onDocClick = (e: MouseEvent) => {
-      if (exportRef.current && !exportRef.current.contains(e.target as Node)) {
-        setShowExport(false);
-      }
-    };
-    document.addEventListener('click', onDocClick);
-    return () => document.removeEventListener('click', onDocClick);
-  }, []);
-
-  useEffect(() => {
     setSelectedIds((prev) => prev.filter((id) => products.some((product) => product.id === id)));
   }, [products]);
 
   const itemsPerPage = ITEMS_PER_PAGE;
 
+  const normalizeText = (value: string) =>
+    value
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/đ/g, 'd')
+      .replace(/[^a-z0-9\s]/g, '')
+      .trim();
+
   const filteredProducts = useMemo(() => {
     // Use categoryFilter from dropdown if available, otherwise use selectedCategory prop
     const activeCategory = categoryFilter || selectedCategory;
     
+    const normalizedSearch = normalizeText(searchQuery);
+
     return products.filter((product) => {
+      if (normalizedSearch) {
+        const normalizedName = normalizeText(product.name || '');
+        const normalizedSku = normalizeText(product.sku || '');
+        if (
+          (normalizedName && !normalizedName.startsWith(normalizedSearch)) &&
+          (normalizedSku && !normalizedSku.startsWith(normalizedSearch))
+        ) {
+          return false;
+        }
+      }
       // Filter by category
       if (activeCategory && product.category !== activeCategory) {
         return false;
@@ -99,7 +165,7 @@ type ProductsProps = {
       
       return true;
     });
-  }, [products, selectedCategory, categoryFilter, statusFilter, stockFilter]);
+  }, [products, selectedCategory, categoryFilter, statusFilter, stockFilter, searchQuery]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -111,6 +177,10 @@ type ProductsProps = {
       setCategoryFilter('');
     }
   }, [selectedCategory]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
 
   useEffect(() => {
     const total = Math.max(1, Math.ceil(filteredProducts.length / itemsPerPage));
@@ -127,6 +197,7 @@ type ProductsProps = {
   const pageIds = paginatedProducts.map((product) => product.id);
   const allChecked = pageIds.length > 0 && pageIds.every((id) => selectedIds.includes(id));
   const noneChecked = selectedIds.length === 0;
+  const isRowClickable = Boolean(onProductClick);
 
   function toggleAll() {
     setSelectedIds((prev) =>
@@ -143,50 +214,130 @@ type ProductsProps = {
     );
   }
 
-  // Open Edit Dialog
-  function onOpenEdit(p: Product) {
-    setEditProduct(p);
-    setIsEditOpen(true);
-  }
+  const buildProductExportRows = (): ProductExportRow[] => {
+    if (!selectedIds.length) return [];
+    const selectedSet = new Set(selectedIds);
+    return products
+      .filter((product) => selectedSet.has(product.id))
+      .map((product) => ({
+        name: product.name,
+        category: product.category || '',
+        sku: (product as any).sku || '',
+        price: formatVND(Number((product as any).price) || 0),
+        quantity: Number((product as any).quantity) || 0,
+        status: product.status,
+        stock: product.stock ? 'In stock' : 'Out of stock',
+      }));
+  };
 
-  // Save Edit - Update product in MongoDB
-  async function onSaveEdit() {
-    if (!editProduct) return;
-    try {
-      setSaving(true);
-      
-      const payload = {
-        name: editProduct.name,
-        imageUrl: (editProduct as any).imageUrl,
-        sku: (editProduct as any).sku,
-        category: (editProduct as any).category,
-        description: (editProduct as any).description || '',
-        price: Number((editProduct as any).price) || 0,
-        quantity: Number((editProduct as any).quantity) || 0,
-        status: (editProduct as any).status,
-        stock: (editProduct as any).stock,
-      } as any;
-      
-      // Call API to update product in MongoDB
-      const res = await ProductsApi.update(editProduct.id, payload);
-      
-      if (res && res.success && res.data) {
-        // Update local state with data from MongoDB
-        setProducts(prev => prev.map(p => 
-          p.id === editProduct.id ? { ...p, ...res.data } : p
-        ));
-        
-        setIsEditOpen(false);
-        setEditProduct(null);
-      } else {
-        throw new Error('Update failed: Invalid response from server');
-      }
-    } catch (e: any) {
-      alert(`Save failed: ${e.message || 'Unknown error'}`);
-    } finally {
-      setSaving(false);
+  const handleExport = (format: ExportFormat) => {
+    const rows = buildProductExportRows();
+    if (!rows.length) {
+      alert('Please select at least one product to export.');
+      return;
+    }
+    exportRows(rows, PRODUCT_EXPORT_COLUMNS, format, 'products');
+  };
+
+  // Open Edit - Navigate to ProductDetail
+  function onOpenEdit(p: Product) {
+    if (onProductClick) {
+      onProductClick(p);
     }
   }
+
+  const collectIdentifiers = (product: Product | null | undefined) => {
+    if (!product) return [];
+    const seen = new Set<string>();
+    const add = (value: unknown) => {
+      if (value === null || value === undefined) return;
+      const str = String(value).trim();
+      if (!str || seen.has(str)) return;
+      seen.add(str);
+    };
+    add(product.id);
+    add((product as any)?._id);
+    add((product as any)?.mongoId);
+    return Array.from(seen);
+  };
+
+  const getPrimaryProductId = (product: Product | null | undefined) => {
+    const identifiers = collectIdentifiers(product);
+    return identifiers.length ? identifiers[0] : null;
+  };
+
+  async function handleDeleteProduct(product: Product) {
+    const identifiers = collectIdentifiers(product);
+    if (identifiers.length === 0) {
+      setDialog({
+        title: 'Delete product',
+        message: 'Unable to delete this product because it is missing an ID.',
+      });
+      return;
+    }
+    setPendingDelete(product);
+    setPendingDeleteIdentifiers(identifiers);
+    setDialog({
+      title: 'Delete product',
+      message: `Are you sure you want to delete "${product.name}"? This action cannot be undone.`,
+      confirmLabel: 'Delete',
+      cancelLabel: 'Cancel',
+      variant: 'danger',
+      onConfirm: confirmDeleteProduct,
+    });
+  }
+
+  async function confirmDeleteProduct() {
+    if (!pendingDelete || pendingDeleteIdentifiers.length === 0) {
+      setDialog(null);
+      return;
+    }
+    let deleted = false;
+    let lastError: any = null;
+    setDeletingIdentifier(pendingDeleteIdentifiers[0]);
+    try {
+      for (const identifier of pendingDeleteIdentifiers) {
+        try {
+          const response = await ProductsApi.remove(identifier);
+          if (response && response.success === false) {
+            throw new Error(response?.message || 'Delete failed');
+          }
+          deleted = true;
+          break;
+        } catch (err: any) {
+          lastError = err;
+          if (err?.response?.status !== 404) {
+            throw err;
+          }
+        }
+      }
+      if (!deleted) {
+        throw lastError || new Error('Product not found');
+      }
+      setProducts(prev =>
+        prev.filter(item => {
+          const itemId = getPrimaryProductId(item);
+          return !pendingDeleteIdentifiers.some(identifier => String(identifier) === String(itemId));
+        }),
+      );
+      setSelectedIds(prev =>
+        prev.filter(id => !pendingDeleteIdentifiers.some(identifier => String(identifier) === String(id))),
+      );
+    } catch (deleteError: any) {
+      setDialog({
+        title: 'Failed to delete product',
+        message: deleteError?.response?.data?.message || deleteError?.message || 'Failed to delete product',
+        variant: 'danger',
+      });
+      return;
+    } finally {
+      setDeletingIdentifier(null);
+      setPendingDelete(null);
+      setPendingDeleteIdentifiers([]);
+    }
+    setDialog(null);
+  }
+
 
   const getStatusColor = (status: ProductStatus) => {
     switch (status) {
@@ -200,11 +351,62 @@ type ProductsProps = {
   };
 
   return (
+    <>
     <div className={embedded ? 'space-y-6' : 'bg-background-light p-6 rounded-lg shadow-lg'}>
       
+      {!embedded && selectedCategory && (
+        <div className="mb-4 flex items-center justify-between">
+          <button
+            type="button"
+            onClick={() => {
+              resetFilters({ forceCategory: true });
+              setActivePage('Category List');
+            }}
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-600 text-text-primary hover:bg-gray-700/40 transition-colors"
+            aria-label="Back to categories"
+            title="Back to categories"
+          >
+            <svg
+              className="w-4 h-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="15 18 9 12 15 6" />
+              <line x1="9" y1="12" x2="21" y2="12" />
+            </svg>
+          </button>
+        </div>
+      )}
+
       {!embedded && (
         <div className="w-full flex flex-col gap-4 mb-2">
-          <p className="text-sm text-text-secondary">Filter</p>
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-text-secondary">Filter</p>
+            <button
+              type="button"
+            onClick={() => resetFilters()}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-600 text-text-primary hover:bg-gray-700/40 transition-colors"
+              title="Reset filters"
+              aria-label="Reset filters"
+            >
+              <svg
+                className="w-4 h-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="1 4 1 10 7 10" />
+                <path d="M3.51 15a9 9 0 1 0 .49-5" />
+              </svg>
+            </button>
+          </div>
           <div className="flex flex-col md:flex-row gap-3 w-full">
             <select 
               className={`bg-background-light border border-gray-700 rounded-lg px-3 py-2 flex-1 min-w-[120px] ${
@@ -219,21 +421,24 @@ type ProductsProps = {
             </select>
             <select 
               className={`bg-background-light border border-gray-700 rounded-lg px-3 py-2 flex-1 min-w-[120px] ${
-                categoryFilter ? 'text-text-primary' : 'text-text-secondary'
+                (categoryFilter || selectedCategory) ? 'text-text-primary' : 'text-text-secondary'
               }`}
-              value={categoryFilter}
+              value={isCategoryLocked ? selectedCategory || '' : categoryFilter}
               onChange={(e) => {
+                if (isCategoryLocked) return;
                 setCategoryFilter(e.target.value);
                 if (e.target.value === '' && onClearSelectedCategory) {
                   onClearSelectedCategory();
                 }
               }}
+              disabled={isCategoryLocked}
             >
               <option value="">Category</option>
-              <option value="Roasted coffee">Roasted coffee</option>
-              <option value="Coffee sets">Coffee sets</option>
-              <option value="Cups & Mugs">Cups & Mugs</option>
-              <option value="Coffee makers and grinders">Coffee makers and grinders</option>
+              {categoryOptions.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
             </select>
             <select 
               className={`bg-background-light border border-gray-700 rounded-lg px-3 py-2 flex-1 min-w-[120px] ${
@@ -253,28 +458,21 @@ type ProductsProps = {
       {!embedded && (
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
           
-          <div className="flex-1">
-            <input type="text" placeholder="Search Product" className="bg-background-light border border-gray-700 rounded-lg px-3 py-2 w-full max-w-xs"/>
+            <div className="flex-1">
+            <input
+              type="text"
+              placeholder="Search Product"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="bg-background-light border border-gray-700 rounded-lg px-3 py-2 w-full max-w-xs"
+            />
           </div>
           
           <div className="flex flex-row items-center gap-2 flex-wrap justify-end">
             <select className="bg-background-light border border-gray-700 rounded-lg px-2 py-2 text-text-secondary w-16">
-              <option>7</option>
+              <option>{ITEMS_PER_PAGE}</option>
             </select>
-            <div className="relative" ref={exportRef}>
-              <button type="button" disabled={noneChecked} onClick={() => !noneChecked && setShowExport(v=>!v)}
-                className={`px-4 py-2 rounded-lg flex items-center gap-2 font-semibold transition ${noneChecked ? 'bg-background-light border border-gray-700 text-text-secondary opacity-50 cursor-not-allowed' : 'bg-primary text-white border border-primary hover:bg-primary/90 cursor-pointer shadow-md'}`}>
-                <span>Export</span>
-                <ChevronDown size={16}/>
-              </button>
-              {showExport && !noneChecked && (
-                <div className="absolute right-0 mt-2 w-44 bg-background-light border border-gray-700 rounded-lg shadow-xl z-10 p-2">
-                  <button className="w-full flex items-center gap-2 px-3 py-2 rounded-md hover:bg-background-dark text-text-primary"><FileDown size={16}/> Csv</button>
-                  <button className="w-full flex items-center gap-2 px-3 py-2 rounded-md hover:bg-background-dark text-text-primary"><FileSpreadsheet size={16}/> Excel</button>
-                  <button className="w-full flex items-center gap-2 px-3 py-2 rounded-md hover:bg-background-dark text-text-primary"><FileText size={16}/> Pdf</button>
-                </div>
-              )}
-            </div>
+            <ExportDropdown disabled={noneChecked} onExport={handleExport} />
             <button className="bg-primary text-white font-semibold px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-primary/90 transition-colors"
               onClick={() => setActivePage('Add Product')}>
               <Plus size={18}/>
@@ -336,15 +534,19 @@ type ProductsProps = {
                   <td className="p-3" onClick={(e) => e.stopPropagation()}>
                     <input type="checkbox" checked={selectedIds.includes(product.id)} onChange={() => toggleOne(product.id)} aria-label={`Select product ${product.name}`}/>
                   </td>
-                  <td 
-                    className="p-3 cursor-pointer"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onProductClick?.(product);
-                    }}
-                  >
+                  <td className="p-3">
                     <div className="flex items-center gap-3">
-                      <img src={product.imageUrl} alt={product.name} className="w-10 h-10 rounded-md object-cover" />
+                      {product.imageUrl ? (
+                        <img
+                          src={product.imageUrl}
+                          alt={product.name}
+                          className="w-10 h-10 rounded-md object-cover"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-md bg-gray-700 text-xs text-text-secondary flex items-center justify-center">
+                          N/A
+                        </div>
+                      )}
                       <div>
                           <p className="font-semibold text-text-primary">{product.name}</p>
                           <p className="text-xs text-text-secondary">{product.description}</p>
@@ -393,8 +595,27 @@ type ProductsProps = {
                   <td className="p-3 text-center" onClick={(e) => e.stopPropagation()}>
                       <div className="flex justify-center items-center gap-2">
                           <button className="text-text-secondary hover:text-primary" onClick={() => onOpenEdit(product)}><Edit size={16}/></button>
-                          <button className="text-text-secondary hover:text-accent-red"><Trash2 size={16}/></button>
-                          <button className="text-text-secondary hover:text-white"><MoreVertical size={16}/></button>
+                          {(() => {
+                            const productKey = getPrimaryProductId(product);
+                            const isDeleting =
+                              productKey !== null &&
+                              productKey !== undefined &&
+                              deletingIdentifier !== null &&
+                              String(deletingIdentifier) === String(productKey);
+                            return (
+                              <button
+                                className={`text-text-secondary hover:text-accent-red ${isDeleting ? 'opacity-60 cursor-not-allowed' : ''}`}
+                                onClick={() => handleDeleteProduct(product)}
+                                disabled={isDeleting}
+                              >
+                                {isDeleting ? (
+                                  <span className="text-xs animate-pulse">...</span>
+                                ) : (
+                                  <Trash2 size={16}/>
+                                )}
+                              </button>
+                            );
+                          })()}
                       </div>
                   </td>
                 </tr>
@@ -436,59 +657,28 @@ type ProductsProps = {
             </div>
           </div>
         </div>
-      
-      {/* Edit Dialog */}
-      {isEditOpen && editProduct && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-          <div className="bg-background-light w-full max-w-xl rounded-lg p-4 border border-gray-700">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-lg font-semibold text-white">Edit Product</h3>
-              <button className="text-text-secondary hover:text-white" onClick={() => { setIsEditOpen(false); setEditProduct(null); }}>✕</button>
-            </div>
-            <ProductForm
-              initialValues={{
-                name: editProduct.name,
-                sku: (editProduct as any).sku,
-                imageUrl: (editProduct as any).imageUrl,
-                description: (editProduct as any).description,
-                category: (editProduct as any).category,
-                price: (editProduct as any).price,
-                quantity: (editProduct as any).quantity,
-                status: (editProduct as any).status as any,
-                stock: (editProduct as any).stock,
-              }}
-              saving={saving}
-              title="Product"
-              onCancel={() => { setIsEditOpen(false); setEditProduct(null); }}
-              onSubmit={async (values: ProductFormValues) => {
-                try {
-                  setSaving(true);
-                  
-                  // Call API to update product in MongoDB
-                  const res = await ProductsApi.update(editProduct.id, values as any);
-                  
-                  if (res && res.success && res.data) {
-                    // Update local state with data from MongoDB
-                    setProducts(prev => prev.map(p => 
-                      p.id === editProduct.id ? { ...p, ...res.data } : p
-                    ));
-                    
-                    setIsEditOpen(false);
-                    setEditProduct(null);
-                  } else {
-                    throw new Error('Update failed: Invalid response from server');
-                  }
-                } catch (e: any) {
-                  alert(`Save failed: ${e.message || 'Unknown error'}`);
-                } finally {
-                  setSaving(false);
-                }
-              }}
-            />
-          </div>
-        </div>
-      )}
     </div>
+      <ModalDialog
+        isOpen={!!dialog}
+        title={dialog?.title || ''}
+        message={dialog?.message || ''}
+        confirmLabel={dialog?.confirmLabel}
+        cancelLabel={dialog?.cancelLabel}
+        variant={dialog?.variant}
+        onConfirm={() => {
+          const action = dialog?.onConfirm;
+          if (action) {
+            action();
+          }
+        }}
+        onCancel={() => {
+          setDialog(null);
+          setPendingDelete(null);
+          setPendingDeleteIdentifiers([]);
+          setDeletingIdentifier(null);
+        }}
+      />
+      </>
   );
 };
 

@@ -47,7 +47,7 @@ export default function CartSummary({ cart = { items: [] }, onCheckout }) {
       setVoucher({ code: data.code, discount: data.discount });
     } catch (e) {
       setVoucher(null);
-      setMessage(e?.response?.data?.message || "Không áp dụng được mã");
+      setMessage(e?.response?.data?.message || "Unable to apply this voucher code");
     }
   }
 
@@ -59,33 +59,36 @@ export default function CartSummary({ cart = { items: [] }, onCheckout }) {
 
   return (
     <div className="cart-summary">
-      <h2 className="cart-summary-title">Tóm tắt đơn hàng</h2>
+      <h2 className="cart-summary-title">Order Summary</h2>
+
       <div className="voucher-row">
         <input
           value={code}
           onChange={(e) => setCode(e.target.value.toUpperCase())}
-          placeholder="Nhập mã giảm giá"
+          placeholder="Enter voucher code"
         />
         {voucher ? (
-          <button onClick={clearVoucher}>Xoá mã</button>
+          <button onClick={clearVoucher}>Remove code</button>
         ) : (
-          <button onClick={onApply}>Áp dụng</button>
+          <button onClick={onApply}>Apply</button>
         )}
       </div>
+
       {message && (
         <p className="text-danger" style={{ marginTop: 8 }}>
           {message}
         </p>
       )}
+
       {voucher && (
         <p className="text-success" style={{ marginTop: 8 }}>
-          Đã áp dụng: <b>{voucher.code}</b> (−{formatVND(voucher.discount)})
+          Voucher applied: <b>{voucher.code}</b> (−{formatVND(voucher.discount)})
         </p>
       )}
 
-            <div className="cart-money-lines">
+      <div className="cart-money-lines">
         <div className="cart-money-line">
-          <span>Tạm tính</span>
+          <span>Subtotal</span>
           <span>{formatVND(subtotal)}</span>
         </div>
         <div className="cart-money-line">
@@ -93,11 +96,10 @@ export default function CartSummary({ cart = { items: [] }, onCheckout }) {
           <span>−{formatVND(discount)}</span>
         </div>
         <div className="cart-money-line total">
-          <span>Thành tiền</span>
+          <span>Total</span>
           <span>{formatVND(total)}</span>
         </div>
       </div>
-
 
       <button
         className="cart-checkout-btn"
@@ -116,7 +118,7 @@ export default function CartSummary({ cart = { items: [] }, onCheckout }) {
           }
         }}
       >
-        Thanh toán ({safeItems.length || 0})
+        Checkout ({safeItems.length || 0})
       </button>
     </div>
   );

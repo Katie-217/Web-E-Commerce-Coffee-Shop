@@ -50,8 +50,6 @@ const productSchema = new mongoose.Schema({
     required: true
   },
   stock: {
-    // bạn đang dùng boolean (còn modal dùng stock như số lượng max),
-    // tạm giữ nguyên nếu BE/FE đang chạy ổn.
     type: Boolean,
     default: true
   },
@@ -78,9 +76,7 @@ const productSchema = new mongoose.Schema({
     enum: ['Publish', 'Inactive', 'Draft'],
     default: 'Publish'
   },
-
-  // 👉 THÊM FIELD NÀY
-  variants: {
+ variants: {
     type: [variantSchema],
     default: [],
   },
@@ -103,7 +99,8 @@ productSchema.pre('save', function(next) {
   next();
 });
 
-// indexes
+// Create indexes for better query performance
+// Note: sku already has unique index, so we don't need to add it again
 productSchema.index({ category: 1, status: 1 });
 productSchema.index({ stock: 1 });
 productSchema.index({ status: 1 });

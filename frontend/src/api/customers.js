@@ -1,3 +1,4 @@
+import { apiClient } from './client';
 
 /**
  * @typedef {Object} FetchCustomersParams
@@ -52,12 +53,17 @@ export function updateCustomer(idOrEmail, customerData) {
   return apiClient.patch(`/customers/${encodeURIComponent(idOrEmail)}`, customerData);
 }
 
+export function deleteCustomer(idOrEmail) {
+  return apiClient.delete(`/customers/${encodeURIComponent(idOrEmail)}`);
+}
+
 export default {
   fetchCustomers,
   fetchCustomerById,
   fetchCustomerOrders,
   createCustomer,
   updateCustomer,
+  deleteCustomer,
 };
 
 

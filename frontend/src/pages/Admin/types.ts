@@ -87,6 +87,8 @@ export interface OrderDetail extends Order {
     country: string;
   };
   shippingFee?: number;
+  pointsUsed?: number;
+  pointsEarned?: number;
 }
 
 export interface Category {

@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+// src/pages/Account/AccountPage.jsx
+import React, { useState, useRef, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { updateProfile, changePassword } from "../../services/account";
 import "./account-page.css";
@@ -34,13 +35,16 @@ function Modal({ title, onClose, children }) {
 }
 
 export default function AccountPage() {
-  const { user, logout, updateUser } = useAuth(); // updateUser: mình đã thêm ở AuthContext
+  const { user, logout, updateUser } = useAuth();
+
   const [activeModal, setActiveModal] = useState(null); // 'profile' | 'address' | 'payment' | 'password'
   const [profileForm, setProfileForm] = useState(null);
   const [addressForm, setAddressForm] = useState(null);
   const [addressIndex, setAddressIndex] = useState(-1);
   const [paymentForm, setPaymentForm] = useState(null);
   const [paymentIndex, setPaymentIndex] = useState(-1);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const fileInputRef = useRef(null);
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
     newPassword: "",
@@ -49,8 +53,82 @@ export default function AccountPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  if (!user) return null; // đã có RequireAuth rồi nhưng phòng hờ
+  // ===== YÊU THÍCH =====
+  const [favoriteItems, setFavoriteItems] = useState([]);
+  const [loadingFavorites, setLoadingFavorites] = useState(false);
 
+  // Load danh sách sản phẩm yêu thích từ wishlist + /api/products
+  useEffect(() => {
+    if (!user) {
+      setFavoriteItems([]);
+      return;
+    }
+
+    const wishlistArray = Array.isArray(user.wishlist) ? user.wishlist : [];
+    if (!wishlistArray.length) {
+      setFavoriteItems([]);
+      return;
+    }
+
+    const favoriteIds = wishlistArray.map((entry) =>
+      entry.productId ?? entry.product?.id ?? entry.id ?? entry
+    );
+
+    const controller = new AbortController();
+
+    async function fetchFavorites() {
+      try {
+        setLoadingFavorites(true);
+
+        // Lấy toàn bộ products, rồi lọc theo id trong wishlist
+        const res = await fetch("/api/products?page=1&limit=1000", {
+          signal: controller.signal,
+        });
+        if (!res.ok) throw new Error("Không thể tải danh sách sản phẩm");
+
+        const json = await res.json();
+        const allProducts = json.data || json.items || [];
+
+        const idMap = new Map(
+          allProducts.map((p) => [
+            Number(p.id ?? p.productId ?? p._id),
+            p,
+          ])
+        );
+
+        const favorites = favoriteIds
+          .map((rawId) => {
+            const numId = Number(rawId);
+            const product = idMap.get(numId);
+            if (!product) return null;
+
+            const meta = wishlistArray.find(
+              (w) => Number(w.productId ?? w.id ?? w) === numId
+            );
+
+            return { ...product, wishlistMeta: meta };
+          })
+          .filter(Boolean);
+
+        setFavoriteItems(favorites);
+      } catch (err) {
+        if (err.name !== "AbortError") {
+          console.error("Lỗi tải sản phẩm yêu thích:", err);
+        }
+      } finally {
+        setLoadingFavorites(false);
+      }
+    }
+
+    fetchFavorites();
+
+    return () => controller.abort();
+  }, [user]);
+
+  // ===== KHÔNG ĐƯỢC ĐỂ useEffect SAU RETURN =====
+  if (!user) return null;
+
+  // ===== DERIVED FIELDS TỪ USER =====
   const {
     _id,
     id,
@@ -66,6 +144,7 @@ export default function AccountPage() {
     addresses = [],
     paymentMethods = [],
     loyalty = {},
+    wishlist = [],
   } = user || {};
 
   const customerId = id || _id;
@@ -76,42 +155,50 @@ export default function AccountPage() {
     name ||
     "Người dùng";
 
-  const avatar =
-    avatarUrl ||
-    user?.avatar ||
-    "/images/avatar-default.png";
+  const avatar = avatarUrl || user?.avatar || "/images/avatar-default.png";
 
   const genderLabel =
     gender === "male"
       ? "Nam"
       : gender === "female"
-        ? "Nữ"
-        : gender || "—";
+      ? "Nữ"
+      : gender || "—";
 
-  const dobText = dateOfBirth
-    ? new Date(dateOfBirth).toLocaleDateString("vi-VN")
-    : null;
+  const loyaltyData = loyalty || {};
 
-  const points = loyalty?.points ?? 0;
-  const tier = (loyalty?.tier || "").toLowerCase();
+  let dobText = null;
+  if (dateOfBirth) {
+    const d = new Date(dateOfBirth);
+    dobText = isNaN(d.getTime()) ? null : d.toLocaleDateString("vi-VN");
+  }
+
+  const points =
+    loyaltyData.currentPoints ??
+    loyaltyData.totalEarned ??
+    loyaltyData.points ??
+    0;
+
+  const tierKey = (loyaltyData.tier || "").toLowerCase();
   const tierLabel =
-    tier === "platinum"
+    tierKey === "platinum"
       ? "Platinum"
-      : tier === "gold"
-        ? "Vàng"
-        : tier === "silver"
-          ? "Bạc"
-          : tier === "bronze"
-            ? "Đồng"
-            : loyalty?.tier || "Thành viên";
+      : tierKey === "gold"
+      ? "Vàng"
+      : tierKey === "silver"
+      ? "Bạc"
+      : tierKey === "bronze"
+      ? "Đồng"
+      : loyaltyData.tier || "Thành viên";
 
-  const lastAccrualText = loyalty?.lastAccrualAt
-    ? new Date(loyalty.lastAccrualAt).toLocaleString("vi-VN")
+  const lastAccrualText = loyaltyData.lastAccrualAt
+    ? new Date(loyaltyData.lastAccrualAt).toLocaleString("vi-VN")
     : null;
 
   const maskedCustomerId = customerId
     ? `#${String(customerId).toUpperCase()}`
     : "—";
+
+  const hasWishlist = Array.isArray(wishlist) && wishlist.length > 0;
 
   // ===== OPEN MODALS =====
   const openProfileModal = () => {
@@ -132,16 +219,16 @@ export default function AccountPage() {
       index >= 0 && addresses[index]
         ? addresses[index]
         : {
-          label: "home",
-          type: "shipping",
-          isDefault: addresses.length === 0,
-          fullName: displayName || "",
-          phone: phone || "",
-          addressLine1: "",
-          ward: "",
-          district: "",
-          city: "",
-        };
+            label: "home",
+            type: "shipping",
+            isDefault: addresses.length === 0,
+            fullName: displayName || "",
+            phone: phone || "",
+            addressLine1: "",
+            ward: "",
+            district: "",
+            city: "",
+          };
     setAddressForm(base);
     setAddressIndex(index);
     setError("");
@@ -153,16 +240,16 @@ export default function AccountPage() {
       index >= 0 && paymentMethods[index]
         ? paymentMethods[index]
         : {
-          type: "cash",
-          provider: "",
-          brand: "",
-          holderName: displayName || "",
-          accountNumber: "",
-          last4: "",
-          expMonth: "",
-          expYear: "",
-          isDefault: paymentMethods.length === 0,
-        };
+            type: "cash",
+            provider: "",
+            brand: "",
+            holderName: displayName || "",
+            accountNumber: "",
+            last4: "",
+            expMonth: "",
+            expYear: "",
+            isDefault: paymentMethods.length === 0,
+          };
     setPaymentForm(base);
     setPaymentIndex(index);
     setError("");
@@ -185,8 +272,7 @@ export default function AccountPage() {
     setError("");
   };
 
-  // ===== SAVE HANDLERS (GỌI API + UPDATE DB) =====
-
+  // ===== SAVE HANDLERS =====
   const handleSaveProfile = async (e) => {
     e.preventDefault();
     if (!profileForm) return;
@@ -205,8 +291,8 @@ export default function AccountPage() {
     } catch (err) {
       setError(
         err?.response?.data?.message ||
-        err.message ||
-        "Lưu thông tin thất bại"
+          err.message ||
+          "Lưu thông tin thất bại"
       );
     } finally {
       setSaving(false);
@@ -226,11 +312,9 @@ export default function AccountPage() {
       setSaving(true);
       setError("");
 
-      // clone list cũ
       let list = [...addresses];
       let idx = addressIndex;
 
-      // cập nhật hoặc thêm mới
       if (idx >= 0) {
         list[idx] = addressForm;
       } else {
@@ -238,16 +322,11 @@ export default function AccountPage() {
         idx = list.length - 1;
       }
 
-      // ==========================
-      // CHỈ CHO PHÉP 1 ĐỊA CHỈ MẶC ĐỊNH
-      // ==========================
       let defaultIndex = -1;
 
       if (addressForm.isDefault) {
-        // nếu checkbox "mặc định" đang bật cho form hiện tại → dùng index này
         defaultIndex = idx;
       } else {
-        // nếu không bật, giữ lại cái đang default sẵn (nếu có)
         defaultIndex = list.findIndex((a) => a.isDefault);
       }
 
@@ -257,7 +336,6 @@ export default function AccountPage() {
           isDefault: i === defaultIndex,
         }));
       }
-      // ==========================
 
       const updated = await updateProfile({ addresses: list });
       updateUser?.(updated);
@@ -265,14 +343,44 @@ export default function AccountPage() {
     } catch (err) {
       setError(
         err?.response?.data?.message ||
-        err.message ||
-        "Lưu địa chỉ thất bại"
+          err.message ||
+          "Lưu địa chỉ thất bại"
       );
     } finally {
       setSaving(false);
     }
   };
 
+  const handleDeleteAddress = async (idx) => {
+    if (idx < 0 || idx >= addresses.length) return;
+    if (!window.confirm("Bạn chắc chắn muốn xoá địa chỉ này?")) return;
+
+    try {
+      setSaving(true);
+      setError("");
+
+      let list = addresses.filter((_, i) => i !== idx);
+
+      if (list.length > 0 && !list.some((a) => a.isDefault)) {
+        list = list.map((addr, i) => ({
+          ...addr,
+          isDefault: i === 0,
+        }));
+      }
+
+      const updated = await updateProfile({ addresses: list });
+      updateUser?.(updated);
+    } catch (err) {
+      console.error("Xoá địa chỉ thất bại:", err);
+      alert(
+        err?.response?.data?.message ||
+          err.message ||
+          "Xoá địa chỉ thất bại"
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const handleSavePayment = async (e) => {
     e.preventDefault();
@@ -285,7 +393,6 @@ export default function AccountPage() {
       let list = [...paymentMethods];
       let idx = paymentIndex;
 
-      // cập nhật hoặc thêm mới
       if (idx >= 0) {
         list[idx] = paymentForm;
       } else {
@@ -293,16 +400,11 @@ export default function AccountPage() {
         idx = list.length - 1;
       }
 
-      // ==========================
-      // CHỈ CHO PHÉP 1 PHƯƠNG THỨC MẶC ĐỊNH
-      // ==========================
       let defaultIndex = -1;
 
       if (paymentForm.isDefault) {
-        // nếu form hiện tại được tick "mặc định" → chọn index này
         defaultIndex = idx;
       } else {
-        // nếu không, giữ nguyên thằng đang default (nếu có)
         defaultIndex = list.findIndex((p) => p.isDefault);
       }
 
@@ -312,7 +414,6 @@ export default function AccountPage() {
           isDefault: i === defaultIndex,
         }));
       }
-      // ==========================
 
       const updated = await updateProfile({ paymentMethods: list });
       updateUser?.(updated);
@@ -320,14 +421,44 @@ export default function AccountPage() {
     } catch (err) {
       setError(
         err?.response?.data?.message ||
-        err.message ||
-        "Lưu phương thức thanh toán thất bại"
+          err.message ||
+          "Lưu phương thức thanh toán thất bại"
       );
     } finally {
       setSaving(false);
     }
   };
 
+  const handleDeletePayment = async (idx) => {
+    if (idx < 0 || idx >= paymentMethods.length) return;
+    if (!window.confirm("Bạn chắc chắn muốn xoá phương thức này?")) return;
+
+    try {
+      setSaving(true);
+      setError("");
+
+      let list = paymentMethods.filter((_, i) => i !== idx);
+
+      if (list.length > 0 && !list.some((p) => p.isDefault)) {
+        list = list.map((pm, i) => ({
+          ...pm,
+          isDefault: i === 0,
+        }));
+      }
+
+      const updated = await updateProfile({ paymentMethods: list });
+      updateUser?.(updated);
+    } catch (err) {
+      console.error("Xoá phương thức thanh toán thất bại:", err);
+      alert(
+        err?.response?.data?.message ||
+          err.message ||
+          "Xoá phương thức thanh toán thất bại"
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const handleChangePassword = async (e) => {
     e.preventDefault();
@@ -351,16 +482,75 @@ export default function AccountPage() {
     } catch (err) {
       setError(
         err?.response?.data?.message ||
-        err.message ||
-        "Đổi mật khẩu thất bại"
+          err.message ||
+          "Đổi mật khẩu thất bại"
       );
     } finally {
       setSaving(false);
     }
   };
 
-  // ===== RENDER =====
+  // ===== AVATAR =====
+  const handleClickChangeAvatar = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
 
+  const handleAvatarFileChange = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      setError("Vui lòng chọn đúng file hình ảnh.");
+      return;
+    }
+
+    try {
+      setError("");
+      setUploadingAvatar(true);
+
+      const formData = new FormData();
+      formData.append("image", file);
+
+      const uploadRes = await fetch("/api/upload/image", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!uploadRes.ok) {
+        throw new Error("Upload ảnh thất bại, thử lại sau.");
+      }
+
+      const uploadData = await uploadRes.json();
+      const uploadedUrl = uploadData.url || uploadData.secure_url;
+
+      if (!uploadedUrl) {
+        throw new Error("Không nhận được đường dẫn ảnh từ server.");
+      }
+
+      const result = await updateProfile({
+        avatarUrl: uploadedUrl,
+      });
+
+      if (result && result.data) {
+        updateUser?.(result.data);
+      } else if (result) {
+        updateUser?.(result);
+      }
+
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "Không thể đổi ảnh đại diện.");
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
+  // ===== RENDER =====
   return (
     <main className="account-page">
       <section className="account-card">
@@ -368,6 +558,26 @@ export default function AccountPage() {
         <header className="account-header">
           <div className="account-avatar">
             <img src={avatar} alt={displayName} />
+
+            <button
+              type="button"
+              className="account-avatar-change"
+              onClick={handleClickChangeAvatar}
+              disabled={uploadingAvatar}
+              title="Đổi ảnh đại diện"
+            >
+              <span className="material-symbols-outlined">
+                {uploadingAvatar ? "progress_activity" : "edit"}
+              </span>
+            </button>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="visually-hidden"
+              onChange={handleAvatarFileChange}
+            />
           </div>
 
           <div className="account-header-main">
@@ -376,7 +586,6 @@ export default function AccountPage() {
                 <span className="account-label">Trang tài khoản</span>
                 <h1 className="account-name">{displayName}</h1>
 
-                {/* Mã khách hàng ngay dưới tên */}
                 <div className="account-id-inline">
                   <span className="account-id-label">Mã khách hàng</span>
                   <span className="account-id-value">{maskedCustomerId}</span>
@@ -385,7 +594,6 @@ export default function AccountPage() {
                 <p className="account-email">{email}</p>
               </div>
             </div>
-
 
             <div className="account-header-bottom">
               <div className="account-loyalty-pill">
@@ -409,7 +617,6 @@ export default function AccountPage() {
               Đăng xuất
             </button>
           </div>
-
         </header>
 
         {/* THÔNG TIN CÁ NHÂN */}
@@ -425,7 +632,6 @@ export default function AccountPage() {
             <InfoRow label="Ngày sinh" value={dobText} />
           </dl>
 
-          {/* Nút chính ở dưới thông tin cá nhân */}
           <div className="account-primary-actions">
             <button
               className="account-edit-btn"
@@ -443,7 +649,6 @@ export default function AccountPage() {
             </button>
           </div>
         </section>
-
 
         {/* ĐỊA CHỈ */}
         <section className="account-section">
@@ -480,16 +685,25 @@ export default function AccountPage() {
                           {addr.type === "shipping"
                             ? "Giao hàng"
                             : addr.type === "billing"
-                              ? "Thanh toán"
-                              : addr.type}
+                            ? "Thanh toán"
+                            : addr.type}
                         </span>
                       )}
                       <button
                         type="button"
                         className="section-ghost-btn section-ghost-btn--small"
                         onClick={() => openAddressModal(idx)}
+                        disabled={saving}
                       >
                         Sửa
+                      </button>
+                      <button
+                        type="button"
+                        className="section-ghost-btn section-ghost-btn--small section-ghost-btn--danger"
+                        onClick={() => handleDeleteAddress(idx)}
+                        disabled={saving}
+                      >
+                        Xoá
                       </button>
                     </div>
                   </div>
@@ -509,7 +723,7 @@ export default function AccountPage() {
           )}
         </section>
 
-        {/* THANH TOÁN */}
+        {/* PHƯƠNG THỨC THANH TOÁN */}
         <section className="account-section">
           <div className="section-title-row">
             <h2 className="section-title">Phương thức thanh toán</h2>
@@ -532,37 +746,11 @@ export default function AccountPage() {
             <ul className="account-payments">
               {paymentMethods.map((pm, idx) => {
                 const type = (pm.type || "").toLowerCase();
-                const brand = (pm.brand || pm.card?.brand || "").toUpperCase();
+                const brand =
+                  (pm.brand || pm.card?.brand || "").toUpperCase();
                 const last4 = pm.last4 || pm.card?.last4 || "";
                 const holder =
                   pm.holderName || pm.accountName || displayName || "";
-
-                const iconLabel =
-                  type === "cash"
-                    ? "₫"
-                    : type === "card"
-                      ? "💳"
-                      : type === "bank"
-                        ? "🏦"
-                        : type === "momo"
-                          ? "M"
-                          : type === "zalopay"
-                            ? "Z"
-                            : "₫";
-
-                const labelText =
-                  brand ||
-                  (type === "cash"
-                    ? "Tiền mặt (COD)"
-                    : type === "card"
-                      ? "Thẻ ngân hàng"
-                      : type === "bank"
-                        ? "Tài khoản ngân hàng"
-                        : type === "momo"
-                          ? "Ví MoMo"
-                          : type === "zalopay"
-                            ? "Ví ZaloPay"
-                            : "Thanh toán");
 
                 return (
                   <li
@@ -577,8 +765,8 @@ export default function AccountPage() {
                             (type === "cash"
                               ? "Tiền mặt"
                               : type === "bank"
-                                ? "Tài khoản ngân hàng"
-                                : "Thanh toán")}
+                              ? "Tài khoản ngân hàng"
+                              : "Thanh toán")}
                         </span>
                       </div>
                       <div className="account-list-tags">
@@ -589,8 +777,17 @@ export default function AccountPage() {
                           type="button"
                           className="section-ghost-btn section-ghost-btn--small"
                           onClick={() => openPaymentModal(idx)}
+                          disabled={saving}
                         >
                           Sửa
+                        </button>
+                        <button
+                          type="button"
+                          className="section-ghost-btn section-ghost-btn--small section-ghost-btn--danger"
+                          onClick={() => handleDeletePayment(idx)}
+                          disabled={saving}
+                        >
+                          Xoá
                         </button>
                       </div>
                     </div>
@@ -631,10 +828,75 @@ export default function AccountPage() {
             </ul>
           )}
         </section>
+
+        {/* SẢN PHẨM YÊU THÍCH */}
+        <section className="account-section">
+          <div className="section-title-row">
+            <h2 className="section-title">Sản phẩm yêu thích</h2>
+          </div>
+
+          {loadingFavorites ? (
+            <p className="account-empty">Đang tải sản phẩm yêu thích...</p>
+          ) : !hasWishlist ? (
+            <p className="account-empty">
+              Bạn chưa có sản phẩm yêu thích nào. Hãy khám phá menu và nhấn vào
+              biểu tượng trái tim để lưu lại nhé.
+            </p>
+          ) : favoriteItems.length === 0 ? (
+            <p className="account-empty">
+              Có {wishlist.length} sản phẩm trong danh sách yêu thích nhưng hiện
+              không tìm thấy trong menu. Có thể chúng đã bị xoá hoặc ẩn.
+            </p>
+          ) : (
+            <ul className="account-favorites">
+              {favoriteItems.map((p) => {
+                const key = p.id || p._id || p.productId;
+                const priceNumber = Number(
+                  p.price || p.salePrice || p.originalPrice || 0
+                );
+                const meta = p.wishlistMeta || {};
+                const dateAdded = meta.dateAdded
+                  ? new Date(meta.dateAdded).toLocaleDateString("vi-VN")
+                  : null;
+                const isOnSale = !!meta.isOnSale;
+
+                const image =
+                  p.image ||
+                  p.thumbnail ||
+                  p.imageUrl ||
+                  "/images/product-placeholder.png";
+
+                return (
+                  <li key={key} className="favorite-card">
+                    <div className="favorite-card-image">
+                      <img src={image} alt={p.name} />
+                      {isOnSale && (
+                        <span className="badge-sale">Đang khuyến mãi</span>
+                      )}
+                    </div>
+                    <div className="favorite-card-body">
+                      <h3 className="favorite-name">{p.name}</h3>
+                      {p.category && (
+                        <p className="favorite-category">{p.category}</p>
+                      )}
+                      <p className="favorite-price">
+                        {priceNumber.toLocaleString("vi-VN")} ₫
+                      </p>
+                      {dateAdded && (
+                        <p className="favorite-date">
+                          Đã lưu: {dateAdded}
+                        </p>
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </section>
       </section>
 
       {/* ===== MODALS ===== */}
-
       {activeModal === "profile" && profileForm && (
         <Modal title="Chỉnh sửa thông tin" onClose={closeModal}>
           <form onSubmit={handleSaveProfile}>
@@ -695,11 +957,7 @@ export default function AccountPage() {
                 >
                   Hủy
                 </button>
-                <button
-                  type="submit"
-                  className="btn-primary"
-                  disabled={saving}
-                >
+                <button type="submit" className="btn-primary" disabled={saving}>
                   Lưu
                 </button>
               </div>
@@ -829,11 +1087,7 @@ export default function AccountPage() {
                 >
                   Hủy
                 </button>
-                <button
-                  type="submit"
-                  className="btn-primary"
-                  disabled={saving}
-                >
+                <button type="submit" className="btn-primary" disabled={saving}>
                   Lưu
                 </button>
               </div>
@@ -865,7 +1119,6 @@ export default function AccountPage() {
                 <option value="bank">Tài khoản ngân hàng</option>
                 <option value="momo">Ví MoMo</option>
                 <option value="zaloPay">Ví ZaloPay</option>
-                <option value="bank">Tài khoản ngân hàng</option>
               </select>
             </div>
 
@@ -964,7 +1217,6 @@ export default function AccountPage() {
               </div>
             )}
 
-
             <div className="modal-row">
               <label>
                 <input
@@ -991,11 +1243,7 @@ export default function AccountPage() {
                 >
                   Hủy
                 </button>
-                <button
-                  type="submit"
-                  className="btn-primary"
-                  disabled={saving}
-                >
+                <button type="submit" className="btn-primary" disabled={saving}>
                   Lưu
                 </button>
               </div>
@@ -1057,11 +1305,7 @@ export default function AccountPage() {
                 >
                   Hủy
                 </button>
-                <button
-                  type="submit"
-                  className="btn-primary"
-                  disabled={saving}
-                >
+                <button type="submit" className="btn-primary" disabled={saving}>
                   Đổi mật khẩu
                 </button>
               </div>

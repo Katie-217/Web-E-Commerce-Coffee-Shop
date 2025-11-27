@@ -30,7 +30,7 @@ export default function CartPage() {
     Array.isArray(items) ? items.map((it) => it.key) : []
   );
 
-  // khi items thay đổi (load từ localStorage, xóa hết...), clear các key đã mất
+  // when items change (load from localStorage, cleared, etc.), remove stale keys
   useEffect(() => {
     setSelectedKeys((prev) =>
       prev.filter((k) => items.some((it) => it.key === k))
@@ -51,7 +51,7 @@ export default function CartPage() {
 
   const handleCheckout = () => {
     if (!selectedItems.length) {
-      alert("Bạn chưa chọn sản phẩm nào để thanh toán.");
+      alert("You haven't selected any items to checkout.");
       return;
     }
 
@@ -70,7 +70,7 @@ export default function CartPage() {
 
     const opt = item.variantOptions[newIndex];
 
-    // basePrice nếu có thì dùng, không thì fallback về giá hiện tại
+    // if basePrice exists use it, otherwise fall back to current price
     let baseRaw = 0;
     if (item.basePrice != null) {
       baseRaw = item.basePrice;
@@ -83,12 +83,12 @@ export default function CartPage() {
     const nextPrice = basePrice + priceDelta;
     const variantName = item.variant?.name || "size";
 
-    // công thức key mới giống CartContext
+    // same key formula as in CartContext
     const newKey = `${item.productId || ""}-${variantName}-${
       opt.label || "default"
     }`;
 
-    // cập nhật trong context
+    // update in context
     updateItemVariant(item.key, {
       variant: { name: variantName, value: opt.label },
       price: nextPrice,
@@ -97,7 +97,7 @@ export default function CartPage() {
       variantIndex: newIndex,
     });
 
-    // nếu item đang được tick chọn thì cập nhật luôn key mới
+    // if item is currently selected, also update to the new key
     setSelectedKeys((prev) => {
       if (!prev.includes(item.key)) return prev;
       const next = prev.filter((k) => k !== item.key);
@@ -106,13 +106,13 @@ export default function CartPage() {
     });
   };
 
-  // điều hướng sang trang chi tiết sản phẩm
+  // navigate to product detail page
   const goToProductDetail = (cartItem) => {
     if (!cartItem) return;
     const id =
       cartItem.productId || cartItem._id || cartItem.id || cartItem.slug;
     if (!id) return;
-    // nếu route khác, sửa lại path này
+    // change this path if your route is different
     navigate(`/products/${id}`);
   };
 
@@ -120,10 +120,10 @@ export default function CartPage() {
     return (
       <main className="cart-page cart-page--empty">
         <div className="cart-empty-card">
-          <h1>Giỏ hàng trống</h1>
-          <p>Thêm vài món cà phê ngon để ngày mới thơm hơn nhé ☕️</p>
-          <a href="/menu" className="cart-empty-btn">
-            Khám phá menu
+          <h1>Your cart is empty</h1>
+          <p>Add some delicious coffee to brighten your day ☕️</p>
+          <a href="/menu/roast-coffee" className="cart-empty-btn">
+            Browse menu
           </a>
         </div>
       </main>
@@ -132,13 +132,13 @@ export default function CartPage() {
 
   return (
     <main className="cart-page">
-      {/* Cột trái: danh sách sản phẩm */}
+      {/* Left column: product list */}
       <section className="cart-main">
         <header className="cart-header">
           <div className="cart-header-top">
-            <h1>Giỏ hàng</h1>
+            <h1>Shopping cart</h1>
             <p className="cart-header-sub">
-              {items.length} sản phẩm · Đã chọn {selectedItems.length} · Tạm tính{" "}
+              {items.length} items · Selected {selectedItems.length} · Subtotal{" "}
               {formatVND(selectedSubtotal)}
             </p>
           </div>
@@ -157,11 +157,11 @@ export default function CartPage() {
                   }
                 }}
               />
-              <span>Chọn tất cả</span>
+              <span>Select all</span>
             </label>
 
             <button className="cart-clear" onClick={clearCart}>
-              Xoá tất cả
+              Clear all
             </button>
           </div>
         </header>
@@ -267,10 +267,10 @@ export default function CartPage() {
 
                   <div className="cart-item-bottom">
                     <div className="cart-item-qty">
-                      <span className="cart-item-qty-label">Số lượng</span>
+                      <span className="cart-item-qty-label">Quantity</span>
                       <div className="cart-qty-control">
                         <button
-                          aria-label="Giảm số lượng"
+                          aria-label="Decrease quantity"
                           onClick={(e) => {
                             e.stopPropagation();
                             decreaseQty(item.key);
@@ -281,7 +281,7 @@ export default function CartPage() {
                         </button>
                         <span aria-live="polite">{item.qty}</span>
                         <button
-                          aria-label="Tăng số lượng"
+                          aria-label="Increase quantity"
                           onClick={(e) => {
                             e.stopPropagation();
                             increaseQty(item.key);
@@ -294,7 +294,7 @@ export default function CartPage() {
                     </div>
 
                     <span className="cart-item-price">
-                      Đơn giá: {formatVND(item.price)}
+                      Unit price: {formatVND(item.price)}
                     </span>
 
                     <button
@@ -304,14 +304,14 @@ export default function CartPage() {
                         removeFromCart(item.key);
                       }}
                     >
-                      Xoá
+                      Remove
                     </button>
                   </div>
                 </div>
 
-                {/* Hint hover xem chi tiết */}
+                {/* Hover hint for viewing details */}
                 <div className="cart-item-detail-hint">
-                  <span>Nhấn để xem chi tiết sản phẩm</span>
+                  <span>Click to view product details</span>
                 </div>
               </article>
             );
@@ -319,7 +319,7 @@ export default function CartPage() {
         </div>
       </section>
 
-      {/* Cột phải: tóm tắt đơn hàng (chỉ tính sản phẩm đã tick) */}
+      {/* Right column: order summary (only selected items) */}
       <aside className="cart-aside">
         <CartSummary
           cart={{ items: selectedItems }}

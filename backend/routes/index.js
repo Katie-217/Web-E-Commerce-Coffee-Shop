@@ -16,6 +16,9 @@ const router = express.Router();
 const productsRouter = require('./products');
 const customersRouter = require('./customers');
 const ordersRouter = require('./orders');
+const addressesRouter = require('./addresses');
+const categoriesRouter = require('./categories');
+const uploadRouter = require('./upload');
 const debugRouter = require('./debug');
 const authRouter      = require('./auth');
 
@@ -47,6 +50,9 @@ const authRouter      = require('./auth');
 router.use('/products', productsRouter);
 router.use('/customers', customersRouter);
 router.use('/orders', ordersRouter);
+router.use('/addresses', addressesRouter);
+router.use('/categories', categoriesRouter);
+router.use('/upload', uploadRouter);
 router.use('/debug', debugRouter);
 router.use('/auth', authRouter); 
 

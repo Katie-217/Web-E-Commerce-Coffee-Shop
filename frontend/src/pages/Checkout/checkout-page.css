@@ -3,7 +3,7 @@
    =========================== */
 
 .checkout-page {
-  max-width: 1100px;
+  max-width: 1380px;
   margin: 140px auto 96px;
   padding: 0 16px;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
@@ -12,7 +12,19 @@
   line-height: 1.5;
 }
 
+.checkout-page::before {
+content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at top center, rgba(199, 161, 134, 0.18) 0, transparent 55%),
+    radial-gradient(circle at bottom left, rgba(182, 138, 106, 0.28) 0, transparent 55%),
+    radial-gradient(circle at bottom right, rgba(0, 0, 0, 0.9) 0, transparent 60%),
+    var(--cart-bg);
 /* empty state */
+}
 
 .checkout-page--empty {
   display: flex;
@@ -22,7 +34,7 @@
 }
 
 .checkout-empty-card {
-  background: #ffffff;
+  background: #f8f1e8;
   border-radius: 24px;
   padding: 28px 24px;
   box-shadow: 0 22px 60px rgba(15, 23, 42, 0.16);
@@ -77,8 +89,8 @@
 /* LEFT: form */
 
 .checkout-main {
-  background: #ffffff;
-  border-radius: 26px;
+   background: #f8f1e8;
+  border-radius: 10px;
   padding: 26px 26px 22px;
   box-shadow: 0 22px 60px rgba(15, 23, 42, 0.18);
   border: 1px solid rgba(148, 163, 184, 0.25);
@@ -93,7 +105,6 @@
   height: 4px;
   background: linear-gradient(90deg, #f59e0b, #f97316, #fb923c);
 }
-
 /* header */
 
 .checkout-header {
@@ -170,15 +181,16 @@
 .checkout-field-group input,
 .checkout-field-group textarea {
   border-radius: 12px;
-  border: 1px solid #d1d5db;
+  border: 1px solid rgba(214, 188, 155, 0.9);
   padding: 9px 11px;
   font-size: 14px;
   outline: none;
   transition: border-color 0.15s ease, box-shadow 0.15s ease,
     background 0.15s ease;
   resize: vertical;
-  background: #f9fafb;
+  background: #fdf5eb; /* ngả vàng giống card */
 }
+
 
 .checkout-field-group input::placeholder,
 .checkout-field-group textarea::placeholder {
@@ -189,7 +201,7 @@
 .checkout-field-group textarea:focus {
   border-color: #f97316;
   box-shadow: 0 0 0 1px rgba(249, 115, 22, 0.22);
-  background: #ffffff;
+  background: #f8f1e8;
 }
 
 .checkout-two-cols {
@@ -210,8 +222,10 @@
   display: inline-flex;
   padding: 2px;
   border-radius: 999px;
-  background: #f3f4f6;
+  background: #f1e3d6; /* kem vàng */
+  border: 1px solid rgba(214, 188, 155, 0.9);
 }
+
 
 .checkout-toggle-btn {
   border: none;
@@ -246,8 +260,8 @@
   width: 100%;
   text-align: left;
   border-radius: 14px;
-  border: 1px solid #e5e7eb;
-  background: #f9fafb;
+  border: 1px solid rgba(214, 188, 155, 0.9);
+  background: #fdf5eb;
   padding: 8px 10px;
   font-size: 13px;
   cursor: pointer;
@@ -282,6 +296,26 @@
 .checkout-address-text {
   font-size: 12px;
   color: #4b5563;
+}
+.checkout-address-header-row,
+.payment-method-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.badge-default {
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background: #111827;              /* nền đen giống header */
+  color: #fef3c7;                   /* chữ vàng kem */
+  border: 1px solid rgba(248, 211, 128, 0.9);
+  white-space: nowrap;
 }
 
 .checkout-address-new-link {
@@ -341,8 +375,8 @@
   width: 100%;
   text-align: left;
   border-radius: 14px;
-  border: 1px solid #e5e7eb;
-  background: #f9fafb;
+  border: 1px solid rgba(214, 188, 155, 0.9);
+  background: #fdf5eb;
   padding: 8px 10px;
   font-size: 13px;
   cursor: pointer;
@@ -404,9 +438,16 @@
 }
 
 .checkout-back-btn {
-  background: #f3f4f6;
+  background: #fdf5eb;
+  border: 1px solid rgba(214, 188, 155, 0.9);
   color: #111827;
 }
+.checkout-back-btn:hover {
+  background: #f8e9d8;
+  color: #111827;
+  transform: translateY(-1px);
+}
+
 
 .checkout-back-btn:hover {
   background: #e5e7eb;
@@ -441,12 +482,13 @@
 }
 
 .checkout-summary-card {
-  background: #fdfbf7;
-  border-radius: 24px;
-  padding: 20px 18px 18px;
-  border: 1px solid rgba(148, 163, 184, 0.35);
-  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.18);
+  background: #f8f1e8; /* ngả vàng như bên trái */
+  border-radius: 18px;
+  padding: 22px 20px 20px;
+  border: 1px solid rgba(214, 188, 155, 0.9);
+  box-shadow: 0 22px 60px rgba(15, 23, 42, 0.22);
 }
+
 
 .checkout-summary-card h2 {
   margin: 0 0 10px;

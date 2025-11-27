@@ -22,12 +22,12 @@ const CheckoutPage = () => {
   const { items: cartItems, clearCart } = useCart();
   const { user } = useAuth();
 
-  // Items được truyền từ CartPage (navigate("/checkout", { state: { items } }))
+  // Items passed from CartPage (navigate("/checkout", { state: { items } }))
   const itemsFromState = Array.isArray(location.state?.items)
     ? location.state.items
     : [];
 
-  // Fallback: nếu user F5 mất state, lấy lại từ CartContext
+  // Fallback: if user refreshes (F5) and state is lost, get items again from CartContext
   const items = itemsFromState.length ? itemsFromState : cartItems || [];
 
   const subtotal = useMemo(
@@ -43,11 +43,11 @@ const CheckoutPage = () => {
   const shippingFee = subtotal > 300000 ? 0 : 30000;
   const total = subtotal + shippingFee;
 
-  // ======= LẤY ĐỊA CHỈ & PAYMENT TỪ user (sort mặc định lên đầu) =======
+  // ======= Get addresses & payment methods from user (default first) =======
   const savedAddresses = Array.isArray(user?.addresses)
     ? [...user.addresses].sort((a, b) => {
         if (!!a?.isDefault === !!b?.isDefault) return 0;
-        return a?.isDefault ? -1 : 1; // isDefault = true lên trước
+        return a?.isDefault ? -1 : 1; // isDefault = true goes first
       })
     : [];
 
@@ -58,21 +58,21 @@ const CheckoutPage = () => {
       })
     : [];
 
-  // mode: dùng địa chỉ đã lưu hay nhập mới
+  // mode: use saved address or new one
   const [addressMode, setAddressMode] = useState(
     savedAddresses.length > 0 ? "saved" : "new"
   );
   const [selectedAddressId, setSelectedAddressId] = useState(null);
   const [saveAddress, setSaveAddress] = useState(true);
 
-  // mode: dùng payment đã lưu hay chọn kiểu khác
+  // mode: use saved payment method or choose another type
   const [paymentMode, setPaymentMode] = useState(
     savedPayments.length > 0 ? "saved" : "new"
   );
   const [selectedPaymentId, setSelectedPaymentId] = useState(null);
   const [savePaymentMethod, setSavePaymentMethod] = useState(true);
 
-  // Form: sẽ prefill từ user bằng useEffect bên dưới
+  // Form: will be prefilled from user via useEffect below
   const [form, setForm] = useState({
     fullName: "",
     phone: "",
@@ -87,7 +87,7 @@ const CheckoutPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
-  // Prefill form từ user (họ tên / phone)
+  // Prefill form from user (name / phone)
   useEffect(() => {
     if (!user) return;
     setForm((prev) => ({
@@ -101,7 +101,7 @@ const CheckoutPage = () => {
     }));
   }, [user]);
 
-  // Khi addresses load xong mà chưa chọn gì → chọn địa chỉ mặc định (hoặc first)
+  // When addresses are loaded and none is selected → pick default one (or first)
   useEffect(() => {
     if (savedAddresses.length > 0 && !selectedAddressId) {
       setAddressMode("saved");
@@ -111,7 +111,7 @@ const CheckoutPage = () => {
     }
   }, [savedAddresses, selectedAddressId]);
 
-  // Khi payments load xong mà chưa chọn gì → chọn payment mặc định (hoặc first)
+  // When payment methods are loaded and none is selected → pick default one (or first)
   useEffect(() => {
     if (savedPayments.length > 0 && !selectedPaymentId) {
       setPaymentMode("saved");
@@ -121,20 +121,55 @@ const CheckoutPage = () => {
     }
   }, [savedPayments, selectedPaymentId]);
 
-  // 🟢 Hook xong rồi mới được return sớm
+  // ❗ Nếu không có item nào để thanh toán
   if (!items || items.length === 0) {
     return (
       <main className="checkout-page checkout-page--empty">
         <div className="checkout-empty-card">
-          <h1>Không có sản phẩm để thanh toán</h1>
-          <p>Vui lòng chọn sản phẩm trong giỏ hàng trước khi thanh toán.</p>
+          <h1>No items to checkout</h1>
+          <p>Please add items to your cart before checking out.</p>
           <button
             type="button"
             className="checkout-empty-btn"
             onClick={() => navigate("/cart")}
           >
-            Quay lại giỏ hàng
+            Back to cart
           </button>
+        </div>
+      </main>
+    );
+  }
+
+  // ❗ Nếu chưa đăng nhập: không cho checkout, yêu cầu login
+  if (!user) {
+    return (
+      <main className="checkout-page checkout-page--empty">
+        <div className="checkout-empty-card">
+          <h1>Bạn cần đăng nhập để thanh toán</h1>
+          <p>
+            Vui lòng đăng nhập hoặc tạo tài khoản để lưu địa chỉ và theo dõi
+            đơn hàng của bạn.
+          </p>
+          <div className="checkout-empty-actions">
+            <button
+              type="button"
+              className="checkout-empty-btn checkout-empty-btn--primary"
+              onClick={() =>
+                navigate("/login", {
+                  state: { from: "/checkout" },
+                })
+              }
+            >
+              Đăng nhập
+            </button>
+            <button
+              type="button"
+              className="checkout-empty-btn"
+              onClick={() => navigate("/cart")}
+            >
+              Quay lại giỏ hàng
+            </button>
+          </div>
         </div>
       </main>
     );
@@ -149,7 +184,14 @@ const CheckoutPage = () => {
     e.preventDefault();
     setError("");
 
-    // Validate địa chỉ
+    // 🔒 Safety: nếu vì lý do gì user = null thì chặn luôn
+    if (!user) {
+      setError("Bạn cần đăng nhập để đặt hàng.");
+      navigate("/login", { state: { from: "/checkout" } });
+      return;
+    }
+
+    // Validate address
     if (addressMode === "new") {
       if (
         !form.fullName ||
@@ -157,7 +199,7 @@ const CheckoutPage = () => {
         !form.addressLine ||
         !form.city
       ) {
-        setError("Vui lòng điền đầy đủ thông tin nhận hàng.");
+        setError("Please fill in all required shipping information.");
         return;
       }
     } else if (
@@ -165,7 +207,7 @@ const CheckoutPage = () => {
       savedAddresses.length > 0 &&
       !selectedAddressId
     ) {
-      setError("Vui lòng chọn một địa chỉ giao hàng.");
+      setError("Please select a shipping address.");
       return;
     }
 
@@ -175,11 +217,11 @@ const CheckoutPage = () => {
       savedPayments.length > 0 &&
       !selectedPaymentId
     ) {
-      setError("Vui lòng chọn một phương thức thanh toán.");
+      setError("Please select a payment method.");
       return;
     }
 
-    // Chuẩn bị shippingAddress
+    // Prepare shippingAddress
     let shippingAddress = null;
 
     if (
@@ -202,7 +244,7 @@ const CheckoutPage = () => {
         shippingAddress = {
           fullName: addr.fullName || addr.name,
           phone: addr.phone,
-          // lưu đúng field schema + kèm alias cho an toàn
+          // store correct schema fields plus aliases for safety
           addressLine1: line,
           addressLine: line,
           ward: addr.ward,
@@ -213,7 +255,7 @@ const CheckoutPage = () => {
     }
 
     if (!shippingAddress) {
-      // dùng địa chỉ mới nhập
+      // use newly entered address
       shippingAddress = {
         fullName: form.fullName,
         phone: form.phone,
@@ -225,7 +267,7 @@ const CheckoutPage = () => {
       };
     }
 
-    // Chuẩn bị payment
+    // Prepare payment
     let paymentMethod = form.paymentMethod || "cod";
 
     if (
@@ -248,14 +290,14 @@ const CheckoutPage = () => {
       }
     }
 
-    // Payload gởi lên API /api/orders – backend tự lấy email & id từ req.user
+    // Payload sent to /api/orders – backend will get email & id from req.user
     const payload = {
       items: items.map((it) => ({
         productId: it.productId,
         name: it.name,
         quantity: it.qty,
         price: it.price,
-        // variant / image FE dùng, backend hiện không cần nhưng gửi lên cũng không sao
+        // variant / image used on FE; backend doesn't need them but it's fine to send
         variant: it.variant,
         image: it.image,
       })),
@@ -266,7 +308,8 @@ const CheckoutPage = () => {
       note: form.note,
       paymentMethod,
       currency: "VND",
-      shippingFee, // FE gửi để backend có thể dùng, nhưng backend vẫn tự tính lại subtotal/total
+      // Frontend sends this so backend can use it, but backend still recalculates subtotal/total
+      shippingFee,
     };
 
     try {
@@ -277,21 +320,21 @@ const CheckoutPage = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        credentials: "include", // quan trọng để req.user có email
+        credentials: "include", // important so req.user has email
         body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
         const text = await res.text();
         console.error("Checkout error response:", text);
-        throw new Error("Không tạo được đơn hàng. Vui lòng thử lại.");
+        throw new Error("Unable to create order. Please try again.");
       }
 
       const contentType = res.headers.get("content-type") || "";
       if (!contentType.includes("application/json")) {
         const text = await res.text();
         console.error("Checkout non-JSON response:", text);
-        throw new Error("Server trả về dữ liệu không hợp lệ.");
+        throw new Error("Server returned an invalid response.");
       }
 
       const data = await res.json();
@@ -307,7 +350,7 @@ const CheckoutPage = () => {
       }
     } catch (err) {
       console.error(err);
-      setError(err.message || "Đã xảy ra lỗi khi tạo đơn hàng.");
+      setError(err.message || "An error occurred while creating the order.");
     } finally {
       setSubmitting(false);
     }
@@ -319,15 +362,15 @@ const CheckoutPage = () => {
         {/* LEFT: FORM */}
         <section className="checkout-main">
           <header className="checkout-header">
-            <h1>Thanh toán</h1>
-            <p>Chọn địa chỉ, phương thức thanh toán và hoàn tất đơn hàng.</p>
+            <h1>Checkout</h1>
+            <p>Select your address and payment method, then place your order.</p>
           </header>
 
           <form className="checkout-form" onSubmit={handleSubmit}>
-            {/* ĐỊA CHỈ GIAO HÀNG */}
+            {/* SHIPPING ADDRESS */}
             <section className="checkout-section">
               <div className="checkout-section-header">
-                <h2>Địa chỉ giao hàng</h2>
+                <h2>Shipping address</h2>
                 {savedAddresses.length > 0 && (
                   <div className="checkout-toggle-group">
                     <button
@@ -340,7 +383,7 @@ const CheckoutPage = () => {
                       }
                       onClick={() => setAddressMode("saved")}
                     >
-                      Địa chỉ đã lưu
+                      Saved addresses
                     </button>
                     <button
                       type="button"
@@ -352,7 +395,7 @@ const CheckoutPage = () => {
                       }
                       onClick={() => setAddressMode("new")}
                     >
-                      Địa chỉ mới
+                      New address
                     </button>
                   </div>
                 )}
@@ -391,7 +434,7 @@ const CheckoutPage = () => {
                             </div>
                             {addr.isDefault && (
                               <span className="badge-default">
-                                Mặc định
+                                Default
                               </span>
                             )}
                           </div>
@@ -413,7 +456,7 @@ const CheckoutPage = () => {
                     className="checkout-address-new-link"
                     onClick={() => setAddressMode("new")}
                   >
-                    + Nhập địa chỉ mới
+                    + Add a new address
                   </button>
                 </>
               ) : (
@@ -421,19 +464,19 @@ const CheckoutPage = () => {
                   <div className="checkout-two-cols">
                     <div className="checkout-field-group">
                       <label>
-                        Họ và tên<span className="required">*</span>
+                        Full name<span className="required">*</span>
                       </label>
                       <input
                         type="text"
                         name="fullName"
                         value={form.fullName}
                         onChange={handleChange}
-                        placeholder="Nguyễn Văn A"
+                        placeholder="John Doe"
                       />
                     </div>
                     <div className="checkout-field-group">
                       <label>
-                        Số điện thoại<span className="required">*</span>
+                        Phone number<span className="required">*</span>
                       </label>
                       <input
                         type="tel"
@@ -447,48 +490,48 @@ const CheckoutPage = () => {
 
                   <div className="checkout-field-group">
                     <label>
-                      Địa chỉ<span className="required">*</span>
+                      Address<span className="required">*</span>
                     </label>
                     <input
                       type="text"
                       name="addressLine"
                       value={form.addressLine}
                       onChange={handleChange}
-                      placeholder="Số nhà, tên đường..."
+                      placeholder="House number, street name..."
                     />
                   </div>
 
                   <div className="checkout-three-cols">
                     <div className="checkout-field-group">
-                      <label>Phường/Xã</label>
+                      <label>Ward</label>
                       <input
                         type="text"
                         name="ward"
                         value={form.ward}
                         onChange={handleChange}
-                        placeholder="Phường/xã"
+                        placeholder="Ward"
                       />
                     </div>
                     <div className="checkout-field-group">
-                      <label>Quận/Huyện</label>
+                      <label>District</label>
                       <input
                         type="text"
                         name="district"
                         value={form.district}
                         onChange={handleChange}
-                        placeholder="Quận/huyện"
+                        placeholder="District"
                       />
                     </div>
                     <div className="checkout-field-group">
                       <label>
-                        Tỉnh/Thành phố<span className="required">*</span>
+                        City/Province<span className="required">*</span>
                       </label>
                       <input
                         type="text"
                         name="city"
                         value={form.city}
                         onChange={handleChange}
-                        placeholder="TP.HCM"
+                        placeholder="Ho Chi Minh City"
                       />
                     </div>
                   </div>
@@ -500,14 +543,14 @@ const CheckoutPage = () => {
                         checked={saveAddress}
                         onChange={(e) => setSaveAddress(e.target.checked)}
                       />
-                      <span>Lưu địa chỉ này cho lần sau</span>
+                      <span>Save this address for next time</span>
                     </label>
                   )}
                 </>
               )}
             </section>
 
-            {/* EMAIL LIÊN HỆ – luôn lấy từ tài khoản, không cho sửa */}
+            {/* CONTACT EMAIL – always taken from account, not editable */}
             {user?.email && (
               <div className="checkout-field-group">
                 <label>Email</label>
@@ -515,23 +558,23 @@ const CheckoutPage = () => {
               </div>
             )}
 
-            {/* GHI CHÚ & THANH TOÁN */}
+            {/* NOTE & PAYMENT */}
             <section className="checkout-section">
-              <h2>Ghi chú & thanh toán</h2>
+              <h2>Notes & payment</h2>
 
               <div className="checkout-field-group">
-                <label>Ghi chú cho quán</label>
+                <label>Note for the shop</label>
                 <textarea
                   name="note"
                   value={form.note}
                   onChange={handleChange}
                   rows={3}
-                  placeholder="Ví dụ: Ít đá, giao giờ nghỉ trưa..."
+                  placeholder="E.g. less ice, deliver during lunch break..."
                 />
               </div>
 
               <div className="checkout-field-group">
-                <label>Phương thức thanh toán</label>
+                <label>Payment method</label>
 
                 {savedPayments.length > 0 && (
                   <div className="checkout-toggle-group">
@@ -545,7 +588,7 @@ const CheckoutPage = () => {
                       }
                       onClick={() => setPaymentMode("saved")}
                     >
-                      Đã lưu
+                      Saved methods
                     </button>
                     <button
                       type="button"
@@ -557,7 +600,7 @@ const CheckoutPage = () => {
                       }
                       onClick={() => setPaymentMode("new")}
                     >
-                      Phương thức khác
+                      Other methods
                     </button>
                   </div>
                 )}
@@ -574,12 +617,12 @@ const CheckoutPage = () => {
                           pm.label ||
                           pm.brand ||
                           (type === "cash"
-                            ? "Tiền mặt (COD)"
+                            ? "Cash on delivery (COD)"
                             : type === "card"
-                            ? "Thẻ ngân hàng"
+                            ? "Bank card"
                             : type === "bank"
-                            ? "Tài khoản ngân hàng"
-                            : "Thanh toán");
+                            ? "Bank account"
+                            : "Payment");
 
                         const detail =
                           pm.masked && typeof pm.masked === "string"
@@ -608,7 +651,7 @@ const CheckoutPage = () => {
                               </span>
                               {pm.isDefault && (
                                 <span className="badge-default">
-                                  Mặc định
+                                  Default
                                 </span>
                               )}
                             </div>
@@ -627,7 +670,7 @@ const CheckoutPage = () => {
                       className="checkout-address-new-link"
                       onClick={() => setPaymentMode("new")}
                     >
-                      + Dùng phương thức khác
+                      + Use another method
                     </button>
                   </>
                 ) : (
@@ -641,7 +684,7 @@ const CheckoutPage = () => {
                           checked={form.paymentMethod === "cod"}
                           onChange={handleChange}
                         />
-                        <span>Thanh toán khi nhận hàng (COD)</span>
+                        <span>Cash on delivery (COD)</span>
                       </label>
                       <label className="payment-option">
                         <input
@@ -665,7 +708,7 @@ const CheckoutPage = () => {
                               setSavePaymentMethod(e.target.checked)
                             }
                           />
-                          <span>Lưu phương thức này cho lần sau</span>
+                          <span>Save this payment method for next time</span>
                         </label>
                       )}
                   </>
@@ -681,14 +724,16 @@ const CheckoutPage = () => {
                 className="checkout-back-btn"
                 onClick={() => navigate("/cart")}
               >
-                ← Quay lại giỏ hàng
+                ← Back to cart
               </button>
               <button
                 type="submit"
                 className="checkout-submit-btn"
                 disabled={submitting}
               >
-                {submitting ? "Đang tạo đơn..." : `Đặt hàng ${formatVND(total)}`}
+                {submitting
+                  ? "Creating order..."
+                  : `Place order ${formatVND(total)}`}
               </button>
             </div>
           </form>
@@ -697,7 +742,7 @@ const CheckoutPage = () => {
         {/* RIGHT: SUMMARY */}
         <aside className="checkout-summary">
           <div className="checkout-summary-card">
-            <h2>Đơn hàng của bạn</h2>
+            <h2>Your order</h2>
             <div className="checkout-summary-items">
               {items.map((item) => {
                 const lineTotal =
@@ -726,21 +771,21 @@ const CheckoutPage = () => {
             </div>
 
             <div className="checkout-summary-row">
-              <span>Tạm tính</span>
+              <span>Subtotal</span>
               <span>{formatVND(subtotal)}</span>
             </div>
             <div className="checkout-summary-row">
-              <span>Phí vận chuyển</span>
+              <span>Shipping fee</span>
               <span>
-                {shippingFee === 0 ? "Miễn phí" : formatVND(shippingFee)}
+                {shippingFee === 0 ? "Free" : formatVND(shippingFee)}
               </span>
             </div>
             <div className="checkout-summary-total-row">
-              <span>Tổng cộng</span>
+              <span>Total</span>
               <span>{formatVND(total)}</span>
             </div>
             <p className="checkout-summary-note">
-              Bằng việc đặt hàng, bạn đồng ý với chính sách của quán.
+              By placing this order, you agree to the shop&apos;s policies.
             </p>
           </div>
         </aside>

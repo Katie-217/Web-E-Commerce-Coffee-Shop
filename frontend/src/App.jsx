@@ -2,7 +2,6 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 // Public pages
 import HomePage from './pages/Home/HomePage';
-
 import ProductList from './pages/Catalog/ProductList';
 import ProductDetail from './pages/Catalog/ProductDetail';
 import CartPage from './pages/Cart/CartPage';
@@ -22,15 +21,12 @@ import CupsMugs from './pages/Menu/CupsMugs';
 import RoastCoffee from './pages/Menu/RoastCoffee';
 import CoffeeMakersGrinders from './pages/Menu/CoffeeMakersGrinders';
 import Navbar from './components/NavBar';
-import { CartProvider } from './contexts/CartContext';
-import GoogleCallbackPage from "./pages/Auth/GoogleCallbackPage";
-
- 
+import { CartProvider } from "./contexts/CartContext";
+import GoogleCallbackPage from './pages/Auth/GoogleCallbackPage';
 
 function AppShell() {
   const location = useLocation();
   const hideNavbar = location.pathname.startsWith('/admin');
-
 
   return (
     <>
@@ -52,9 +48,19 @@ function AppShell() {
         <Route path="/register" element={<Register />} />
         <Route path="/account" element={<AccountPage />} />
         <Route path="/about" element={<AboutPage />} />
+
+        
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/auth/google/callback" element={<GoogleCallbackPage />} />
 
+        {/* <Route path="/menu" element={<Menu/>} /> */}
+        <Route path="/menu/coffee-sets" element={<CoffeeSets/>} />
+        <Route path="/menu/cups-mugs" element={<CupsMugs/>} />
+        <Route path="/menu/roast-coffee" element={<RoastCoffee/>} />
+        <Route path="/menu/coffee-makers-grinders" element={<CoffeeMakersGrinders/>} />
+
+        {/* Contact */}
+        <Route path="/contact" element={<ContactPage />} />
         {/* <Route path="/menu" element={<Menu/>} /> */}
         <Route path="/menu/coffee-sets" element={<CoffeeSets/>} />
         <Route path="/menu/cups-mugs" element={<CupsMugs/>} />
@@ -70,9 +76,6 @@ function AppShell() {
 
         {/* Admin */}
         <Route path="/admin/*" element={<AdminApp />} />
-
-
-
 
         {/* Fallback */}
         <Route path="*" element={<NotFound />} />

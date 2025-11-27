@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { OrderDetail as OrderDetailType, ShippingActivity } from '../../types';
+import { OrderDetail as OrderDetailType, ShippingActivity, OrderStatus } from '../../types';
 import Badge from '../../components/Badge';
 import { Edit, ShoppingCart, CheckCircle2, Plus, X, ChevronDown, Calendar } from 'lucide-react';
 import { formatVND } from '../../../../utils/currency';
@@ -9,6 +9,7 @@ import { getAvatarUrl } from '../../../../utils/avatar';
 import { getOrderStatusColor, getPaymentStatusColor } from '../../../../utils/statusColors';
 import BackButton from '../../components/BackButton';
 import { saveState, loadState, clearState } from '../../../../utils/statePersistence';
+import { getOrderDisplayCode } from '../../../../utils/orderDisplayCode';
 
 interface OrderDetailProps {
   order: OrderDetailType;
@@ -84,16 +85,8 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order, onBack, onRefresh }) =
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const getDisplayCode = (orderOrVal: any) => {
-    // Use displayCode from order if available (random 4-character hex: a-f, 0-9)
-    // displayCode should always be present after running the migration script
-    if (orderOrVal?.displayCode) {
-      return `#${orderOrVal.displayCode}`;
-    }
-    // Fallback: if displayCode is missing, show placeholder
-    // This should not happen after migration, but handle gracefully
-    return '#----';
-  };
+  // Import shared utility for order display code
+  const getDisplayCode = (orderOrVal: any) => getOrderDisplayCode(orderOrVal);
 
   const formatAddress = (addr: any) => {
     if (!addr) return '';
@@ -421,11 +414,29 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order, onBack, onRefresh }) =
             <div className="mt-4 pt-4 border-t border-gray-700 space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-text-secondary">Subtotal:</span>
-                <span className="text-text-primary font-medium">{formatVND(order.subtotal)}</span>
+                <span className="text-text-primary font-medium">{formatVND(order.subtotal || 0)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-text-secondary">Loyalty Points Used:</span>
+                <span className="text-text-primary font-medium">
+                  {(order.pointsUsed || 0)} points
+                  {order.pointsUsed > 0 && (
+                    <span className="text-xs text-text-secondary ml-2">
+                      (giảm {formatVND(order.pointsUsed * 1000)})
+                    </span>
+                  )}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-text-secondary">Discount:</span>
-                <span className="text-text-primary font-medium">-{formatVND(Math.abs(order.discount))}</span>
+                <span className="text-text-primary font-medium">
+                  {order.discount > 0 ? `-${formatVND(Math.abs(order.discount))}` : formatVND(0)}
+                  {order.pointsUsed > 0 && order.discount > 0 && (
+                    <span className="text-xs text-text-secondary ml-2">
+                      (từ {order.pointsUsed} points)
+                    </span>
+                  )}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-text-secondary">Shipping Fee:</span>
@@ -433,8 +444,22 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order, onBack, onRefresh }) =
               </div>
               <div className="flex justify-between pt-2 border-t border-gray-700 font-bold text-lg">
                 <span className="text-text-primary font-semibold">Total:</span>
-                <span className="text-text-primary font-medium">{formatVND(order.total)}</span>
+                <span className="text-text-primary font-medium">{formatVND(order.total || 0)}</span>
               </div>
+              {/* Show Points Earned for paid orders (not just delivered) */}
+              {order.paymentStatus && (order.paymentStatus === 'Paid' || order.paymentStatus?.toLowerCase() === 'paid') && (
+                <div className="flex justify-between pt-2 border-t border-gray-700 mt-2">
+                  <span className="text-text-secondary">Points Earned:</span>
+                  <span className="text-green-400 font-medium">
+                    +{(order.pointsEarned || 0)} points
+                    {order.pointsEarned > 0 && (
+                      <span className="text-xs text-text-secondary ml-2">
+                        (trị giá {formatVND((order.pointsEarned || 0) * 1000)})
+                      </span>
+                    )}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
 

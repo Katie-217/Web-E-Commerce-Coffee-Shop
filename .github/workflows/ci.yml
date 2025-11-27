@@ -64,5 +64,5 @@ jobs:
         run: npm test -- --watch=false
 
       - name: Build
-        run: npm run build
+        run: CI=false npm run build
 

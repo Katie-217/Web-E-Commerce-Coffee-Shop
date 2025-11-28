@@ -1007,3 +1007,96 @@
 }
 
 /* Cho chắc: chỉ áp dụng trong account-page, không ảnh hưởng chỗ khác */
+/* ===== Wishlist horizontal scroll ===== */
+
+.favorites-grid {
+  display: flex;
+  flex-wrap: nowrap;          /* không xuống dòng, nằm ngang hết */
+  gap: 16px;
+  overflow-x: auto;           /* cho kéo ngang */
+  padding: 8px 4px 12px;
+  margin: 0 -8px;             /* để card sát 2 mép hơn một chút */
+  scroll-snap-type: x mandatory; /* cuộn mượt từng card */
+}
+
+/* thanh scroll ngang */
+.favorites-grid::-webkit-scrollbar {
+  height: 6px;
+}
+
+.favorites-grid::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.04);
+  border-radius: 999px;
+}
+
+.favorites-grid::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.2);
+  border-radius: 999px;
+}
+
+/* mỗi card chiếm độ rộng cố định, để nằm ngang giống carousel */
+.favorite-card {
+  flex: 0 0 220px;            /* độ rộng ~220px, chỉnh tuỳ ý */
+  scroll-snap-align: start;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.06);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ảnh ở trên */
+.favorite-thumb {
+  width: 100%;
+  height: 160px;
+  overflow: hidden;
+  background: #f3f4f6;
+}
+
+.favorite-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* phần nội dung */
+.favorite-body {
+  padding: 10px 12px 12px;
+}
+
+.favorite-name {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.favorite-price {
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.favorite-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  font-size: 11px;
+}
+
+.favorite-badge-sale {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #fee2e2;
+  color: #b91c1c;
+  font-weight: 500;
+}
+
+.favorite-thumb-placeholder {
+  width: 100%;
+  height: 100%;
+  font-size: 12px;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

@@ -569,7 +569,7 @@ const CheckoutPage = () => {
                   value={form.note}
                   onChange={handleChange}
                   rows={3}
-                  placeholder="E.g. less ice, deliver during lunch break..."
+                  placeholder="E.g. deliver during lunch break..."
                 />
               </div>
 

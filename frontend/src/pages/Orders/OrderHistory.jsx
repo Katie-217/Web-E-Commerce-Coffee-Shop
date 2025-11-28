@@ -1,26 +1,28 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../contexts/AuthContext"; // chỉnh path nếu khác
+import { useAuth } from "../../contexts/AuthContext";
 import "./order-history.css";
 
 const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL || "http://localhost:3001";
 
 const STATUS_LABELS = {
-  created: "Mới tạo",
-  pending: "Chờ xác nhận",
-  processing: "Đang xử lý",
-  confirmed: "Đã xác nhận",
-  shipping: "Đang giao",
-  shipped: "Đã giao vận chuyển",
-  completed: "Hoàn thành",
-  delivered: "Đã giao",
-  cancelled: "Đã hủy",
-  canceled: "Đã hủy",
+  created: "Created",
+  pending: "Pending",
+  processing: "Processing",
+  confirmed: "Confirmed",
+  shipping: "Shipping",
+  shipped: "Shipped",
+  completed: "Completed",
+  delivered: "Delivered",
+  cancelled: "Cancelled",
+  canceled: "Cancelled",
+  refunded: "Refunded",
 };
 
 function formatCurrency(value) {
   if (value == null || Number.isNaN(Number(value))) return "—";
+  // vẫn giữ VND, nếu muốn full English có thể đổi locale & currency
   return new Intl.NumberFormat("vi-VN", {
     style: "currency",
     currency: "VND",
@@ -31,6 +33,7 @@ function formatDate(value) {
   if (!value) return "—";
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return "—";
+  // vẫn format theo giờ VN, nếu muốn có thể đổi locale sang "en-GB" hoặc "en-US"
   return d.toLocaleString("vi-VN", {
     day: "2-digit",
     month: "2-digit",
@@ -43,12 +46,9 @@ function formatDate(value) {
 const OrderHistory = () => {
   const navigate = useNavigate();
 
-  // Lấy email user từ AuthContext (tùy bạn đặt tên trong context)
   const auth = useAuth();
   const email =
     auth?.user?.email || auth?.currentUser?.email || auth?.email || null;
-  // Nếu chưa có login mà muốn test nhanh có thể hardcode:
-  // const email = "linh.ngo.1@example.com";
 
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -80,7 +80,7 @@ const OrderHistory = () => {
         const text = await res.text();
         console.error("OrderHistory ERROR response:", text);
         throw new Error(
-          "Không lấy được danh sách đơn hàng (status " + res.status + ")"
+          "Failed to fetch order list (status " + res.status + ")"
         );
       }
 
@@ -89,12 +89,11 @@ const OrderHistory = () => {
         const text = await res.text();
         console.error("OrderHistory – non-JSON response:", text);
         throw new Error(
-          "Server trả về dữ liệu không phải JSON (thường là do gọi nhầm URL API)."
+          "Server returned non-JSON data (often caused by calling the wrong API URL)."
         );
       }
 
       const data = await res.json();
-      // backend: { success:true, data:[...], items:[...], pagination:{...} }
       const list = Array.isArray(data)
         ? data
         : data.data || data.items || [];
@@ -102,7 +101,7 @@ const OrderHistory = () => {
       setOrders(list);
     } catch (err) {
       console.error(err);
-      setError(err.message || "Đã xảy ra lỗi khi tải đơn hàng");
+      setError(err.message || "An error occurred while loading orders.");
     } finally {
       setLoading(false);
     }
@@ -120,14 +119,14 @@ const OrderHistory = () => {
 
   const handleRowClick = (orderId) => {
     if (!orderId) return;
-    navigate(`/orders/${orderId}`); // chỉnh nếu route khác
+    navigate(`/orders/${orderId}`);
   };
 
   const renderStatusBadge = (statusRaw) => {
     if (!statusRaw) {
       return (
         <span className="order-status-badge order-status-unknown">
-          Không rõ
+          Unknown
         </span>
       );
     }
@@ -146,21 +145,21 @@ const OrderHistory = () => {
         <div className="order-history-card">
           <div className="order-history-header">
             <div>
-              <h1>Lịch sử đơn hàng</h1>
-              <p>Xem lại các đơn hàng đã đặt và trạng thái hiện tại.</p>
+              <h1>Order history</h1>
+              <p>Review your past orders and their current status.</p>
             </div>
           </div>
 
           {!email && (
             <div className="order-history-state">
-              <p>Bạn cần đăng nhập để xem lịch sử đơn hàng.</p>
+              <p>You need to sign in to view your order history.</p>
             </div>
           )}
 
           {email && loading && (
             <div className="order-history-state">
               <div className="spinner" />
-              <p>Đang tải danh sách đơn hàng...</p>
+              <p>Loading orders...</p>
             </div>
           )}
 
@@ -168,17 +167,17 @@ const OrderHistory = () => {
             <div className="order-history-state order-history-error">
               <p>{error}</p>
               <button type="button" onClick={() => loadOrders(email)}>
-                Thử lại
+                Try again
               </button>
             </div>
           )}
 
           {email && !loading && !error && orders.length === 0 && (
             <div className="order-history-state order-history-empty">
-              <h3>Chưa có đơn hàng nào</h3>
+              <h3>No orders yet</h3>
               <p>
-                Tài khoản {email} hiện chưa có đơn hàng. Khi bạn đặt hàng, lịch
-                sử sẽ hiển thị tại đây.
+                The account {email} doesn&apos;t have any orders yet. Once you
+                place an order, it will appear here.
               </p>
             </div>
           )}
@@ -188,10 +187,10 @@ const OrderHistory = () => {
               <table className="order-history-table">
                 <thead>
                   <tr>
-                    <th>Mã đơn</th>
-                    <th>Thời gian</th>
-                    <th>Tổng tiền</th>
-                    <th>Trạng thái</th>
+                    <th>Order</th>
+                    <th>Date &amp; time</th>
+                    <th>Total</th>
+                    <th>Status</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -221,7 +220,7 @@ const OrderHistory = () => {
               </table>
 
               <p className="order-history-note">
-                Nhấn vào từng dòng để xem chi tiết đơn hàng.
+                Click on a row to view order details.
               </p>
             </div>
           )}

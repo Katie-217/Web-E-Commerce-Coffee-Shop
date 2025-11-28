@@ -2,11 +2,13 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import OrderModal from "./OrderModal";
 import "../../Menu/styles/menu-modal.css";
+import { useAuth } from "../../../contexts/AuthContext";
+import { updateProfile } from "../../../services/account";
 
 const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL || "http://localhost:3001";
 
-// 4 brand cố định
+// 4 fixed brands (used only for name search)
 const BRAND_OPTIONS = [
   "Trung Nguyên",
   "Highlands",
@@ -14,7 +16,7 @@ const BRAND_OPTIONS = [
   "Phúc Long",
 ];
 
-// Dùng chung với OrderModal: ưu tiên image từ backend
+// Shared with OrderModal: prefer image from backend
 function resolveImage(product) {
   if (!product) return "/images/coffee1.jpg";
 
@@ -29,13 +31,48 @@ function resolveImage(product) {
 
 function formatPrice(n) {
   const num = Number(n || 0);
-  if (!Number.isFinite(num) || num <= 0) return "Liên hệ";
+  if (!Number.isFinite(num) || num <= 0) return "Contact us";
 
   return new Intl.NumberFormat("vi-VN", {
     style: "currency",
     currency: "VND",
     maximumFractionDigits: 0,
   }).format(num);
+}
+
+// Local FE sort helper based on sortBy
+// Ước lượng độ "bán chạy" của 1 product dựa trên các field nếu có
+function getSoldScore(p = {}) {
+  // Các field có thể tồn tại tuỳ backend
+  const base =
+    p.sold ??
+    p.soldCount ??
+    p.totalSold ??
+    p.sales ??
+    p.orderCount ??
+    p.orders ??
+    0;
+
+  let score = Number(base);
+  if (!Number.isFinite(score) || score < 0) score = 0;
+
+  // Nếu có rating / reviewCount thì cộng thêm điểm
+  const rating = Number(p.rating ?? p.avgRating ?? 0);
+  const reviews = Number(p.reviewCount ?? p.reviewsCount ?? 0);
+
+  if (Number.isFinite(rating) && rating > 0) {
+    score += rating * 2; // rating cao thì ưu tiên hơn
+  }
+  if (Number.isFinite(reviews) && reviews > 0) {
+    // giới hạn để không quá lệch
+    score += Math.min(reviews, 50);
+  }
+
+  return score;
+}
+
+function getCreatedAtTime(p = {}) {
+  return new Date(p.createdAt || p.updatedAt || 0).getTime() || 0;
 }
 
 // Hàm sort local trên FE theo sortBy
@@ -46,38 +83,48 @@ function sortProducts(list, sortBy) {
     case "priceAsc":
       sorted.sort((a, b) => (a.price || 0) - (b.price || 0));
       break;
+
     case "priceDesc":
       sorted.sort((a, b) => (b.price || 0) - (a.price || 0));
       break;
+
     case "new":
-      sorted.sort((a, b) => {
-        const dateA = new Date(a.createdAt || a.updatedAt || 0).getTime();
-        const dateB = new Date(b.createdAt || b.updatedAt || 0).getTime();
-        return dateB - dateA; // mới nhất trước
-      });
+      sorted.sort((a, b) => getCreatedAtTime(b) - getCreatedAtTime(a));
       break;
+
     case "best":
     default:
-      // giữ nguyên thứ tự backend trả về
+      sorted.sort((a, b) => {
+        const sb = getSoldScore(b);
+        const sa = getSoldScore(a);
+
+        if (sb === sa) {
+          // nếu điểm giống nhau thì ưu tiên sản phẩm mới hơn
+          return getCreatedAtTime(b) - getCreatedAtTime(a);
+        }
+        return sb - sa; // điểm cao hơn đứng trước
+      });
       break;
   }
 
   return sorted;
 }
+
+
 function isProductInStock(p) {
   if (!p) return true;
 
-  // Nếu backend có inStock boolean
+  // Backend may have explicit boolean inStock
   if (typeof p.inStock === "boolean") return p.inStock;
 
-  // Nếu có status dạng string
+  // Or a status string
   if (typeof p.status === "string") {
     const s = p.status.toLowerCase();
     if (["out-of-stock", "sold-out", "unavailable"].includes(s)) return false;
     if (["in-stock", "available"].includes(s)) return true;
   }
 
-  // Các field số lượng thường gặp
+  // Common numeric stock fields
   const candidates = [
     p.stock,
     p.countInStock,
@@ -93,42 +140,59 @@ function isProductInStock(p) {
     if (Number.isFinite(num)) return num > 0;
   }
 
-  // Không có info thì mặc định coi là còn hàng
+  // If no info, assume in stock
   return true;
 }
 
-
 export default function MenuCatalogSection({
   breadcrumbLabel = "Home / Coffee Menu",
-  // category dùng để filter theo loại / collection trong DB
+  // category is used to filter by type / collection in DB
   category,
 }) {
   const [products, setProducts] = useState([]);
-  const [rawProducts, setRawProducts] = useState([]); // dữ liệu gốc từ API
+  const { user, updateUser } = useAuth();
+  const [savingWishlistId, setSavingWishlistId] = useState(null);
+
+  // always treat wishlist as array
+  const wishlist = Array.isArray(user?.wishlist) ? user.wishlist : [];
+
+  const isInWishlist = (productId) =>
+    wishlist.some((entry) => {
+      if (!entry) return false;
+      // entry can be a primitive or object { productId, ... }
+      const pid =
+        typeof entry === "object"
+          ? entry.productId ?? entry.id ?? entry._id
+          : entry;
+
+      return String(pid) === String(productId);
+    });
+
+  const [rawProducts, setRawProducts] = useState([]); // raw data from API
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // ---- Modal + chọn sản phẩm ----
+  // ---- Modal + selected product ----
   const [showModal, setShowModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [tempQty, setTempQty] = useState(1);
   const [tempSize, setTempSize] = useState("M");
 
-  // Toast "đã thêm vào giỏ"
+  // Toast: "added to cart"
   const [toastItem, setToastItem] = useState(null);
 
-  // ---- State filter + sort ----
+  // ---- Filter + sort state ----
   const [availability, setAvailability] = useState("all"); // all | in | out
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [selectedTypes, setSelectedTypes] = useState([]);
-  const [selectedBrands, setSelectedBrands] = useState([]); // 4 brand FE
+  const [selectedBrands, setSelectedBrands] = useState([]); // 4 FE brands
   const [selectedSizes, setSelectedSizes] = useState([]);
   const [sortBy, setSortBy] = useState("best"); // best | priceAsc | priceDesc | new
 
   const navigate = useNavigate();
 
-  // --- Fetch products từ backend (CHỈ dùng filter: category, availability, type, size) ---
+  // --- Fetch products from backend (only use filter: category, availability, type, size) ---
   useEffect(() => {
     const controller = new AbortController();
 
@@ -148,7 +212,7 @@ export default function MenuCatalogSection({
         if (selectedTypes.length) {
           params.set("types", selectedTypes.join(","));
         }
-        // KHÔNG gửi brands vì DB không có cột brand
+        // DO NOT send brands because DB does not have brand column
         if (selectedSizes.length) {
           params.set("sizes", selectedSizes.join(","));
         }
@@ -165,13 +229,13 @@ export default function MenuCatalogSection({
         }
 
         const json = await res.json();
-        // Tùy backend: data / items / products
+        // Backend may return data / items / products
         const list = json.data || json.items || json.products || [];
-        setRawProducts(list); // lưu dữ liệu gốc
+        setRawProducts(list); // keep raw data
       } catch (err) {
         if (err.name !== "AbortError") {
           console.error("Fetch products error:", err);
-          setError(err.message || "Không tải được sản phẩm");
+          setError(err.message || "Failed to load products");
         }
       } finally {
         setLoading(false);
@@ -189,67 +253,65 @@ export default function MenuCatalogSection({
     return () => clearTimeout(t);
   }, [toastItem]);
 
-  // --- Lọc theo giá + brand + sort local ---
-  // --- Lọc theo giá + brand + sort local ---
-useEffect(() => {
-  if (!rawProducts || rawProducts.length === 0) {
-    setProducts([]);
-    return;
-  }
-
-  // Parse min / max
-  let min = minPrice === "" || minPrice === null ? null : Number(minPrice);
-  let max = maxPrice === "" || maxPrice === null ? null : Number(maxPrice);
-
-  if (Number.isNaN(min)) min = null;
-  if (Number.isNaN(max)) max = null;
-
-  // Nếu user nhập min > max thì đảo lại
-  if (min != null && max != null && min > max) {
-    const tmp = min;
-    min = max;
-    max = tmp;
-  }
-
-  let list = rawProducts.filter((p) => {
-    const price = Number(p.price || 0);
-    const name = (p.name || "").toLowerCase();
-
-    // ====== LỌC THEO AVAILABILITY ======
-    const inStockFlag = isProductInStock(p);
-    if (availability === "in" && !inStockFlag) return false;
-    if (availability === "out" && inStockFlag) return false;
-    // ====================================
-
-    // filter giá
-    if (min != null && price < min) return false;
-    if (max != null && price > max) return false;
-
-    // filter brand = search trong name
-    if (selectedBrands.length > 0) {
-      const matchBrand = selectedBrands.some((b) =>
-        name.includes(b.toLowerCase())
-      );
-      if (!matchBrand) return false;
+  // --- Filter by price + brand + local sort ---
+  useEffect(() => {
+    if (!rawProducts || rawProducts.length === 0) {
+      setProducts([]);
+      return;
     }
 
-    return true;
-  });
+    // Parse min / max
+    let min = minPrice === "" || minPrice === null ? null : Number(minPrice);
+    let max = maxPrice === "" || maxPrice === null ? null : Number(maxPrice);
 
-  const sorted = sortProducts(list, sortBy);
-  setProducts(sorted);
-}, [rawProducts, sortBy, minPrice, maxPrice, selectedBrands, availability]);
+    if (Number.isNaN(min)) min = null;
+    if (Number.isNaN(max)) max = null;
 
+    // Swap if user enters min > max
+    if (min != null && max != null && min > max) {
+      const tmp = min;
+      min = max;
+      max = tmp;
+    }
 
-  // ---- Handler mở modal ----
+    let list = rawProducts.filter((p) => {
+      const price = Number(p.price || 0);
+      const name = (p.name || "").toLowerCase();
+
+      // ====== FILTER BY AVAILABILITY ======
+      const inStockFlag = isProductInStock(p);
+      if (availability === "in" && !inStockFlag) return false;
+      if (availability === "out" && inStockFlag) return false;
+      // ====================================
+
+      // price filter
+      if (min != null && price < min) return false;
+      if (max != null && price > max) return false;
+
+      // brand filter = search brand keywords in product name
+      if (selectedBrands.length > 0) {
+        const matchBrand = selectedBrands.some((b) =>
+          name.includes(b.toLowerCase())
+        );
+        if (!matchBrand) return false;
+      }
+
+      return true;
+    });
+
+    const sorted = sortProducts(list, sortBy);
+    setProducts(sorted);
+  }, [rawProducts, sortBy, minPrice, maxPrice, selectedBrands, availability]);
+
+  // ---- Open modal handler ----
   const handleOpenModal = (product) => {
     setSelectedProduct(product);
     setTempQty(1);
-    setTempSize(""); // để OrderModal tự chọn size default
+    setTempSize(""); // let OrderModal choose default size
     setShowModal(true);
   };
 
-  // Khi OrderModal báo đã add vào cart
+  // Called when OrderModal reports item added to cart
   const handleItemAdded = (item) => {
     setShowModal(false);
     if (item) {
@@ -257,7 +319,7 @@ useEffect(() => {
     }
   };
 
-  // ---- Reset filter ----
+  // ---- Reset all filters ----
   const handleResetFilters = () => {
     setAvailability("all");
     setMinPrice("");
@@ -268,7 +330,7 @@ useEffect(() => {
     setSortBy("best");
   };
 
-  // Helper toggle checkbox list
+  // Helper to toggle values in checkbox lists
   const toggleInArray = (value, list, setter) => {
     if (list.includes(value)) {
       setter(list.filter((v) => v !== value));
@@ -277,18 +339,18 @@ useEffect(() => {
     }
   };
 
-  // Derive facets từ products (đã apply filter giá + brand)
+  // Derive product types from filtered products (after price + brand filters)
   const productTypes = Array.from(
     new Set(products.map((p) => p.type).filter(Boolean))
   );
 
-  // Tính highest price từ rawProducts (chưa bị filter giá)
+  // Highest price from rawProducts (before price filter)
   const highestPrice =
     rawProducts.length > 0
       ? Math.max(...rawProducts.map((p) => p.price || 0))
       : 0;
 
-  // Đếm số sản phẩm theo từng brand option (dựa trên products đã filter giá)
+  // Count products per brand option (after current filters)
   const brandCounts = BRAND_OPTIONS.reduce((acc, b) => {
     const count = products.filter((p) =>
       (p.name || "").toLowerCase().includes(b.toLowerCase())
@@ -297,7 +359,7 @@ useEffect(() => {
     return acc;
   }, {});
 
-  // Điều hướng sang trang chi tiết sản phẩm
+  // Navigate to product detail page
   const goToProductDetail = (prodOrItem) => {
     if (!prodOrItem) return;
     const id =
@@ -306,9 +368,68 @@ useEffect(() => {
     navigate(`/products/${id}`);
   };
 
+  const handleToggleWishlist = async (product) => {
+    if (!user) {
+      alert("You need to log in to use the wishlist.");
+      return;
+    }
+
+    const pid = product.id ?? product._id;
+    if (!pid) return;
+
+    try {
+      setSavingWishlistId(pid);
+
+      const current = Array.isArray(user.wishlist) ? [...user.wishlist] : [];
+
+      const index = current.findIndex((entry) => {
+        if (!entry) return false;
+        const eid =
+          typeof entry === "object"
+            ? entry.productId ?? entry.id ?? entry._id
+            : entry;
+        return String(eid) === String(pid);
+      });
+
+      let next;
+      if (index >= 0) {
+        // already in wishlist → remove it
+        next = current.filter((_, i) => i !== index);
+      } else {
+        // not yet in wishlist → add it
+        next = [
+          ...current,
+          {
+            productId: pid,
+            dateAdded: new Date().toISOString(),
+            isOnSale: !!product.isOnSale,
+          },
+        ];
+      }
+
+      // Call update profile API, reusing endpoint from AccountPage
+      const updated = await updateProfile({ wishlist: next });
+
+      // updateProfile may return { data: user } or user directly
+      const newUser = updated?.data ?? updated;
+      if (newUser) {
+        updateUser?.(newUser);
+      }
+    } catch (err) {
+      console.error("Toggle wishlist error:", err);
+      alert(
+        err?.response?.data?.message ||
+          err.message ||
+          "Failed to update wishlist."
+      );
+    } finally {
+      setSavingWishlistId(null);
+    }
+  };
+
   return (
     <div className="catalog-wrapper">
-      {/* Filter sidebar bên trái */}
+      {/* Left filter sidebar */}
       <div className="filter-sidebar">
         <div className="filter-topbar">
           <h3>Filters</h3>
@@ -386,8 +507,8 @@ useEffect(() => {
           </div>
           <p className="price-info">
             {rawProducts.length
-              ? `The highest price is ${highestPrice.toLocaleString()}đ`
-              : "Nhập khoảng giá để lọc"}
+              ? `The highest price is ${highestPrice.toLocaleString()}₫`
+              : "Enter a price range to filter"}
           </p>
           <div className="price-inputs">
             <div>
@@ -411,7 +532,7 @@ useEffect(() => {
           </div>
         </div>
 
-        {/* BRAND Filter – 4 option cố định, search theo name */}
+        {/* BRAND Filter – fixed 4 options, search by name */}
         <div className="filter-section">
           <div className="filter-header">
             <h4>BRAND</h4>
@@ -436,7 +557,7 @@ useEffect(() => {
 
       {/* Main content area */}
       <div className="main-content">
-        {/* Breadcrumb và Sort */}
+        {/* Breadcrumb + Sort */}
         <div className="catalog-header">
           <div className="breadcrumb">
             <span>{breadcrumbLabel}</span>
@@ -457,83 +578,103 @@ useEffect(() => {
         </div>
 
         {/* Loading / Error */}
-        {loading && <p>Đang tải sản phẩm...</p>}
+        {loading && <p>Loading products...</p>}
         {error && !loading && (
-          <p style={{ color: "red" }}>Lỗi tải sản phẩm: {error}</p>
+          <p style={{ color: "red" }}>Failed to load products: {error}</p>
         )}
 
         {/* Product Grid */}
         {!loading && !error && (
           <div className="product-grid">
-            {products.map((p) => (
-              <div key={p._id || p.id} className="product-card">
-                <div className="product-image">
-                  <img
-                    src={resolveImage(p)}
-                    alt={p.name}
-                    onClick={() => goToProductDetail(p)}
-                    style={{ cursor: "pointer" }}
-                  />
-                  <div className="product-badges">
-                    {/* tuỳ backend có discount/newFlag thì hiển thị thực tế */}
-                    <span className="discount-badge">-20%</span>
-                    <span className="new-badge">New</span>
-                  </div>
-                  <div className="product-actions">
-                    {/* Heart & Compare hiện tại chỉ UI, sau này có API thì gắn thêm */}
-                    <button className="action-btn">♡</button>
-                    <button className="action-btn">⇄</button>
-                    <button
-                      className="action-btn"
-                      onClick={() => handleOpenModal(p)}
-                    >
-                      👁
-                    </button>
-                  </div>
-                </div>
-                <div className="product-info">
-                  <h3
-                    className="product-title"
-                    onClick={() => goToProductDetail(p)}
-                    style={{ cursor: "pointer" }}
-                  >
-                    {p.name}
-                  </h3>
-                  <p className="product-desc">
-                    {p.description || p.desc || ""}
-                  </p>
+            {products.map((p) => {
+              const pid = p.id ?? p._id;
+              const liked = pid ? isInWishlist(pid) : false;
 
-                  <div className="product-price">
-                    <span className="current-price">
-                      {formatPrice(p.price)}
-                    </span>
-                    {/* Nếu có giá cũ thì show */}
-                    {p.oldPrice && (
-                      <span className="old-price">
-                        {formatPrice(p.oldPrice)}
-                      </span>
-                    )}
+              return (
+                <div key={pid || p._id || p.id} className="product-card">
+                  <div className="product-image">
+                    <img
+                      src={resolveImage(p)}
+                      alt={p.name}
+                      onClick={() => goToProductDetail(p)}
+                      style={{ cursor: "pointer" }}
+                    />
+                    <div className="product-badges">
+                      <span className="discount-badge">-20%</span>
+                      <span className="new-badge">New</span>
+                    </div>
+                    <div className="product-actions">
+                      {/* Heart button */}
+                      <button
+                        type="button"
+                        className={`action-btn action-btn--wishlist ${
+                          liked ? "action-btn--favorite" : ""
+                        }`}
+                        data-tooltip={
+                          liked ? "Remove from wishlist" : "Add to wishlist"
+                        }
+                        disabled={savingWishlistId === pid}
+                        onClick={(e) => {
+                          e.stopPropagation(); // avoid triggering card click
+                          handleToggleWishlist(p);
+                        }}
+                      >
+                        {liked ? "♥" : "♡"}
+                      </button>
+
+                      <button
+                        className="action-btn"
+                        onClick={() => handleOpenModal(p)}
+                      >
+                        👁
+                      </button>
+                    </div>
                   </div>
-                  <div className="product-cta">
-                    <button
-                      className="add-to-cart"
-                      onClick={() => handleOpenModal(p)}
+
+                  <div className="product-info">
+                    <h3
+                      className="product-title"
+                      onClick={() => goToProductDetail(p)}
+                      style={{ cursor: "pointer" }}
                     >
-                      ADD TO CART
-                    </button>
-                    <button
-                      className="buy-now"
-                      onClick={() => handleOpenModal(p)}
-                    >
-                      BUY NOW
-                    </button>
+                      {p.name}
+                    </h3>
+                    <p className="product-desc">
+                      {p.description || p.desc || ""}
+                    </p>
+
+                    <div className="product-price">
+                      <span className="current-price">
+                        {formatPrice(p.price)}
+                      </span>
+                      {p.oldPrice && (
+                        <span className="old-price">
+                          {formatPrice(p.oldPrice)}
+                        </span>
+                      )}
+                    </div>
+                    <div className="product-cta">
+                      <button
+                        className="add-to-cart"
+                        onClick={() => handleOpenModal(p)}
+                      >
+                        ADD TO CART
+                      </button>
+                      <button
+                        className="buy-now"
+                        onClick={() => handleOpenModal(p)}
+                      >
+                        BUY NOW
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
+
             {products.length === 0 && (
               <p>
-                Không có sản phẩm nào khớp với bộ lọc hiện tại.{" "}
+                No products match the current filters.{" "}
                 <button
                   type="button"
                   style={{
@@ -544,7 +685,7 @@ useEffect(() => {
                   }}
                   onClick={handleResetFilters}
                 >
-                  Xóa bộ lọc
+                  Clear filters
                 </button>
               </p>
             )}
@@ -558,21 +699,21 @@ useEffect(() => {
             setTempQty={setTempQty}
             tempSize={tempSize}
             setTempSize={setTempSize}
-            // OrderModal tự addToCart vào CartContext, onAdd dùng để đóng popup + hiện toast
+            // OrderModal itself adds to CartContext; onAdd is used to close popup + show toast
             onAdd={handleItemAdded}
             onClose={() => setShowModal(false)}
           />
         )}
       </div>
 
-      {/* Toast thêm giỏ hàng */}
+      {/* "Added to cart" toast */}
       {toastItem && (
         <div className="catalog-toast">
           <div className="catalog-toast-inner">
             <div className="catalog-toast-main">
               <span>
-                Đã thêm{" "}
-                <strong>{toastItem.name || "sản phẩm"}</strong> vào giỏ hàng.
+                Added{" "}
+                <strong>{toastItem.name || "product"}</strong> to your cart.
               </span>
             </div>
             <div className="catalog-toast-actions">
@@ -581,7 +722,7 @@ useEffect(() => {
                 className="toast-link"
                 onClick={() => goToProductDetail(toastItem)}
               >
-                Xem chi tiết
+                View details
               </button>
               <button
                 type="button"

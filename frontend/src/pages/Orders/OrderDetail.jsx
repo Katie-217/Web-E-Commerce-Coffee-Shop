@@ -27,23 +27,31 @@ function formatDate(value) {
 }
 
 const STATUS_LABELS = {
-  created: "Mới tạo",
-  pending: "Chờ xác nhận",
-  processing: "Đang xử lý",
-  confirmed: "Đã xác nhận",
-  shipping: "Đang giao",
-  shipped: "Đã giao vận chuyển",
-  completed: "Hoàn thành",
-  delivered: "Đã giao",
-  cancelled: "Đã hủy",
-  canceled: "Đã hủy",
+  created: "Created",
+  pending: "Pending",
+  processing: "Processing",
+  confirmed: "Confirmed",
+  shipping: "Shipping",
+  shipped: "Shipped",
+  completed: "Completed",
+  delivered: "Delivered",
+  cancelled: "Cancelled",
+  canceled: "Cancelled",
+  refunded: "Refunded",
+};
+
+const PAYMENT_STATUS_LABELS = {
+  pending: "Pending",
+  paid: "Paid",
+  failed: "Failed",
+  refunded: "Refunded",
 };
 
 const STATUS_STEPS = [
-  { key: "created", label: "Đã đặt hàng" },
-  { key: "processing", label: "Đang xử lý" },
-  { key: "shipping", label: "Đang giao" },
-  { key: "delivered", label: "Đã giao" },
+  { key: "created", label: "Order placed" },
+  { key: "processing", label: "Processing" },
+  { key: "shipping", label: "Shipping" },
+  { key: "delivered", label: "Delivered" },
 ];
 
 function normalizeStatus(statusRaw) {
@@ -65,12 +73,12 @@ function getStepIndexFromStatus(statusRaw) {
 const OrderDetail = () => {
   const params = useParams();
 
-  // Ăn cả /orders/:id, /orders/:orderId, vv...
+  // Support /orders/:id, /orders/:orderId, etc.
   const orderId =
     params.id ||
     params.orderId ||
     params._id ||
-    Object.values(params)[0]; // fallback: lấy value đầu tiên nếu tên param khác
+    Object.values(params)[0];
 
   const navigate = useNavigate();
 
@@ -80,7 +88,7 @@ const OrderDetail = () => {
 
   const loadOrder = async () => {
     if (!orderId) {
-      setError("Không tìm thấy mã đơn hàng");
+      setError("Order ID not found.");
       setLoading(false);
       return;
     }
@@ -103,7 +111,7 @@ const OrderDetail = () => {
         const text = await res.text();
         console.error("OrderDetail ERROR response:", text);
         throw new Error(
-          "Không lấy được thông tin đơn hàng (status " + res.status + ")"
+          "Failed to fetch order details (status " + res.status + ")"
         );
       }
 
@@ -112,7 +120,7 @@ const OrderDetail = () => {
         const text = await res.text();
         console.error("OrderDetail – non-JSON response:", text);
         throw new Error(
-          "Server trả về dữ liệu không phải JSON (thường là do gọi nhầm URL API)."
+          "Server returned non-JSON data (usually caused by calling the wrong API URL)."
         );
       }
 
@@ -122,7 +130,7 @@ const OrderDetail = () => {
       setOrder(orderData);
     } catch (err) {
       console.error(err);
-      setError(err.message || "Đã xảy ra lỗi khi tải đơn hàng");
+      setError(err.message || "An error occurred while loading the order.");
     } finally {
       setLoading(false);
     }
@@ -134,43 +142,67 @@ const OrderDetail = () => {
   }, [orderId]);
 
   const totalItems = useMemo(() => {
-    if (!order?.items) return 0;
-    return order.items.reduce(
-      (sum, item) => sum + (item.quantity || 0),
-      0
-    );
+    if (!order) return 0;
+
+    // kiếm list items theo nhiều key khác nhau
+    const lineItems =
+      order.items || order.orderItems || order.cartItems || [];
+
+    if (!Array.isArray(lineItems)) return 0;
+
+    let count = lineItems.reduce((sum, item) => {
+      const q =
+        item.quantity ??   // chuẩn backend nếu dùng "quantity"
+        item.qty ??        // chuẩn cart/checkout hay dùng "qty"
+        item.count ??      // fallback khác
+        0;
+
+      return sum + (Number(q) || 0);
+    }, 0);
+
+    // nếu vẫn = 0 nhưng có dòng item, ít nhất trả về số dòng
+    if (!count && lineItems.length) {
+      count = lineItems.length;
+    }
+
+    return count;
   }, [order]);
+  console.log("ORDER DETAIL", order);
+
+
 
   const status = normalizeStatus(order?.status);
-  const isCancelled = status === "cancelled" || status === "canceled";
+  const isRefunded = status === "refunded";
+  const isCancelled =
+    status === "cancelled" || status === "canceled" || isRefunded;
   const stepIndex = getStepIndexFromStatus(order?.status);
-  const statusLabel = STATUS_LABELS[status] || order?.status || "Không rõ";
+  const statusLabel = STATUS_LABELS[status] || order?.status || "Unknown";
 
   const shortCode = order?.displayCode
     ? `#${String(order.displayCode).toUpperCase()}`
     : order?.id
-    ? `#${String(order.id).slice(-4).toUpperCase()}`
-    : "—";
+      ? `#${String(order.id).slice(-4).toUpperCase()}`
+      : "—";
 
   return (
-    <div className="container">
-      <div className="order-detail-page">
+    <main className="order-detail-page">
+      <div className="order-detail-inner">
         <div className="order-detail-header-bar">
           <button
             type="button"
             className="order-detail-back-btn"
             onClick={() => navigate(-1)}
           >
-            ← Quay lại
+            ← Back
           </button>
-          <h1>Chi tiết đơn hàng</h1>
+          <h1>Order details</h1>
         </div>
 
         <div className="order-detail-card">
           {loading && (
             <div className="order-detail-state">
               <div className="spinner" />
-              <p>Đang tải thông tin đơn hàng...</p>
+              <p>Loading order...</p>
             </div>
           )}
 
@@ -178,14 +210,14 @@ const OrderDetail = () => {
             <div className="order-detail-state order-detail-error">
               <p>{error}</p>
               <button type="button" onClick={loadOrder}>
-                Thử lại
+                Try again
               </button>
             </div>
           )}
 
           {!loading && !error && !order && (
             <div className="order-detail-state order-detail-error">
-              <p>Không tìm thấy đơn hàng.</p>
+              <p>Order not found.</p>
             </div>
           )}
 
@@ -194,35 +226,51 @@ const OrderDetail = () => {
               {/* TOP SUMMARY */}
               <div className="order-detail-top">
                 <div>
-                  <p className="order-detail-code">Mã đơn: {shortCode}</p>
+                  <p className="order-detail-code">Order: {shortCode}</p>
                   <p className="order-detail-time">
-                    Tạo lúc: {formatDate(order.createdAt)}
+                    Placed at: {formatDate(order.createdAt)}
                   </p>
                 </div>
 
                 <div className="order-detail-status-block">
-                  {isCancelled ? (
-                    <span className="order-status-badge order-status-cancelled">
-                      Đã hủy
-                    </span>
+                  {status ? (
+                    isRefunded ? (
+                      <span className="order-status-badge order-status-refunded">
+                        Refunded
+                      </span>
+                    ) : isCancelled ? (
+                      <span className="order-status-badge order-status-cancelled">
+                        Cancelled
+                      </span>
+                    ) : (
+                      <span
+                        className={`order-status-badge order-status-${status}`}
+                      >
+                        {statusLabel}
+                      </span>
+                    )
                   ) : (
-                    <span className={`order-status-badge order-status-${status}`}>
-                      {statusLabel}
+                    <span className="order-status-badge order-status-unknown">
+                      Unknown
                     </span>
                   )}
                 </div>
               </div>
 
               {/* STATUS STEPS / TIMELINE */}
-              <div className="order-detail-steps">
+              <div
+                className={
+                  "order-detail-steps" +
+                  (!isCancelled ? ` od-step-${stepIndex}` : "")
+                }
+              >
                 {STATUS_STEPS.map((step, index) => {
                   const active = !isCancelled && index <= stepIndex;
                   return (
                     <div
                       key={step.key}
-                      className={`order-detail-step ${
-                        active ? "order-detail-step-active" : ""
-                      }`}
+                      className={`order-detail-step ${active ? "order-detail-step-active" : ""
+                        }`}
                     >
                       <div className="order-detail-step-circle" />
                       <span className="order-detail-step-label">
@@ -233,25 +281,26 @@ const OrderDetail = () => {
                 })}
               </div>
 
+
               {/* MAIN CONTENT GRID */}
               <div className="order-detail-grid">
                 {/* LEFT: SHIPPING + PAYMENT */}
                 <div className="order-detail-column">
                   <div className="order-detail-section">
-                    <h2>Thông tin giao hàng</h2>
+                    <h2>Shipping information</h2>
                     <div className="order-detail-info">
                       <p>
-                        <span className="label">Tên người nhận:</span>{" "}
+                        <span className="label">Recipient name:</span>{" "}
                         {order.shippingAddress?.fullName ||
                           order.shippingAddress?.name ||
                           "—"}
                       </p>
                       <p>
-                        <span className="label">Số điện thoại:</span>{" "}
+                        <span className="label">Phone number:</span>{" "}
                         {order.shippingAddress?.phone || "—"}
                       </p>
                       <p>
-                        <span className="label">Địa chỉ:</span>{" "}
+                        <span className="label">Address:</span>{" "}
                         {(() => {
                           const a = order.shippingAddress || {};
                           const parts = [
@@ -269,16 +318,17 @@ const OrderDetail = () => {
                   </div>
 
                   <div className="order-detail-section">
-                    <h2>Thanh toán</h2>
+                    <h2>Payment</h2>
                     <div className="order-detail-info">
                       <p>
-                        <span className="label">Phương thức:</span>{" "}
+                        <span className="label">Method:</span>{" "}
                         {order.paymentMethod || "—"}
                       </p>
                       {order.paymentStatus && (
                         <p>
-                          <span className="label">Trạng thái thanh toán:</span>{" "}
-                          {order.paymentStatus}
+                          <span className="label">Payment status:</span>{" "}
+                          {PAYMENT_STATUS_LABELS[order.paymentStatus] ||
+                            order.paymentStatus}
                         </p>
                       )}
                     </div>
@@ -288,27 +338,27 @@ const OrderDetail = () => {
                 {/* RIGHT: TOTALS */}
                 <div className="order-detail-column">
                   <div className="order-detail-section order-detail-summary">
-                    <h2>Tóm tắt đơn hàng</h2>
+                    <h2>Order summary</h2>
                     <div className="order-detail-summary-row">
-                      <span>Tổng sản phẩm</span>
+                      <span>Items</span>
                       <span>{totalItems}</span>
                     </div>
                     <div className="order-detail-summary-row">
-                      <span>Tạm tính</span>
+                      <span>Subtotal</span>
                       <span>{formatCurrency(order.subtotal)}</span>
                     </div>
                     <div className="order-detail-summary-row">
-                      <span>Phí vận chuyển</span>
+                      <span>Shipping fee</span>
                       <span>{formatCurrency(order.shippingFee || 0)}</span>
                     </div>
                     {order.discount != null && order.discount > 0 && (
                       <div className="order-detail-summary-row">
-                        <span>Giảm giá</span>
+                        <span>Discount</span>
                         <span>-{formatCurrency(order.discount)}</span>
                       </div>
                     )}
                     <div className="order-detail-summary-row order-detail-summary-total">
-                      <span>Tổng cộng</span>
+                      <span>Total</span>
                       <span>{formatCurrency(order.total)}</span>
                     </div>
                   </div>
@@ -318,7 +368,7 @@ const OrderDetail = () => {
           )}
         </div>
       </div>
-    </div>
+    </main>
   );
 };
 

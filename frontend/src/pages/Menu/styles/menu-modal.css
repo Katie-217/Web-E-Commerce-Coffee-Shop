@@ -354,36 +354,52 @@
   text-decoration: underline;
 }
 
-/* Toast "đã thêm vào giỏ" ở góc phải dưới */
+/* Toast "added to cart" – center bottom, one-line */
 .catalog-toast {
   position: fixed;
-  right: 24px;
-  bottom: 24px;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
   z-index: 1200;
-  max-width: 360px;
+  max-width: 960px;             /* cho phép dài hơn nhiều */
+  width: auto;                  /* rộng theo nội dung */
+  padding: 0 16px;              /* chừa chút space 2 bên */
   font-size: 0.9rem;
   color: #e5e7eb;
 }
 
+
 .catalog-toast-inner {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
+  gap: 14px;
+  padding: 12px 20px;
   border-radius: 999px;
-  background: rgba(15, 23, 42, 0.96);
-  border: 1px solid rgba(248, 113, 113, 0.6);
+  /* nền đen–coffee giống trang home */
+  background: radial-gradient(circle at top left, #111827 0, #020617 55%);
+  /* viền amber nhẹ theo tông nút checkout/menu */
+  border: 1px solid rgba(249, 115, 22, 0.65);
   box-shadow: 0 18px 45px rgba(0, 0, 0, 0.75);
   backdrop-filter: blur(8px);
   animation: catalog-toast-in 0.18s ease-out;
+  width: auto;
+  justify-content: space-between;
+}
+
+.catalog-toast-main {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .catalog-toast-main span {
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #e5e7eb;          /* chữ xám sáng */
 }
 
 .catalog-toast-main strong {
-  color: #facc15;
+  color: #fed7aa;          /* vàng kem giống home */
   font-weight: 600;
 }
 
@@ -401,14 +417,15 @@
   font-size: 0.8rem;
   padding: 4px 10px;
   border-radius: 999px;
-  background: #f97316;
+  background: linear-gradient(135deg, #f97316, #ea580c);
   color: #f9fafb;
   font-weight: 600;
   white-space: nowrap;
+  box-shadow: 0 10px 26px rgba(234, 88, 12, 0.5);
 }
 
 .catalog-toast-actions .toast-link:hover {
-  background: #ea580c;
+  background: #f97316;
 }
 
 .catalog-toast-actions .toast-close {
@@ -437,23 +454,20 @@
   }
 }
 
-/* mobile: toast full chiều ngang dưới màn hình */
 @media (max-width: 640px) {
   .catalog-toast {
-    right: 12px;
-    left: 12px;
+    left: 50%;
+    right: auto;
+    width: calc(100% - 24px);
     bottom: 16px;
+    transform: translateX(-50%);
   }
 
   .catalog-toast-inner {
-    border-radius: 12px;
-    justify-content: space-between;
-  }
-
-  .catalog-toast-main span {
-    white-space: normal;
+    border-radius: 14px;
   }
 }
+
 /* ===== STOCK INFO ===== */
 .stock-info {
   margin-top: 4px;
@@ -493,4 +507,121 @@
   border-color: #dddddd;
   cursor: not-allowed;
   box-shadow: none;
+}
+
+/* Wishlist heart – hover toast/tooltip */
+.action-btn--wishlist {
+  position: relative;
+}
+
+/* bubble xuất hiện dưới nút tim */
+.action-btn--wishlist::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 50%;
+  bottom: auto;
+  top: -30px;
+  transform: translateX(-50%) translateY(4px);
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+  background: rgba(17, 24, 39, 0.96); /* gần #111827 */
+  color: #f9fafb;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  z-index: 20;
+}
+
+/* mũi tên nhỏ nếu muốn */
+.action-btn--wishlist::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: auto;
+  top: -4px;
+  transform: translateX(-50%);
+  border-width: 4px;
+  border-style: solid;
+  border-color: rgba(17, 24, 39, 0.96) transparent transparent transparent;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  pointer-events: none;
+}
+
+/* hiển thị khi hover */
+.action-btn--wishlist:hover::after,
+.action-btn--wishlist:hover::before {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+/* Đảm bảo ảnh là mốc cho nút tim */
+.pd-image-wrapper {
+  position: relative;
+}
+
+/* Nút tim dưới ảnh – căn giữa, nhìn nổi hơn */
+.pd-heart-btn {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  width: 34px;
+  height: 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  background: rgba(15, 23, 42, 0.88);   /* nền tối giống theme */
+  color: #9ca3af;                       /* tim xám khi chưa like */
+
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.12s ease;
+}
+
+/* Hover – hơi nảy nhẹ + đổi màu */
+.pd-heart-btn:hover:not(:disabled) {
+  background: #111827;
+  color: #f97316;                        /* cam giống các nút */
+  border-color: #f97316;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5);
+  transform: translateX(-50%) translateY(-1px);
+}
+
+/* Đã nằm trong wishlist */
+.pd-heart-btn--active {
+  background: #111827;
+  color: #f97316;
+  border-color: #f97316;
+}
+
+/* Hover khi đã active thì sáng hơn chút */
+.pd-heart-btn--active:hover:not(:disabled) {
+  background: #f97316;
+  color: #fefce8;
+  border-color: #f97316;
+}
+
+/* Mobile: cho tim sát hơn mép dưới 1 xíu */
+@media (max-width: 640px) {
+  .pd-heart-btn {
+    bottom: 10px;
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+  }
 }

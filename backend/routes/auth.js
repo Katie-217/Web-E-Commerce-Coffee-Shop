@@ -21,50 +21,44 @@ const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
  */
 function toUserPayload(doc) {
   if (!doc) return null;
-
   const plain = doc.toObject ? doc.toObject() : { ...doc };
+
+  delete plain.password;
+  delete plain.__v;
 
   const fullName =
     plain.fullName ||
-    `${plain.firstName || ""} ${plain.lastName || ""}`.trim() ||
-    plain.name ||
-    null;
+    [plain.firstName, plain.lastName].filter(Boolean).join(" ");
 
   return {
-    // id
-    id: plain._id ? String(plain._id) : plain.id,
-    _id: plain._id,
-
-    // tên
-    firstName: plain.firstName || null,
-    lastName: plain.lastName || null,
+    id: String(plain._id || plain.id),
+    email: plain.email,
     fullName,
-    name: fullName,
+    firstName: plain.firstName,
+    lastName: plain.lastName,
+    avatarUrl: plain.avatarUrl,
 
-    // liên hệ
-    email: plain.email || null,
-    phone: plain.phone || (plain.addresses?.[0]?.phone ?? null),
+    phone: plain.phone || null,
+    gender: plain.gender || null,
+    dateOfBirth: plain.dateOfBirth || null,
 
-    // thông tin phụ
-    gender: plain.gender ?? null,
-    dateOfBirth: plain.dateOfBirth ?? null,
-    avatarUrl: plain.avatarUrl || plain.avatar || null,
-
-    // cấu trúc lớn
+    // ==== QUAN TRỌNG: giữ đủ data ====
     addresses: Array.isArray(plain.addresses) ? plain.addresses : [],
     paymentMethods: Array.isArray(plain.paymentMethods)
       ? plain.paymentMethods
       : [],
+    wishlist: Array.isArray(plain.wishlist) ? plain.wishlist : [],
+
     loyalty: plain.loyalty || null,
     preferences: plain.preferences || null,
     consents: plain.consents || null,
-
-    // trạng thái
+    tags: Array.isArray(plain.tags) ? plain.tags : [],
     status: plain.status || "active",
-    createdAt: plain.createdAt || null,
-    updatedAt: plain.updatedAt || null,
+    createdAt: plain.createdAt,
+    updatedAt: plain.updatedAt,
   };
 }
+
 
 async function sendResetOtpEmail(to, otp) {
   const from = process.env.FROM_EMAIL || "no-reply@example.com";

@@ -2,22 +2,40 @@
   color: #fff;
   font-family: Arial, sans-serif;
   padding: 10px 0 10px;
-  background: transparent; 
+  background: transparent;
+  position: relative; /* để ::before bám theo footer */
 }
 
-
-/* Section divider */
-.section-divider {
-  width: 100vw;
-  height: 1px;
-  background: #d4a574;
-  margin: 0;
-  padding: 0;
-  display: block;
-  position: relative;
+/* vạch vàng full screen phía trên footer */
+.footer::before {
+  content: "";
+  position: absolute;
+  top: 0;
   left: 50%;
   transform: translateX(-50%);
+  width: 100vw;  /* full theo viewport */
+  height: 1px;
+  background: #d4a574;
 }
+
+.section-divider {
+  height: 1px;
+  background: #d4a574;
+  display: block;
+  margin: 0;
+  padding: 0;
+
+  /* full màn hình giống footer */
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+
 
 .footer-container {
   display: grid;

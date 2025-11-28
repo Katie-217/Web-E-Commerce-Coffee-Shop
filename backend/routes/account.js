@@ -46,6 +46,7 @@ function toUserPayload(doc) {
  */
 router.put("/profile", authMiddleware, async (req, res) => {
   try {
+    const userId = req.userId;
     const {
       fullName,
       phone,
@@ -53,7 +54,10 @@ router.put("/profile", authMiddleware, async (req, res) => {
       dateOfBirth,
       addresses,
       paymentMethods,
+      wishlist,
+      avatarUrl,
     } = req.body || {};
+
 
     const update = {};
 
@@ -87,6 +91,13 @@ router.put("/profile", authMiddleware, async (req, res) => {
     if (Array.isArray(paymentMethods)) {
       update.paymentMethods = paymentMethods;
     }
+    if (Array.isArray(wishlist)) {
+      update.wishlist = wishlist;
+    }
+    if (avatarUrl !== undefined) {
+      update.avatarUrl = avatarUrl || null;
+    }
+
 
     const customer = await Customer.findByIdAndUpdate(
       req.userId,

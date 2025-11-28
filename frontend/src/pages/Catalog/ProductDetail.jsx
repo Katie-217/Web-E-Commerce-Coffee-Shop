@@ -3,12 +3,13 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useCart } from "../../contexts/CartContext";
 import { useAuth } from "../../contexts/AuthContext";
+import { updateProfile } from "../../services/account";
 import "./product-detail.css";
 
 const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL || "http://localhost:3001";
 
-// ===== Helpers dùng chung =====
+// ===== Shared helpers =====
 function resolveImage(product) {
   if (!product) return "/images/coffee1.jpg";
 
@@ -23,7 +24,7 @@ function resolveImage(product) {
 
 function formatPrice(n) {
   const num = Number(n || 0);
-  if (!Number.isFinite(num) || num <= 0) return "Liên hệ";
+  if (!Number.isFinite(num) || num <= 0) return "Contact us";
 
   return new Intl.NumberFormat("vi-VN", {
     style: "currency",
@@ -43,7 +44,7 @@ function getPriceWithSize(p, optIdx = 0) {
   return base + delta;
 }
 
-// ===== Component input 5 ngôi sao (clickable) =====
+// ===== Star rating input (1–5, clickable) =====
 function StarRatingInput({ value, onChange }) {
   const [hover, setHover] = React.useState(0);
 
@@ -59,7 +60,7 @@ function StarRatingInput({ value, onChange }) {
             onMouseEnter={() => setHover(star)}
             onMouseLeave={() => setHover(0)}
             onClick={() => onChange(star)}
-            aria-label={`${star} sao`}
+            aria-label={`${star} stars`}
           >
             ★
           </button>
@@ -73,7 +74,9 @@ const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { addToCart } = useCart();
-  const { user } = useAuth(); // lấy user từ AuthContext
+
+  // also get updateUser so we can sync user after updating wishlist
+  const { user, updateUser } = useAuth();
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -83,19 +86,24 @@ const ProductDetail = () => {
   const [qty, setQty] = useState(1);
 
   // ----- REVIEW STATE -----
-  const [reviews, setReviews] = useState([]); // lấy từ DB
+  const [reviews, setReviews] = useState([]); // from DB
   const [reviewsLoading, setReviewsLoading] = useState(false);
   const [reviewsError, setReviewsError] = useState("");
 
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState("");
 
-  // name + email: lấy từ user nếu có, nếu không để user nhập
+  // name + email: use user info if logged in, otherwise let user input
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
-  // --------------------------
 
-  // Prefill name/email nếu user đã đăng nhập
+  // ===== Wishlist state =====
+  const [savingWishlist, setSavingWishlist] = useState(false);
+
+  // always keep wishlist as array for easier handling
+  const wishlist = Array.isArray(user?.wishlist) ? user.wishlist : [];
+
+  // Prefill name/email when user is logged in
   useEffect(() => {
     if (user) {
       setCustomerName(user.name || user.fullName || user.email || "");
@@ -103,7 +111,7 @@ const ProductDetail = () => {
     }
   }, [user]);
 
-  // ===== Fetch chi tiết sản phẩm =====
+  // ===== Fetch product detail =====
   useEffect(() => {
     if (!id) return;
     const controller = new AbortController();
@@ -113,10 +121,9 @@ const ProductDetail = () => {
         setLoading(true);
         setError("");
 
-        const res = await fetch(
-          `${API_BASE_URL}/api/products/${id}`,
-          { signal: controller.signal }
-        );
+        const res = await fetch(`${API_BASE_URL}/api/products/${id}`, {
+          signal: controller.signal,
+        });
 
         if (!res.ok) {
           const txt = await res.text();
@@ -127,7 +134,7 @@ const ProductDetail = () => {
         const p = json.data || json.product || json;
         setProduct(p);
 
-        // setup size default
+        // setup default size
         const sizeVar = getSizeVar(p);
         if (sizeVar?.options?.length) {
           setSelectedSize(sizeVar.options[0].label);
@@ -138,7 +145,7 @@ const ProductDetail = () => {
       } catch (err) {
         if (err.name !== "AbortError") {
           console.error("Product detail error:", err);
-          setError(err.message || "Không tải được chi tiết sản phẩm");
+          setError(err.message || "Failed to load product details");
         }
       } finally {
         setLoading(false);
@@ -149,7 +156,7 @@ const ProductDetail = () => {
     return () => controller.abort();
   }, [id]);
 
-  // ===== Fetch reviews từ backend =====
+  // ===== Fetch reviews from backend =====
   useEffect(() => {
     if (!id) return;
     const controller = new AbortController();
@@ -176,7 +183,7 @@ const ProductDetail = () => {
       } catch (err) {
         if (err.name !== "AbortError") {
           console.error("Reviews error:", err);
-          setReviewsError("Không tải được đánh giá");
+          setReviewsError("Failed to load reviews");
         }
       } finally {
         setReviewsLoading(false);
@@ -189,15 +196,13 @@ const ProductDetail = () => {
 
   const sizeVar = getSizeVar(product);
   const imageSrc = resolveImage(product);
-  const description =
-    product?.description || product?.desc || "";
+  const description = product?.description || product?.desc || "";
 
   const rawStock = Number(product?.quantity);
-  const stock =
-    Number.isFinite(rawStock) && rawStock > 0 ? rawStock : 0;
-  const inStock = stock > 0; // sửa đơn giản: có stock > 0 là còn hàng
+  const stock = Number.isFinite(rawStock) && rawStock > 0 ? rawStock : 0;
+  const inStock = stock > 0;
 
-  // xác định option đang chọn theo label
+  // determine selected option by label
   const { priceNumber, total, currentLabel, optIdx } = useMemo(() => {
     if (!product) {
       return {
@@ -232,14 +237,12 @@ const ProductDetail = () => {
     };
   }, [product, sizeVar, selectedSize, qty]);
 
-  // ===== Cart helpers – giống OrderModal =====
+  // ===== Cart helpers – same as OrderModal =====
   const buildCartItem = () => {
     if (!product) return null;
 
     const basePrice = Number(product.price || 0);
-    const variant = sizeVar
-      ? { name: "size", value: currentLabel }
-      : null;
+    const variant = sizeVar ? { name: "size", value: currentLabel } : null;
     const variantOptions = sizeVar?.options?.map((op) => ({
       label: op.label,
       priceDelta: Number(op.priceDelta || 0),
@@ -269,6 +272,7 @@ const ProductDetail = () => {
   const handleBuyNow = () => {
     const item = buildCartItem();
     if (!item) return;
+    addToCart(item);
     navigate("/checkout");
   };
 
@@ -315,7 +319,7 @@ const ProductDetail = () => {
     );
   };
 
-  // Gửi review lên API – bắt buộc có name + email
+  // Submit review to API – require name + email
   const handleSubmitReview = async (e) => {
     e.preventDefault();
 
@@ -324,19 +328,19 @@ const ProductDetail = () => {
     const email = (user?.email || customerEmail || "").trim();
 
     if (!reviewRating || reviewRating < 1 || reviewRating > 5) {
-      alert("Vui lòng chọn số sao (1–5).");
+      alert("Please choose a rating (1–5 stars).");
       return;
     }
     if (!text) {
-      alert("Vui lòng nhập nội dung nhận xét.");
+      alert("Please enter your review content.");
       return;
     }
     if (!name) {
-      alert("Vui lòng nhập tên của bạn.");
+      alert("Please enter your name.");
       return;
     }
     if (!email) {
-      alert("Vui lòng nhập email.");
+      alert("Please enter your email.");
       return;
     }
 
@@ -371,14 +375,73 @@ const ProductDetail = () => {
       setReviewComment("");
       setReviewRating(5);
 
-      // nếu user chưa login, có thể giữ lại name/email trong state
       if (!user) {
         setCustomerName(name);
         setCustomerEmail(email);
       }
     } catch (err) {
       console.error("Submit review error:", err);
-      alert("Gửi đánh giá thất bại. Thử lại sau nhé.");
+      alert("Failed to submit your review. Please try again later.");
+    }
+  };
+
+  // ===== Wishlist helpers =====
+  const handleToggleWishlist = async () => {
+    if (!user) {
+      alert("You need to log in to use the wishlist.");
+      return;
+    }
+    if (!product) return;
+
+    const pid = product.id ?? product._id;
+    if (!pid) return;
+
+    try {
+      setSavingWishlist(true);
+
+      const current = Array.isArray(user.wishlist) ? [...user.wishlist] : [];
+
+      const index = current.findIndex((entry) => {
+        if (!entry) return false;
+        const eid =
+          typeof entry === "object"
+            ? entry.productId ?? entry.id ?? entry._id
+            : entry;
+        return String(eid) === String(pid);
+      });
+
+      let next;
+      if (index >= 0) {
+        // already in wishlist → remove
+        next = current.filter((_, i) => i !== index);
+      } else {
+        // not in wishlist yet → add
+        next = [
+          ...current,
+          {
+            productId: pid,
+            dateAdded: new Date().toISOString(),
+            isOnSale: !!product.isOnSale,
+          },
+        ];
+      }
+
+      const updated = await updateProfile({ wishlist: next });
+
+      // backend may return { user }, { data }, or user directly
+      const newUser = updated?.user || updated?.data || updated;
+      if (newUser) {
+        updateUser?.(newUser);
+      }
+    } catch (err) {
+      console.error("Toggle wishlist error:", err);
+      alert(
+        err?.response?.data?.message ||
+          err.message ||
+          "Failed to update wishlist."
+      );
+    } finally {
+      setSavingWishlist(false);
     }
   };
 
@@ -387,7 +450,7 @@ const ProductDetail = () => {
     return (
       <div className="product-detail-page">
         <div className="product-detail-container">
-          <p>Đang tải chi tiết sản phẩm...</p>
+          <p>Loading product details...</p>
         </div>
       </div>
     );
@@ -398,7 +461,7 @@ const ProductDetail = () => {
       <div className="product-detail-page">
         <div className="product-detail-container">
           <p style={{ color: "red" }}>
-            Không tải được sản phẩm: {error || "Không tìm thấy"}
+            Failed to load product: {error || "Not found"}
           </p>
         </div>
       </div>
@@ -406,6 +469,17 @@ const ProductDetail = () => {
   }
 
   const isLoggedIn = !!user;
+  const pid = product.id ?? product._id;
+  const liked =
+    pid &&
+    wishlist.some((entry) => {
+      if (!entry) return false;
+      const eid =
+        typeof entry === "object"
+          ? entry.productId ?? entry.id ?? entry._id
+          : entry;
+      return String(eid) === String(pid);
+    });
 
   return (
     <div className="product-detail-page">
@@ -416,7 +490,7 @@ const ProductDetail = () => {
             className="pd-breadcrumb-link"
             onClick={() => navigate(-1)}
           >
-            &larr; Quay lại
+            &larr; Back
           </span>
           <span className="pd-breadcrumb-sep">/</span>
           <span>{product.category}</span>
@@ -432,9 +506,21 @@ const ProductDetail = () => {
                 alt={product.name}
                 className="pd-image"
               />
+              {/* Heart button on image */}
+              <button
+                type="button"
+                className={`pd-heart-btn ${liked ? "pd-heart-btn--active" : ""}`}
+                onClick={handleToggleWishlist}
+                disabled={savingWishlist}
+                title={
+                  liked ? "Remove from wishlist" : "Add to wishlist"
+                }
+              >
+                {liked ? "♥" : "♡"}
+              </button>
             </div>
             {!inStock && (
-              <span className="pd-badge-out">Hết hàng</span>
+              <span className="pd-badge-out">Out of stock</span>
             )}
           </div>
 
@@ -449,11 +535,11 @@ const ProductDetail = () => {
               <span className="pd-rating-score">
                 {ratingStats.count
                   ? `${ratingStats.avg.toFixed(1)}/5`
-                  : "Chưa có đánh giá"}
+                  : "No ratings yet"}
               </span>
               {ratingStats.count > 0 && (
                 <span className="pd-rating-count">
-                  ({ratingStats.count} đánh giá)
+                  ({ratingStats.count} reviews)
                 </span>
               )}
             </div>
@@ -474,10 +560,10 @@ const ProductDetail = () => {
             )}
 
             <div className="pd-meta">
-              <span>Mã SP: {product.sku}</span>
+              <span>SKU: {product.sku}</span>
               <span>
-                Tình trạng:{" "}
-                <strong>{inStock ? "Còn hàng" : "Tạm hết hàng"}</strong>
+                Status:{" "}
+                <strong>{inStock ? "In stock" : "Temporarily out of stock"}</strong>
               </span>
             </div>
 
@@ -505,19 +591,17 @@ const ProductDetail = () => {
                     ))}
                   </select>
                 ) : (
-                  <div className="pd-select disabled">
-                    Mặc định
-                  </div>
+                  <div className="pd-select disabled">Default</div>
                 )}
               </div>
 
               {/* QTY */}
               <div className="pd-field">
                 <div className="pd-field-label">
-                  <span>Số lượng</span>
+                  <span>Quantity</span>
                   {stock > 0 && (
                     <small>
-                      Còn lại: <strong>{stock}</strong> sản phẩm
+                      Remaining: <strong>{stock}</strong> items
                     </small>
                   )}
                 </div>
@@ -543,7 +627,7 @@ const ProductDetail = () => {
               {/* TOTAL */}
               <div className="pd-field">
                 <div className="pd-field-label">
-                  <span>Tổng tạm tính</span>
+                  <span>Subtotal</span>
                 </div>
                 <div className="pd-total">
                   {formatPrice(total)}
@@ -557,14 +641,29 @@ const ProductDetail = () => {
                   onClick={handleBuyNow}
                   disabled={!inStock}
                 >
-                  MUA NGAY
+                  BUY NOW
                 </button>
                 <button
                   className="pd-btn-outline"
                   onClick={handleAddToCart}
                   disabled={!inStock}
                 >
-                  THÊM VÀO GIỎ
+                  ADD TO CART
+                </button>
+
+                {/* Inline heart button next to main buttons */}
+                <button
+                  type="button"
+                  className={`pd-btn-heart-inline ${
+                    liked ? "pd-btn-heart-inline--active" : ""
+                  }`}
+                  onClick={handleToggleWishlist}
+                  disabled={savingWishlist}
+                  title={
+                    liked ? "Remove from wishlist" : "Add to wishlist"
+                  }
+                >
+                  {liked ? "♥ Added to wishlist" : "♡ Add to wishlist"}
                 </button>
               </div>
             </div>
@@ -574,29 +673,29 @@ const ProductDetail = () => {
         {/* EXTRA INFO + REVIEWS */}
         <div className="pd-extra">
           <section className="pd-section">
-            <h2>Thông tin sản phẩm</h2>
+            <h2>Product information</h2>
             <p>
               {description ||
-                "Sản phẩm cà phê được tuyển chọn kỹ lưỡng, phù hợp cho nhiều phương pháp pha khác nhau."}
+                "Carefully selected coffee beans, suitable for many different brewing methods."}
             </p>
             <ul className="pd-specs">
               <li>
-                <span>Danh mục</span>
+                <span>Category</span>
                 <strong>{product.category}</strong>
               </li>
               <li>
-                <span>Mã sản phẩm</span>
+                <span>Product code</span>
                 <strong>{product.sku}</strong>
               </li>
               <li>
-                <span>Còn lại</span>
+                <span>In stock</span>
                 <strong>{stock}</strong>
               </li>
             </ul>
           </section>
 
           <section className="pd-section pd-reviews">
-            <h2>Đánh giá sản phẩm</h2>
+            <h2>Product reviews</h2>
 
             {/* SUMMARY */}
             <div className="pd-review-summary">
@@ -612,8 +711,8 @@ const ProductDetail = () => {
                   </div>
                   <span>
                     {ratingStats.count
-                      ? `${ratingStats.count} đánh giá`
-                      : "Chưa có đánh giá"}
+                      ? `${ratingStats.count} reviews`
+                      : "No reviews yet"}
                   </span>
                 </div>
               </div>
@@ -621,7 +720,7 @@ const ProductDetail = () => {
 
             {/* LIST */}
             <div className="pd-review-list">
-              {reviewsLoading && <p>Đang tải đánh giá...</p>}
+              {reviewsLoading && <p>Loading reviews...</p>}
               {reviewsError && (
                 <p style={{ color: "red" }}>{reviewsError}</p>
               )}
@@ -630,9 +729,7 @@ const ProductDetail = () => {
                 reviews.map((r) => (
                   <div key={r._id || r.id} className="pd-review-item">
                     <div className="pd-review-header">
-                      <strong>
-                        {r.customerName || "Ẩn danh"}
-                      </strong>
+                      <strong>{r.customerName || "Anonymous"}</strong>
                       <span className="pd-review-stars">
                         {renderStars(r.rating)}
                       </span>
@@ -645,28 +742,29 @@ const ProductDetail = () => {
                     )}
                     {r.createdAt && (
                       <small className="pd-review-time">
-                        {new Date(r.createdAt).toLocaleString("vi-VN")}
+                        {new Date(r.createdAt).toLocaleString("en-US")}
                       </small>
                     )}
                   </div>
                 ))}
 
-              {!reviewsLoading && !reviews.length && !reviewsError && (
-                <p className="pd-review-empty">
-                  Hãy là người đầu tiên đánh giá sản phẩm này.
-                </p>
-              )}
+              {!reviewsLoading &&
+                !reviews.length &&
+                !reviewsError && (
+                  <p className="pd-review-empty">
+                    Be the first to review this product.
+                  </p>
+                )}
             </div>
 
             {/* FORM */}
             <div className="pd-review-form">
-              <h3>Viết đánh giá của bạn</h3>
+              <h3>Write your review</h3>
 
-              {/* Nếu đã đăng nhập, hiển thị info user */}
               {isLoggedIn ? (
                 <div className="pd-review-user-info">
                   <p>
-                    Đánh giá với tài khoản:{" "}
+                    Reviewing as:{" "}
                     <strong>
                       {user.name || user.fullName || user.email}
                     </strong>{" "}
@@ -676,11 +774,13 @@ const ProductDetail = () => {
               ) : (
                 <div className="pd-review-form-row">
                   <label>
-                    Tên của bạn:
+                    Your name:
                     <input
                       type="text"
                       value={customerName}
-                      onChange={(e) => setCustomerName(e.target.value)}
+                      onChange={(e) =>
+                        setCustomerName(e.target.value)
+                      }
                     />
                   </label>
                   <label>
@@ -688,7 +788,9 @@ const ProductDetail = () => {
                     <input
                       type="email"
                       value={customerEmail}
-                      onChange={(e) => setCustomerEmail(e.target.value)}
+                      onChange={(e) =>
+                        setCustomerEmail(e.target.value)
+                      }
                     />
                   </label>
                 </div>
@@ -697,32 +799,31 @@ const ProductDetail = () => {
               <form onSubmit={handleSubmitReview}>
                 <div className="pd-review-form-row">
                   <div className="review-rating-row">
-                    <span>Đánh giá:</span>
+                    <span>Rating:</span>
                     <StarRatingInput
                       value={reviewRating}
                       onChange={(val) => setReviewRating(val)}
                     />
                     <span className="review-rating-label">
-                      {reviewRating} sao
+                      {reviewRating} stars
                     </span>
                   </div>
                 </div>
                 <div className="pd-review-form-row">
                   <label>
-                    Nhận xét:
+                    Review:
                     <textarea
-                      placeholder="Sản phẩm này như thế nào với bạn?"
+                      placeholder="How was this product for you?"
                       value={reviewComment}
-                      onChange={(e) => setReviewComment(e.target.value)}
+                      onChange={(e) =>
+                        setReviewComment(e.target.value)
+                      }
                       rows={3}
                     />
                   </label>
                 </div>
-                <button
-                  type="submit"
-                  className="pd-btn-secondary"
-                >
-                  Gửi đánh giá
+                <button type="submit" className="pd-btn-secondary">
+                  Submit review
                 </button>
               </form>
             </div>

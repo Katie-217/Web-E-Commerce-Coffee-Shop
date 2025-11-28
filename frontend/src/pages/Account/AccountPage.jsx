@@ -3,6 +3,13 @@ import React, { useState, useRef, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { updateProfile, changePassword } from "../../services/account";
 import "./account-page.css";
+import { getProducts } from "../../services/products";
+import { useNavigate } from "react-router-dom";
+
+
+
+const API_BASE_URL =
+  process.env.REACT_APP_API_BASE_URL || "http://localhost:3001";
 
 function InfoRow({ label, value, mono }) {
   return (
@@ -35,8 +42,17 @@ function Modal({ title, onClose, children }) {
 }
 
 export default function AccountPage() {
-  const { user, logout, updateUser } = useAuth();
+  const { user, logout, updateUser } = useAuth(); // updateUser: đã thêm ở AuthContext
 
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/"); // về home
+  };
+
+
+  // ==== STATES CƠ BẢN ====
   const [activeModal, setActiveModal] = useState(null); // 'profile' | 'address' | 'payment' | 'password'
   const [profileForm, setProfileForm] = useState(null);
   const [addressForm, setAddressForm] = useState(null);
@@ -53,82 +69,126 @@ export default function AccountPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  // ===== YÊU THÍCH =====
-  const [favoriteItems, setFavoriteItems] = useState([]);
-  const [loadingFavorites, setLoadingFavorites] = useState(false);
+  // ==== STATES CHO YÊU THÍCH ====
+  const [favoriteItems, setFavoriteItems] = useState([]); // [{ productId, dateAdded, isOnSale, product }]
+  const [favoritesLoading, setFavoritesLoading] = useState(false);
+  const [favoritesError, setFavoritesError] = useState("");
 
-  // Load danh sách sản phẩm yêu thích từ wishlist + /api/products
+  // ==== FETCH SẢN PHẨM YÊU THÍCH TỪ wishlist + getProducts ====
   useEffect(() => {
-    if (!user) {
+    console.log("[Account] user.wishlist =", user?.wishlist);
+    // chưa đăng nhập hoặc không có wishlist → clear luôn
+    if (!user || !Array.isArray(user.wishlist) || user.wishlist.length === 0) {
       setFavoriteItems([]);
+      setFavoritesError("");
       return;
     }
 
-    const wishlistArray = Array.isArray(user.wishlist) ? user.wishlist : [];
-    if (!wishlistArray.length) {
-      setFavoriteItems([]);
-      return;
-    }
+    let cancelled = false;
 
-    const favoriteIds = wishlistArray.map((entry) =>
-      entry.productId ?? entry.product?.id ?? entry.id ?? entry
-    );
-
-    const controller = new AbortController();
-
-    async function fetchFavorites() {
+    (async () => {
       try {
-        setLoadingFavorites(true);
+        setFavoritesLoading(true);
+        setFavoritesError("");
 
-        // Lấy toàn bộ products, rồi lọc theo id trong wishlist
-        const res = await fetch("/api/products?page=1&limit=1000", {
-          signal: controller.signal,
-        });
-        if (!res.ok) throw new Error("Không thể tải danh sách sản phẩm");
+        // chuẩn hóa wishlist
+        const normalizedWishlist = user.wishlist
+          .filter(Boolean)
+          .map((entry) => {
+            const pid =
+              entry.productId ??
+              entry.product ??
+              entry.id ??
+              entry._id ??
+              entry.product?._id ??
+              entry.product?.id;
 
-        const json = await res.json();
-        const allProducts = json.data || json.items || [];
+            if (!pid) return null;
 
-        const idMap = new Map(
-          allProducts.map((p) => [
-            Number(p.id ?? p.productId ?? p._id),
-            p,
-          ])
-        );
-
-        const favorites = favoriteIds
-          .map((rawId) => {
-            const numId = Number(rawId);
-            const product = idMap.get(numId);
-            if (!product) return null;
-
-            const meta = wishlistArray.find(
-              (w) => Number(w.productId ?? w.id ?? w) === numId
-            );
-
-            return { ...product, wishlistMeta: meta };
+            return {
+              ...entry,
+              productId: String(pid),
+            };
           })
           .filter(Boolean);
 
-        setFavoriteItems(favorites);
-      } catch (err) {
-        if (err.name !== "AbortError") {
-          console.error("Lỗi tải sản phẩm yêu thích:", err);
+        if (normalizedWishlist.length === 0) {
+          if (!cancelled) setFavoriteItems([]);
+          return;
         }
+
+        const products = await getProducts({ page: 1, limit: 1000 });
+        const list = Array.isArray(products) ? products : [];
+
+        const productById = new Map(
+          list.map((p) => [String(p._id || p.id), p])
+        );
+
+        const favorites = normalizedWishlist
+          .map((entry) => ({
+            ...entry,
+            product: productById.get(entry.productId) || entry.product || null,
+          }))
+          .sort((a, b) => {
+            const da = a.dateAdded ? new Date(a.dateAdded).getTime() : 0;
+            const db = b.dateAdded ? new Date(b.dateAdded).getTime() : 0;
+            return db - da;
+          });
+
+        if (!cancelled) {
+          setFavoriteItems(favorites);
+        }
+      } catch (err) {
+        if (cancelled) return;
+        console.error("Fetch wishlist/favorites error:", err);
+        setFavoritesError("Không tải được sản phẩm yêu thích.");
+
+        // fallback: dùng trực tiếp user.wishlist
+        const fallback =
+          (Array.isArray(user?.wishlist) ? user.wishlist : [])
+            .filter(Boolean)
+            .map((entry) => {
+              const pid =
+                entry.productId ??
+                entry.product ??
+                entry.id ??
+                entry._id ??
+                entry.product?._id ??
+                entry.product?.id;
+
+              if (!pid) return null;
+
+              return {
+                ...entry,
+                productId: String(pid),
+                product: entry.product || null,
+              };
+            })
+            .filter(Boolean);
+
+        setFavoriteItems(fallback);
       } finally {
-        setLoadingFavorites(false);
+        if (!cancelled) setFavoritesLoading(false);
       }
-    }
+    })();
 
-    fetchFavorites();
-
-    return () => controller.abort();
+    return () => {
+      cancelled = true;
+    };
   }, [user]);
 
-  // ===== KHÔNG ĐƯỢC ĐỂ useEffect SAU RETURN =====
-  if (!user) return null;
+  // === SAFETY: nếu không có user (trong lúc load) ===
+  if (!user) {
+    return (
+      <main className="account-page">
+        <section className="account-card">
+          <p className="account-empty">Đang tải tài khoản...</p>
+        </section>
+      </main>
+    );
+  }
 
-  // ===== DERIVED FIELDS TỪ USER =====
+  // ==== DERIVED TỪ user ====
   const {
     _id,
     id,
@@ -144,10 +204,31 @@ export default function AccountPage() {
     addresses = [],
     paymentMethods = [],
     loyalty = {},
-    wishlist = [],
   } = user || {};
 
   const customerId = id || _id;
+  const rawWishlist = Array.isArray(user?.wishlist) ? user.wishlist : [];
+
+  // fallback: nếu favoriteItems rỗng nhưng user.wishlist có dữ liệu
+  const displayFavorites =
+    favoriteItems.length > 0
+      ? favoriteItems
+      : rawWishlist.map((entry, idx) => {
+        const pid =
+          entry.productId ??
+          entry.product ??
+          entry.id ??
+          entry._id ??
+          entry.product?._id ??
+          entry.product?.id ??
+          idx;
+
+        return {
+          ...entry,
+          productId: String(pid),
+          product: entry.product || null,
+        };
+      });
 
   const displayName =
     fullName ||
@@ -158,11 +239,7 @@ export default function AccountPage() {
   const avatar = avatarUrl || user?.avatar || "/images/avatar-default.png";
 
   const genderLabel =
-    gender === "male"
-      ? "Nam"
-      : gender === "female"
-      ? "Nữ"
-      : gender || "—";
+    gender === "male" ? "Nam" : gender === "female" ? "Nữ" : gender || "—";
 
   const loyaltyData = loyalty || {};
 
@@ -183,12 +260,12 @@ export default function AccountPage() {
     tierKey === "platinum"
       ? "Platinum"
       : tierKey === "gold"
-      ? "Vàng"
-      : tierKey === "silver"
-      ? "Bạc"
-      : tierKey === "bronze"
-      ? "Đồng"
-      : loyaltyData.tier || "Thành viên";
+        ? "Vàng"
+        : tierKey === "silver"
+          ? "Bạc"
+          : tierKey === "bronze"
+            ? "Đồng"
+            : loyaltyData.tier || "Thành viên";
 
   const lastAccrualText = loyaltyData.lastAccrualAt
     ? new Date(loyaltyData.lastAccrualAt).toLocaleString("vi-VN")
@@ -197,8 +274,6 @@ export default function AccountPage() {
   const maskedCustomerId = customerId
     ? `#${String(customerId).toUpperCase()}`
     : "—";
-
-  const hasWishlist = Array.isArray(wishlist) && wishlist.length > 0;
 
   // ===== OPEN MODALS =====
   const openProfileModal = () => {
@@ -219,16 +294,16 @@ export default function AccountPage() {
       index >= 0 && addresses[index]
         ? addresses[index]
         : {
-            label: "home",
-            type: "shipping",
-            isDefault: addresses.length === 0,
-            fullName: displayName || "",
-            phone: phone || "",
-            addressLine1: "",
-            ward: "",
-            district: "",
-            city: "",
-          };
+          label: "home",
+          type: "shipping",
+          isDefault: addresses.length === 0,
+          fullName: displayName || "",
+          phone: phone || "",
+          addressLine1: "",
+          ward: "",
+          district: "",
+          city: "",
+        };
     setAddressForm(base);
     setAddressIndex(index);
     setError("");
@@ -240,16 +315,16 @@ export default function AccountPage() {
       index >= 0 && paymentMethods[index]
         ? paymentMethods[index]
         : {
-            type: "cash",
-            provider: "",
-            brand: "",
-            holderName: displayName || "",
-            accountNumber: "",
-            last4: "",
-            expMonth: "",
-            expYear: "",
-            isDefault: paymentMethods.length === 0,
-          };
+          type: "cash",
+          provider: "",
+          brand: "",
+          holderName: displayName || "",
+          accountNumber: "",
+          last4: "",
+          expMonth: "",
+          expYear: "",
+          isDefault: paymentMethods.length === 0,
+        };
     setPaymentForm(base);
     setPaymentIndex(index);
     setError("");
@@ -291,8 +366,8 @@ export default function AccountPage() {
     } catch (err) {
       setError(
         err?.response?.data?.message ||
-          err.message ||
-          "Lưu thông tin thất bại"
+        err.message ||
+        "Lưu thông tin thất bại"
       );
     } finally {
       setSaving(false);
@@ -322,6 +397,7 @@ export default function AccountPage() {
         idx = list.length - 1;
       }
 
+      // ensure 1 default
       let defaultIndex = -1;
 
       if (addressForm.isDefault) {
@@ -343,8 +419,8 @@ export default function AccountPage() {
     } catch (err) {
       setError(
         err?.response?.data?.message ||
-          err.message ||
-          "Lưu địa chỉ thất bại"
+        err.message ||
+        "Lưu địa chỉ thất bại"
       );
     } finally {
       setSaving(false);
@@ -374,8 +450,8 @@ export default function AccountPage() {
       console.error("Xoá địa chỉ thất bại:", err);
       alert(
         err?.response?.data?.message ||
-          err.message ||
-          "Xoá địa chỉ thất bại"
+        err.message ||
+        "Xoá địa chỉ thất bại"
       );
     } finally {
       setSaving(false);
@@ -421,8 +497,8 @@ export default function AccountPage() {
     } catch (err) {
       setError(
         err?.response?.data?.message ||
-          err.message ||
-          "Lưu phương thức thanh toán thất bại"
+        err.message ||
+        "Lưu phương thức thanh toán thất bại"
       );
     } finally {
       setSaving(false);
@@ -452,8 +528,8 @@ export default function AccountPage() {
       console.error("Xoá phương thức thanh toán thất bại:", err);
       alert(
         err?.response?.data?.message ||
-          err.message ||
-          "Xoá phương thức thanh toán thất bại"
+        err.message ||
+        "Xoá phương thức thanh toán thất bại"
       );
     } finally {
       setSaving(false);
@@ -482,20 +558,35 @@ export default function AccountPage() {
     } catch (err) {
       setError(
         err?.response?.data?.message ||
-          err.message ||
-          "Đổi mật khẩu thất bại"
+        err.message ||
+        "Đổi mật khẩu thất bại"
       );
     } finally {
       setSaving(false);
     }
   };
 
-  // ===== AVATAR =====
   const handleClickChangeAvatar = () => {
     if (fileInputRef.current) {
       fileInputRef.current.click();
     }
   };
+  const goToFavoriteProduct = (fav) => {
+    if (!fav) return;
+
+    const p = fav.product || {};
+    const id =
+      p.id ||
+      p._id ||
+      fav.productId ||
+      p.slug;
+
+    if (!id) return;
+
+    // dùng path /products/:id giống cart
+    navigate(`/products/${id}`);
+  };
+
 
   const handleAvatarFileChange = async (event) => {
     const file = event.target.files?.[0];
@@ -609,13 +700,10 @@ export default function AccountPage() {
           </div>
 
           <div className="account-header-actions">
-            <button
-              className="account-logout"
-              type="button"
-              onClick={logout}
-            >
+            <button className="account-logout" type="button" onClick={handleLogout}>
               Đăng xuất
             </button>
+
           </div>
         </header>
 
@@ -685,8 +773,8 @@ export default function AccountPage() {
                           {addr.type === "shipping"
                             ? "Giao hàng"
                             : addr.type === "billing"
-                            ? "Thanh toán"
-                            : addr.type}
+                              ? "Thanh toán"
+                              : addr.type}
                         </span>
                       )}
                       <button
@@ -723,7 +811,7 @@ export default function AccountPage() {
           )}
         </section>
 
-        {/* PHƯƠNG THỨC THANH TOÁN */}
+        {/* THANH TOÁN */}
         <section className="account-section">
           <div className="section-title-row">
             <h2 className="section-title">Phương thức thanh toán</h2>
@@ -746,8 +834,7 @@ export default function AccountPage() {
             <ul className="account-payments">
               {paymentMethods.map((pm, idx) => {
                 const type = (pm.type || "").toLowerCase();
-                const brand =
-                  (pm.brand || pm.card?.brand || "").toUpperCase();
+                const brand = (pm.brand || pm.card?.brand || "").toUpperCase();
                 const last4 = pm.last4 || pm.card?.last4 || "";
                 const holder =
                   pm.holderName || pm.accountName || displayName || "";
@@ -765,8 +852,8 @@ export default function AccountPage() {
                             (type === "cash"
                               ? "Tiền mặt"
                               : type === "bank"
-                              ? "Tài khoản ngân hàng"
-                              : "Thanh toán")}
+                                ? "Tài khoản ngân hàng"
+                                : "Thanh toán")}
                         </span>
                       </div>
                       <div className="account-list-tags">
@@ -829,74 +916,83 @@ export default function AccountPage() {
           )}
         </section>
 
-        {/* SẢN PHẨM YÊU THÍCH */}
+        {/* YÊU THÍCH */}
         <section className="account-section">
           <div className="section-title-row">
             <h2 className="section-title">Sản phẩm yêu thích</h2>
           </div>
 
-          {loadingFavorites ? (
+          {favoritesLoading ? (
             <p className="account-empty">Đang tải sản phẩm yêu thích...</p>
-          ) : !hasWishlist ? (
+          ) : favoritesError ? (
+            <p className="account-empty">{favoritesError}</p>
+          ) : displayFavorites.length === 0 ? (
             <p className="account-empty">
               Bạn chưa có sản phẩm yêu thích nào. Hãy khám phá menu và nhấn vào
               biểu tượng trái tim để lưu lại nhé.
             </p>
-          ) : favoriteItems.length === 0 ? (
-            <p className="account-empty">
-              Có {wishlist.length} sản phẩm trong danh sách yêu thích nhưng hiện
-              không tìm thấy trong menu. Có thể chúng đã bị xoá hoặc ẩn.
-            </p>
           ) : (
-            <ul className="account-favorites">
-              {favoriteItems.map((p) => {
-                const key = p.id || p._id || p.productId;
-                const priceNumber = Number(
-                  p.price || p.salePrice || p.originalPrice || 0
-                );
-                const meta = p.wishlistMeta || {};
-                const dateAdded = meta.dateAdded
-                  ? new Date(meta.dateAdded).toLocaleDateString("vi-VN")
-                  : null;
-                const isOnSale = !!meta.isOnSale;
-
-                const image =
-                  p.image ||
-                  p.thumbnail ||
-                  p.imageUrl ||
-                  "/images/product-placeholder.png";
-
+            <div className="favorites-grid">
+              {displayFavorites.map((fav, idx) => {
+                const p = fav.product || {};
                 return (
-                  <li key={key} className="favorite-card">
-                    <div className="favorite-card-image">
-                      <img src={image} alt={p.name} />
-                      {isOnSale && (
-                        <span className="badge-sale">Đang khuyến mãi</span>
+                  <article
+                    key={`${fav.productId}-${idx}`}
+                    className="favorite-card"
+                    onClick={() => goToFavoriteProduct(fav)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        goToFavoriteProduct(fav);
+                      }
+                    }}
+                  >
+                    <div className="favorite-thumb">
+                      {p && (p.imageUrl || p.image || (p.images && p.images[0])) ? (
+                        <img
+                          src={p.imageUrl || p.image || p.images[0]}
+                          alt={p.name || `Sản phẩm #${fav.productId}`}
+                        />
+                      ) : (
+                        <div className="favorite-thumb-placeholder">No image</div>
                       )}
                     </div>
-                    <div className="favorite-card-body">
-                      <h3 className="favorite-name">{p.name}</h3>
-                      {p.category && (
-                        <p className="favorite-category">{p.category}</p>
+                    <div className="favorite-body">
+                      <h3 className="favorite-name">
+                        {p.name || `Sản phẩm #${fav.productId}`}
+                      </h3>
+                      {typeof p.price === "number" && (
+                        <div className="favorite-price">
+                          {p.price.toLocaleString("vi-VN")}₫
+                        </div>
                       )}
-                      <p className="favorite-price">
-                        {priceNumber.toLocaleString("vi-VN")} ₫
-                      </p>
-                      {dateAdded && (
-                        <p className="favorite-date">
-                          Đã lưu: {dateAdded}
-                        </p>
-                      )}
+                      <div className="favorite-meta-row">
+                        {fav.isOnSale && (
+                          <span className="favorite-badge-sale">
+                            Đang khuyến mãi
+                          </span>
+                        )}
+                        {fav.dateAdded && (
+                          <span className="favorite-meta">
+                            Đã thêm:{" "}
+                            {new Date(fav.dateAdded).toLocaleDateString("vi-VN")}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  </li>
+                  </article>
                 );
               })}
-            </ul>
+            </div>
           )}
         </section>
+
       </section>
 
-      {/* ===== MODALS ===== */}
+      {/* ===== MODALS (giữ nguyên) ===== */}
+
       {activeModal === "profile" && profileForm && (
         <Modal title="Chỉnh sửa thông tin" onClose={closeModal}>
           <form onSubmit={handleSaveProfile}>

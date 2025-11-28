@@ -127,7 +127,7 @@ const orderSchema = new Schema({
   },
   paymentMethod: {
     type: String,
-    enum: ['cod', 'card', 'bank', 'cash', 'vnpay', 'momo', 'zalopay'],
+    enum: ['cod', 'card', 'bank', 'cash', 'vnpay', 'momo', 'zaloPay', 'bank-transfer',],
     default: 'cod'
   },
   paymentStatus: {

@@ -21,14 +21,3 @@ export { default } from './Whychooseus';
 
 
 
-
-
-
-
-
-
-
-
-
-
-

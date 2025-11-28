@@ -1,17 +1,6 @@
 import React from 'react';
+import AuthPage from './AuthPage';
 
-const Login = () => {
-  return (
-    <div className="container">
-      <h1>Đăng nhập</h1>
-    </div>
-  );
-};
+const Login = () => <AuthPage initialTab="login" />;
 
 export default Login;
-
-
-
-
-
-

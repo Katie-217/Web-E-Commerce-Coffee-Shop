@@ -28,12 +28,15 @@ router.get('/', async (req, res) => {
       filters.customerEmail = new RegExp(String(email), 'i');
     }
     
-    // Handle search query - search in displayCode field
+    // Handle search query - search ONLY in order ID
     // When user types, filter immediately and narrow down results
-    // User can search by display code without "#" - e.g., "2ff" or "2ffa" will find orders with displayCode starting with "2ff"
-    // IMPORTANT: Search works with displayCode field from database
-    // Frontend will generate displayCode from ID if not present, but backend search only works with displayCode in DB
-    // UI displays ID as #XXXX where XXXX is the displayCode (4-character hex)
+    // User can search by ID number without "#" - e.g., "1" or "0001" will find "ORD-2024-0001"
+    // IMPORTANT: Only search in id field, NOT in customerEmail or any other field
+    // UI displays ID as #XXXX (last 4 hex characters), so search should work with both:
+    // - Full ID: "ORD-2024-0003"
+    // - Display format: "0003" or "#0003" (last 4 characters)
+    // When user types "3", prioritize orders with ID starting with "3" in the numeric part
+    // Format: ORD-YYYY-NNNN, so "3" should match orders like ORD-2024-0003, ORD-2024-0030, ORD-2024-0300, ORD-2024-3000
     if (q !== undefined && q !== null && String(q).trim() !== '') {
       let searchTerm = String(q).trim();
       // Remove "#" if user typed it - allow searching without "#"
@@ -131,10 +134,10 @@ router.get('/', async (req, res) => {
     try {
       const ordersDb = mongoose.connection.useDb('orders', { useCache: true });
       const coll = ordersDb.collection('ordersList');
-        [items, total] = await Promise.all([
+      [items, total] = await Promise.all([
         coll.find(filters).sort(sortOrder).skip(skip).limit(limit).toArray(),
-          coll.countDocuments(filters)
-        ]);
+        coll.countDocuments(filters)
+      ]);
     } catch (err) {
       console.error("Error querying 'orders' database:", err);
     }
@@ -144,10 +147,10 @@ router.get('/', async (req, res) => {
     if (total === 0) {
       try {
         const coll = mongoose.connection.db.collection('ordersList');
-          [items, total] = await Promise.all([
+        [items, total] = await Promise.all([
           coll.find(filters).sort(sortOrder).skip(skip).limit(limit).toArray(),
-            coll.countDocuments(filters)
-          ]);
+          coll.countDocuments(filters)
+        ]);
       } catch (err) {
         console.error("Error querying current database ordersList:", err);
       }
@@ -193,6 +196,175 @@ router.get('/', async (req, res) => {
     res.status(500).json({ success: false, message: 'Failed to fetch orders', error: err.message });
   }
 });
+// POST /api/orders - tạo đơn hàng mới từ trang checkout
+router.post('/', async (req, res) => {
+  try {
+    const body = req.body || {};
+    const rawItems = Array.isArray(body.items) ? body.items : [];
+    // Chuẩn hóa items: luôn có qty & quantity
+    const items = rawItems.map((it) => {
+      const qty = Number(it.qty ?? it.quantity ?? 1);
+      return {
+        productId: it.productId,
+        name: it.name,
+        sku: it.sku,
+        price: Number(it.price) || 0,
+        qty,
+        quantity: qty,
+      };
+    });
+
+    if (!items.length) {
+      return res.status(400).json({
+        success: false,
+        message: 'Order items required',
+      });
+    }
+
+    // Tính subtotal từ items
+    const subtotal = items.reduce((sum, it) => {
+      const price = Number(it.price) || 0;
+      const qty = Number(it.quantity || it.qty || 1);
+      return sum + price * qty;
+    }, 0);
+
+    // Phí ship: ưu tiên FE gửi, không có thì auto
+    const shippingFee =
+      body.shippingFee != null
+        ? Number(body.shippingFee)
+        : subtotal > 300000
+        ? 0
+        : 30000;
+
+    const discount = Number(body.discount) || 0;
+    const total = subtotal + shippingFee - discount;
+
+    const now = new Date();
+    const year = now.getFullYear();
+
+    // Lấy số thứ tự theo năm: ORD-YYYY-0001
+    let seq = 1;
+    try {
+      const last = await Order.find({ id: new RegExp(`^ORD-${year}-`) })
+        .sort({ createdAt: -1 })
+        .limit(1);
+
+      if (last[0] && last[0].id) {
+        const m = String(last[0].id).match(/ORD-\d{4}-(\d+)/);
+        if (m) seq = parseInt(m[1], 10) + 1;
+      }
+    } catch (e) {
+      console.error('Find last order error:', e);
+    }
+
+    const seqStr = String(seq).padStart(4, '0');
+    const id = `ORD-${year}-${seqStr}`;
+
+    // Mã ngắn hiển thị #xxxx
+    const displayCode =
+      body.displayCode ||
+      Math.random().toString(16).slice(2, 6).toLowerCase();
+
+    // Lấy email từ body hoặc từ user đăng nhập
+    const customerEmail =
+      body.customerEmail ||
+      (req.user && (req.user.email || req.user.username)) ||
+      null;
+
+    if (!customerEmail) {
+      return res.status(400).json({
+        success: false,
+        message: 'customerEmail is required',
+      });
+    }
+
+    const customerId =
+      body.customerId ||
+      (req.user && (req.user.id || req.user._id)) ||
+      undefined;
+
+    // Trạng thái order/payout theo schema
+    const VALID_STATUS = [
+      'pending',
+      'processing',
+      'shipped',
+      'delivered',
+      'cancelled',
+      'returned',
+    ];
+    const VALID_PAYMENT_STATUS = ['pending', 'paid', 'failed', 'refunded'];
+
+    const status = VALID_STATUS.includes(body.status)
+      ? body.status
+      : 'pending';
+
+    const paymentStatus = VALID_PAYMENT_STATUS.includes(body.paymentStatus)
+      ? body.paymentStatus
+      : 'pending';
+
+    const orderDoc = {
+      id,
+      displayCode,
+      items,
+      customerEmail,
+      customerId,
+      customerName: body.customerName,
+      customerPhone: body.customerPhone,
+      shippingAddress: body.shippingAddress,
+      billingAddress: body.billingAddress || body.shippingAddress,
+      subtotal,
+      shippingFee,
+      discount,
+      tax: body.tax || 0,
+      total,
+      currency: body.currency || 'VND',
+      notes: body.note,
+      paymentMethod: body.paymentMethod || 'cod',
+      paymentStatus,
+      status,
+      shippingActivity: body.shippingActivity || [],
+      // createdAt / updatedAt để Mongoose tự set (timestamps)
+    };
+
+    // 👉 dùng model Order nên chắc chắn đúng DB + collection
+    const order = await Order.create(orderDoc);
+
+    const transformed = {
+      _id: String(order._id),
+      id: order.id,
+      displayCode: order.displayCode || null,
+      customerEmail: order.customerEmail,
+      customerId: order.customerId,
+      customerName: order.customerName,
+      customerPhone: order.customerPhone,
+      items: order.items,
+      subtotal: order.subtotal,
+      shippingFee: order.shippingFee,
+      discount: order.discount,
+      tax: order.tax,
+      total: order.total,
+      currency: order.currency,
+      status: order.status,
+      paymentMethod: order.paymentMethod,
+      paymentStatus: order.paymentStatus,
+      shippingAddress: order.shippingAddress,
+      billingAddress: order.billingAddress,
+      shippingActivity: order.shippingActivity,
+      createdAt: order.createdAt,
+      updatedAt: order.updatedAt,
+    };
+
+    return res.status(201).json({ success: true, data: transformed });
+  } catch (err) {
+    console.error('Create order error:', err);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to create order',
+      error: err.message,
+    });
+  }
+});
+
 
 // GET /api/orders/:id
 router.get('/:id', async (req, res) => {
@@ -285,7 +457,7 @@ router.get('/:id', async (req, res) => {
     const transformed = {
       _id: o._id ? String(o._id) : undefined,
       id: String(o._id || o.id || ''),
-      displayCode: (o.displayCode && typeof o.displayCode === 'string' && o.displayCode.trim().length > 0) ? String(o.displayCode).trim() : null, // 4-character alphanumeric code for display
+      displayCode: o.displayCode || null, // Random 4-character hex code for display
       customerEmail: o.customerEmail,
       customerId: o.customerId,
       customerName: o.customerName,

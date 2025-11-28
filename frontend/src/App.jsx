@@ -8,6 +8,7 @@ import CartPage from './pages/Cart/CartPage';
 import CheckoutPage from './pages/Checkout/CheckoutPage';
 import Login from './pages/Auth/Login';
 import Register from './pages/Auth/Register';
+import AuthPage from './pages/Auth/AuthPage';
 import AccountPage from './pages/Account/AccountPage';
 import OrderHistory from './pages/Orders/OrderHistory';
 import OrderDetail from './pages/Orders/OrderDetail';
@@ -20,7 +21,8 @@ import CupsMugs from './pages/Menu/CupsMugs';
 import RoastCoffee from './pages/Menu/RoastCoffee';
 import CoffeeMakersGrinders from './pages/Menu/CoffeeMakersGrinders';
 import Navbar from './components/NavBar';
- 
+import { CartProvider } from "./contexts/CartContext";
+import GoogleCallbackPage from './pages/Auth/GoogleCallbackPage';
 
 function AppShell() {
   const location = useLocation();
@@ -34,6 +36,8 @@ function AppShell() {
         <Route path="/" element={<HomePage />} />
         <Route path="/category/:categoryId" element={<ProductList />} />
         <Route path="/product/:productId" element={<ProductDetail />} />
+        <Route path="/products/:id" element={<ProductDetail />} />
+
 
         {/* Cart & Checkout */}
         <Route path="/cart" element={<CartPage />} />
@@ -46,6 +50,17 @@ function AppShell() {
         <Route path="/about" element={<AboutPage />} />
 
         
+        <Route path="/auth" element={<AuthPage />} />
+        <Route path="/auth/google/callback" element={<GoogleCallbackPage />} />
+
+        {/* <Route path="/menu" element={<Menu/>} /> */}
+        <Route path="/menu/coffee-sets" element={<CoffeeSets/>} />
+        <Route path="/menu/cups-mugs" element={<CupsMugs/>} />
+        <Route path="/menu/roast-coffee" element={<RoastCoffee/>} />
+        <Route path="/menu/coffee-makers-grinders" element={<CoffeeMakersGrinders/>} />
+
+        {/* Contact */}
+        <Route path="/contact" element={<ContactPage />} />
         {/* <Route path="/menu" element={<Menu/>} /> */}
         <Route path="/menu/coffee-sets" element={<CoffeeSets/>} />
         <Route path="/menu/cups-mugs" element={<CupsMugs/>} />
@@ -72,7 +87,9 @@ function AppShell() {
 export default function App() {
   return (
     <Router>
-      <AppShell />
+      <CartProvider>
+        <AppShell />
+      </CartProvider>
     </Router>
   );
 }

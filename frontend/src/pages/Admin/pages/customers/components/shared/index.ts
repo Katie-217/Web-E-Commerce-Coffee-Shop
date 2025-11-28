@@ -4,7 +4,3 @@ export { default as DistrictSelectWithAlphabet } from './DistrictSelectWithAlpha
 export { default as WardSelectWithAlphabet } from './WardSelectWithAlphabet';
 export { default as NumberFilterInput } from './NumberFilterInput';
 export { default as JoinDatePicker } from './JoinDatePicker';
-
-
-
-

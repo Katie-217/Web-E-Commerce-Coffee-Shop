@@ -1,5 +1,30 @@
 const mongoose = require('mongoose');
 
+const variantOptionSchema = new mongoose.Schema({
+  label: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  priceDelta: {
+    type: Number,
+    default: 0,
+    min: 0,
+  },
+}, { _id: false });
+
+const variantSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  options: {
+    type: [variantOptionSchema],
+    default: [],
+  },
+}, { _id: false });
+
 const productSchema = new mongoose.Schema({
   id: {
     type: Number,
@@ -51,6 +76,11 @@ const productSchema = new mongoose.Schema({
     enum: ['Publish', 'Inactive', 'Draft'],
     default: 'Publish'
   },
+ variants: {
+    type: [variantSchema],
+    default: [],
+  },
+
   createdAt: {
     type: Date,
     default: Date.now
@@ -78,4 +108,3 @@ productSchema.index({ status: 1 });
 const Product = mongoose.model('Product', productSchema);
 
 module.exports = Product;
-

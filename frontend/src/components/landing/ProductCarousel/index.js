@@ -21,13 +21,3 @@ export { default } from './ProductCarousel';
 
 
 
-
-
-
-
-
-
-
-
-
-

@@ -65,10 +65,7 @@
         "time": "08:48 AM",
         "completed": true
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 27,
-    "displayCode": "HaTI"
+    ]
   },
   {
     "_id": {
@@ -108,8 +105,8 @@
     ],
     "subtotal": 2728000,
     "shippingFee": 0,
-    "discount": 0,
-    "total": 2728000,
+    "discount": 247740,
+    "total": 2480260,
     "currency": "VND",
     "status": "cancelled",
     "paymentStatus": "refunded",
@@ -143,10 +140,7 @@
         "time": "06:04 PM",
         "completed": true
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "0qAI"
+    ]
   },
   {
     "_id": {
@@ -214,10 +208,7 @@
         "time": "07:06 AM",
         "completed": false
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "Ufea"
+    ]
   },
   {
     "_id": {
@@ -236,8 +227,8 @@
     ],
     "subtotal": 658000,
     "shippingFee": 0,
-    "discount": 0,
-    "total": 658000,
+    "discount": 80623,
+    "total": 577377,
     "currency": "VND",
     "status": "cancelled",
     "paymentStatus": "refunded",
@@ -271,10 +262,7 @@
         "time": "06:06 AM",
         "completed": true
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "qKIa"
+    ]
   },
   {
     "_id": {
@@ -293,8 +281,8 @@
     ],
     "subtotal": 378000,
     "shippingFee": 15000,
-    "discount": 0,
-    "total": 393000,
+    "discount": 52441,
+    "total": 340559,
     "currency": "VND",
     "status": "processing",
     "paymentStatus": "pending",
@@ -336,10 +324,7 @@
         "time": "04:27 PM",
         "completed": false
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "LU7Z"
+    ]
   },
   {
     "_id": {
@@ -407,10 +392,7 @@
         "time": "03:16 PM",
         "completed": true
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "C8fJ"
+    ]
   },
   {
     "_id": {
@@ -493,10 +475,7 @@
         "time": "09:42 AM",
         "completed": false
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 264,
-    "displayCode": "1Elq"
+    ]
   },
   {
     "_id": {
@@ -550,10 +529,7 @@
         "time": "01:12 AM",
         "completed": false
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "1myX"
+    ]
   },
   {
     "_id": {
@@ -579,8 +555,8 @@
     ],
     "subtotal": 984000,
     "shippingFee": 20000,
-    "discount": 0,
-    "total": 1004000,
+    "discount": 67623,
+    "total": 936377,
     "currency": "VND",
     "status": "pending",
     "paymentStatus": "pending",
@@ -607,10 +583,7 @@
         "time": "08:20 PM",
         "completed": false
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "ZCPz"
+    ]
   },
   {
     "_id": {
@@ -650,8 +623,8 @@
     ],
     "subtotal": 3355000,
     "shippingFee": 20000,
-    "discount": 0,
-    "total": 3375000,
+    "discount": 343904,
+    "total": 3031096,
     "currency": "VND",
     "status": "pending",
     "paymentStatus": "pending",
@@ -678,10 +651,7 @@
         "time": "08:34 AM",
         "completed": false
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "a4RI"
+    ]
   },
   {
     "_id": {
@@ -721,8 +691,8 @@
     ],
     "subtotal": 4540000,
     "shippingFee": 30000,
-    "discount": 0,
-    "total": 4570000,
+    "discount": 323054,
+    "total": 4246946,
     "currency": "VND",
     "status": "delivered",
     "paymentStatus": "paid",
@@ -778,10 +748,7 @@
         "time": "03:26 AM",
         "completed": true
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 457,
-    "displayCode": "uVn7"
+    ]
   },
   {
     "_id": {
@@ -843,10 +810,7 @@
         "time": "10:07 AM",
         "completed": false
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "KgAe"
+    ]
   },
   {
     "_id": {
@@ -879,8 +843,8 @@
     ],
     "subtotal": 1344000,
     "shippingFee": 15000,
-    "discount": 0,
-    "total": 1359000,
+    "discount": 39533,
+    "total": 1319467,
     "currency": "VND",
     "status": "delivered",
     "paymentStatus": "paid",
@@ -928,10 +892,7 @@
         "time": "10:30 PM",
         "completed": true
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 135,
-    "displayCode": "mYTS"
+    ]
   },
   {
     "_id": {
@@ -957,8 +918,8 @@
     ],
     "subtotal": 447000,
     "shippingFee": 15000,
-    "discount": 0,
-    "total": 462000,
+    "discount": 13342,
+    "total": 448658,
     "currency": "VND",
     "status": "cancelled",
     "paymentStatus": "refunded",
@@ -1000,10 +961,7 @@
         "time": "04:03 AM",
         "completed": true
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "CFeL"
+    ]
   },
   {
     "_id": {
@@ -1085,10 +1043,7 @@
         "time": "06:16 PM",
         "completed": false
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 228,
-    "displayCode": "cYT8"
+    ]
   },
   {
     "_id": {
@@ -1149,10 +1104,7 @@
         "time": "06:00 PM",
         "completed": true
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "avaV"
+    ]
   },
   {
     "_id": {
@@ -1206,10 +1158,7 @@
         "time": "05:07 PM",
         "completed": false
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "ui0z"
+    ]
   },
   {
     "_id": {
@@ -1277,10 +1226,7 @@
         "time": "11:35 PM",
         "completed": false
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 135,
-    "displayCode": "CvKD"
+    ]
   },
   {
     "_id": {
@@ -1362,10 +1308,7 @@
         "time": "12:12 PM",
         "completed": false
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 440,
-    "displayCode": "skKg"
+    ]
   },
   {
     "_id": {
@@ -1426,10 +1369,7 @@
         "time": "09:00 AM",
         "completed": false
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "2UrN"
+    ]
   },
   {
     "_id": {
@@ -1465,7 +1405,7 @@
     "discount": 0,
     "total": 2614000,
     "currency": "VND",
-    "status": "returned",
+    "status": "refunded",
     "paymentStatus": "refunded",
     "paymentMethod": "vnpay",
     "shippingAddress": {
@@ -1512,16 +1452,13 @@
         "completed": true
       },
       {
-        "status": "Returned",
-        "description": "Order has been returned.",
+        "status": "refunded",
+        "description": "Order has been refunded.",
         "date": "Tuesday, Jun 4",
         "time": "07:46 AM",
         "completed": true
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "43Xt"
+    ]
   },
   {
     "_id": {
@@ -1596,10 +1533,7 @@
         "time": "08:22 PM",
         "completed": true
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "sP4k"
+    ]
   },
   {
     "_id": {
@@ -1642,7 +1576,7 @@
     "discount": 0,
     "total": 1853000,
     "currency": "VND",
-    "status": "returned",
+    "status": "refunded",
     "paymentStatus": "refunded",
     "paymentMethod": "cod",
     "shippingAddress": {
@@ -1697,16 +1631,13 @@
         "completed": true
       },
       {
-        "status": "Returned",
-        "description": "Order has been returned.",
+        "status": "refunded",
+        "description": "Order has been refunded.",
         "date": "Wednesday, Jun 19",
         "time": "10:16 AM",
         "completed": true
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "8FCD"
+    ]
   },
   {
     "_id": {
@@ -1732,8 +1663,8 @@
     ],
     "subtotal": 653000,
     "shippingFee": 20000,
-    "discount": 0,
-    "total": 673000,
+    "discount": 69549,
+    "total": 603451,
     "currency": "VND",
     "status": "delivered",
     "paymentStatus": "paid",
@@ -1789,10 +1720,7 @@
         "time": "07:51 PM",
         "completed": true
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 67,
-    "displayCode": "8JTZ"
+    ]
   },
   {
     "_id": {
@@ -1825,10 +1753,10 @@
     ],
     "subtotal": 1101000,
     "shippingFee": 15000,
-    "discount": 0,
-    "total": 1116000,
+    "discount": 23234,
+    "total": 1092766,
     "currency": "VND",
-    "status": "returned",
+    "status": "refunded",
     "paymentStatus": "refunded",
     "paymentMethod": "zaloPay",
     "shippingAddress": {
@@ -1875,16 +1803,13 @@
         "completed": true
       },
       {
-        "status": "Returned",
-        "description": "Order has been returned.",
+        "status": "refunded",
+        "description": "Order has been refunded.",
         "date": "Thursday, Jun 20",
         "time": "10:37 PM",
         "completed": true
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "XYpQ"
+    ]
   },
   {
     "_id": {
@@ -1917,8 +1842,8 @@
     ],
     "subtotal": 1699000,
     "shippingFee": 30000,
-    "discount": 0,
-    "total": 1729000,
+    "discount": 19079,
+    "total": 1709921,
     "currency": "VND",
     "status": "delivered",
     "paymentStatus": "paid",
@@ -1966,10 +1891,7 @@
         "time": "10:18 PM",
         "completed": true
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 172,
-    "displayCode": "FTxl"
+    ]
   },
   {
     "_id": {
@@ -2006,7 +1928,7 @@
     "total": 4150000,
     "currency": "VND",
     "status": "delivered",
-    "paymentStatus": "paid",
+    "paymentStatus": "pending",
     "paymentMethod": "cod",
     "shippingAddress": {
       "label": "home",
@@ -2051,10 +1973,7 @@
         "time": "03:37 PM",
         "completed": true
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 415,
-    "displayCode": "myA8"
+    ]
   },
   {
     "_id": {
@@ -2087,8 +2006,8 @@
     ],
     "subtotal": 1140000,
     "shippingFee": 20000,
-    "discount": 135000,
-    "total": 1025000,
+    "discount": 167660,
+    "total": 992340,
     "currency": "VND",
     "status": "cancelled",
     "paymentStatus": "refunded",
@@ -2122,10 +2041,7 @@
         "time": "03:12 AM",
         "completed": true
       }
-    ],
-    "pointsUsed": 135,
-    "pointsEarned": 0,
-    "displayCode": "m8aD"
+    ]
   },
   {
     "_id": {
@@ -2186,10 +2102,7 @@
         "time": "12:39 PM",
         "completed": false
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "DJcX"
+    ]
   },
   {
     "_id": {
@@ -2251,10 +2164,7 @@
         "time": "02:03 PM",
         "completed": true
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "5jjA"
+    ]
   },
   {
     "_id": {
@@ -2329,10 +2239,7 @@
         "time": "11:31 PM",
         "completed": false
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "vSIU"
+    ]
   },
   {
     "_id": {
@@ -2401,10 +2308,7 @@
         "time": "10:37 AM",
         "completed": false
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "BXTA"
+    ]
   },
   {
     "_id": {
@@ -2493,10 +2397,7 @@
         "time": "12:22 PM",
         "completed": true
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 221,
-    "displayCode": "L6PJ"
+    ]
   },
   {
     "_id": {
@@ -2578,10 +2479,7 @@
         "time": "12:54 PM",
         "completed": true
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 148,
-    "displayCode": "KE7H"
+    ]
   },
   {
     "_id": {
@@ -2621,8 +2519,8 @@
     ],
     "subtotal": 3660000,
     "shippingFee": 30000,
-    "discount": 98000,
-    "total": 3592000,
+    "discount": 98423,
+    "total": 3591577,
     "currency": "VND",
     "status": "cancelled",
     "paymentStatus": "refunded",
@@ -2664,10 +2562,7 @@
         "time": "10:28 PM",
         "completed": true
       }
-    ],
-    "pointsUsed": 98,
-    "pointsEarned": 0,
-    "displayCode": "QL84"
+    ]
   },
   {
     "_id": {
@@ -2729,10 +2624,7 @@
         "time": "03:39 AM",
         "completed": false
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "SGrl"
+    ]
   },
   {
     "_id": {
@@ -2814,10 +2706,7 @@
         "time": "12:07 PM",
         "completed": false
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 449,
-    "displayCode": "nwzQ"
+    ]
   },
   {
     "_id": {
@@ -2850,10 +2739,10 @@
     ],
     "subtotal": 3376000,
     "shippingFee": 20000,
-    "discount": 0,
-    "total": 3396000,
+    "discount": 239616,
+    "total": 3156384,
     "currency": "VND",
-    "status": "returned",
+    "status": "refunded",
     "paymentStatus": "refunded",
     "paymentMethod": "cod",
     "shippingAddress": {
@@ -2908,16 +2797,13 @@
         "completed": true
       },
       {
-        "status": "Returned",
-        "description": "Order has been returned.",
+        "status": "refunded",
+        "description": "Order has been refunded.",
         "date": "Monday, Sep 9",
         "time": "07:31 AM",
         "completed": true
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "PuD6"
+    ]
   },
   {
     "_id": {
@@ -2978,10 +2864,7 @@
         "time": "12:14 PM",
         "completed": true
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "XzYs"
+    ]
   },
   {
     "_id": {
@@ -3021,10 +2904,10 @@
     ],
     "subtotal": 1833000,
     "shippingFee": 15000,
-    "discount": 0,
-    "total": 1848000,
+    "discount": 13802,
+    "total": 1834198,
     "currency": "VND",
-    "status": "returned",
+    "status": "refunded",
     "paymentStatus": "refunded",
     "paymentMethod": "vnpay",
     "shippingAddress": {
@@ -3079,16 +2962,13 @@
         "completed": true
       },
       {
-        "status": "Returned",
-        "description": "Order has been returned.",
+        "status": "refunded",
+        "description": "Order has been refunded.",
         "date": "Wednesday, Sep 11",
         "time": "02:27 PM",
         "completed": true
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "P3S7"
+    ]
   },
   {
     "_id": {
@@ -3170,10 +3050,7 @@
         "time": "02:18 AM",
         "completed": true
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 105,
-    "displayCode": "RQRw"
+    ]
   },
   {
     "_id": {
@@ -3192,8 +3069,8 @@
     ],
     "subtotal": 1167000,
     "shippingFee": 20000,
-    "discount": 0,
-    "total": 1187000,
+    "discount": 28320,
+    "total": 1158680,
     "currency": "VND",
     "status": "pending",
     "paymentStatus": "pending",
@@ -3220,10 +3097,7 @@
         "time": "08:16 AM",
         "completed": false
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "zK9J"
+    ]
   },
   {
     "_id": {
@@ -3298,10 +3172,7 @@
         "time": "05:44 PM",
         "completed": false
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 91,
-    "displayCode": "htzN"
+    ]
   },
   {
     "_id": {
@@ -3330,7 +3201,7 @@
     "discount": 0,
     "total": 2014000,
     "currency": "VND",
-    "status": "returned",
+    "status": "refunded",
     "paymentStatus": "refunded",
     "paymentMethod": "zaloPay",
     "shippingAddress": {
@@ -3377,16 +3248,13 @@
         "completed": true
       },
       {
-        "status": "Returned",
-        "description": "Order has been returned.",
+        "status": "refunded",
+        "description": "Order has been refunded.",
         "date": "Friday, Oct 4",
         "time": "12:30 PM",
         "completed": true
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "AsGF"
+    ]
   },
   {
     "_id": {
@@ -3468,10 +3336,7 @@
         "time": "06:53 PM",
         "completed": true
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 301,
-    "displayCode": "Twmv"
+    ]
   },
   {
     "_id": {
@@ -3490,11 +3355,11 @@
     ],
     "subtotal": 357000,
     "shippingFee": 20000,
-    "discount": 41000,
-    "total": 336000,
+    "discount": 41596,
+    "total": 335404,
     "currency": "VND",
     "status": "delivered",
-    "paymentStatus": "paid",
+    "paymentStatus": "pending",
     "paymentMethod": "cod",
     "shippingAddress": {
       "label": "home",
@@ -3539,10 +3404,7 @@
         "time": "04:20 AM",
         "completed": true
       }
-    ],
-    "pointsUsed": 41,
-    "pointsEarned": 37,
-    "displayCode": "lkZA"
+    ]
   },
   {
     "_id": {
@@ -3561,8 +3423,8 @@
     ],
     "subtotal": 980000,
     "shippingFee": 20000,
-    "discount": 0,
-    "total": 1000000,
+    "discount": 45388,
+    "total": 954612,
     "currency": "VND",
     "status": "shipped",
     "paymentStatus": "pending",
@@ -3611,10 +3473,7 @@
         "time": "03:15 AM",
         "completed": false
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "Io1D"
+    ]
   },
   {
     "_id": {
@@ -3633,8 +3492,8 @@
     ],
     "subtotal": 175000,
     "shippingFee": 30000,
-    "discount": 0,
-    "total": 205000,
+    "discount": 5905,
+    "total": 199095,
     "currency": "VND",
     "status": "processing",
     "paymentStatus": "pending",
@@ -3668,10 +3527,7 @@
         "time": "04:56 PM",
         "completed": false
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "kFbN"
+    ]
   },
   {
     "_id": {
@@ -3746,10 +3602,7 @@
         "time": "10:16 AM",
         "completed": false
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "65Ed"
+    ]
   },
   {
     "_id": {
@@ -3796,10 +3649,7 @@
         "time": "12:29 PM",
         "completed": false
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "4jkX"
+    ]
   },
   {
     "_id": {
@@ -3825,10 +3675,10 @@
     ],
     "subtotal": 885000,
     "shippingFee": 15000,
-    "discount": 0,
-    "total": 900000,
+    "discount": 126333,
+    "total": 773667,
     "currency": "VND",
-    "status": "returned",
+    "status": "refunded",
     "paymentStatus": "refunded",
     "paymentMethod": "cod",
     "shippingAddress": {
@@ -3875,16 +3725,13 @@
         "completed": true
       },
       {
-        "status": "Returned",
-        "description": "Order has been returned.",
+        "status": "refunded",
+        "description": "Order has been refunded.",
         "date": "Saturday, Dec 14",
         "time": "04:09 AM",
         "completed": true
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "8K0L"
+    ]
   },
   {
     "_id": {
@@ -3903,8 +3750,8 @@
     ],
     "subtotal": 189000,
     "shippingFee": 0,
-    "discount": 0,
-    "total": 189000,
+    "discount": 13867,
+    "total": 175133,
     "currency": "VND",
     "status": "cancelled",
     "paymentStatus": "refunded",
@@ -3938,10 +3785,7 @@
         "time": "12:49 PM",
         "completed": true
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "O0gb"
+    ]
   },
   {
     "_id": {
@@ -4016,10 +3860,7 @@
         "time": "12:45 PM",
         "completed": true
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "Ev9K"
+    ]
   },
   {
     "_id": {
@@ -4048,7 +3889,7 @@
     "discount": 15000,
     "total": 404000,
     "currency": "VND",
-    "status": "returned",
+    "status": "refunded",
     "paymentStatus": "refunded",
     "paymentMethod": "vnpay",
     "shippingAddress": {
@@ -4103,16 +3944,13 @@
         "completed": true
       },
       {
-        "status": "Returned",
-        "description": "Order has been returned.",
+        "status": "refunded",
+        "description": "Order has been refunded.",
         "date": "Tuesday, Jan 14",
         "time": "04:43 AM",
         "completed": true
       }
-    ],
-    "pointsUsed": 15,
-    "pointsEarned": 0,
-    "displayCode": "ylz1"
+    ]
   },
   {
     "_id": {
@@ -4131,8 +3969,8 @@
     ],
     "subtotal": 318000,
     "shippingFee": 20000,
-    "discount": 26000,
-    "total": 312000,
+    "discount": 26816,
+    "total": 311184,
     "currency": "VND",
     "status": "delivered",
     "paymentStatus": "paid",
@@ -4180,10 +4018,7 @@
         "time": "03:45 PM",
         "completed": true
       }
-    ],
-    "pointsUsed": 26,
-    "pointsEarned": 33,
-    "displayCode": "oLbO"
+    ]
   },
   {
     "_id": {
@@ -4230,10 +4065,7 @@
         "time": "05:04 PM",
         "completed": false
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "UO66"
+    ]
   },
   {
     "_id": {
@@ -4252,10 +4084,10 @@
     ],
     "subtotal": 59000,
     "shippingFee": 15000,
-    "discount": 5000,
-    "total": 69000,
+    "discount": 5257,
+    "total": 68743,
     "currency": "VND",
-    "status": "returned",
+    "status": "refunded",
     "paymentStatus": "refunded",
     "paymentMethod": "vnpay",
     "shippingAddress": {
@@ -4302,16 +4134,13 @@
         "completed": true
       },
       {
-        "status": "Returned",
-        "description": "Order has been returned.",
+        "status": "refunded",
+        "description": "Order has been refunded.",
         "date": "Sunday, Jan 19",
         "time": "10:26 AM",
         "completed": true
       }
-    ],
-    "pointsUsed": 5,
-    "pointsEarned": 0,
-    "displayCode": "V2Nq"
+    ]
   },
   {
     "_id": {
@@ -4348,7 +4177,7 @@
     "total": 1085000,
     "currency": "VND",
     "status": "delivered",
-    "paymentStatus": "paid",
+    "paymentStatus": "pending",
     "paymentMethod": "cod",
     "shippingAddress": {
       "label": "home",
@@ -4393,10 +4222,7 @@
         "time": "12:50 AM",
         "completed": true
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 108,
-    "displayCode": "sYNL"
+    ]
   },
   {
     "_id": {
@@ -4479,10 +4305,7 @@
         "time": "05:04 PM",
         "completed": true
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "YbYl"
+    ]
   },
   {
     "_id": {
@@ -4515,8 +4338,8 @@
     ],
     "subtotal": 1631000,
     "shippingFee": 20000,
-    "discount": 95000,
-    "total": 1556000,
+    "discount": 95504,
+    "total": 1555496,
     "currency": "VND",
     "status": "processing",
     "paymentStatus": "pending",
@@ -4550,10 +4373,7 @@
         "time": "10:35 PM",
         "completed": false
       }
-    ],
-    "pointsUsed": 95,
-    "pointsEarned": 0,
-    "displayCode": "tZI9"
+    ]
   },
   {
     "_id": {
@@ -4629,10 +4449,7 @@
         "time": "11:05 AM",
         "completed": true
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "4uJ7"
+    ]
   },
   {
     "_id": {
@@ -4708,10 +4525,7 @@
         "time": "12:20 AM",
         "completed": false
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 164,
-    "displayCode": "kyhK"
+    ]
   },
   {
     "_id": {
@@ -4794,10 +4608,7 @@
         "time": "04:10 PM",
         "completed": true
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 68,
-    "displayCode": "4fOp"
+    ]
   },
   {
     "_id": {
@@ -4837,8 +4648,8 @@
     ],
     "subtotal": 3328000,
     "shippingFee": 20000,
-    "discount": 68000,
-    "total": 3280000,
+    "discount": 470880,
+    "total": 2877120,
     "currency": "VND",
     "status": "pending",
     "paymentStatus": "pending",
@@ -4865,10 +4676,7 @@
         "time": "11:16 AM",
         "completed": false
       }
-    ],
-    "pointsUsed": 68,
-    "pointsEarned": 0,
-    "displayCode": "zArf"
+    ]
   },
   {
     "_id": {
@@ -4887,10 +4695,10 @@
     ],
     "subtotal": 447000,
     "shippingFee": 30000,
-    "discount": 0,
-    "total": 477000,
+    "discount": 9460,
+    "total": 467540,
     "currency": "VND",
-    "status": "returned",
+    "status": "refunded",
     "paymentStatus": "refunded",
     "paymentMethod": "bank-transfer",
     "shippingAddress": {
@@ -4937,16 +4745,13 @@
         "completed": true
       },
       {
-        "status": "Returned",
-        "description": "Order has been returned.",
+        "status": "refunded",
+        "description": "Order has been refunded.",
         "date": "Saturday, Apr 12",
         "time": "07:09 PM",
         "completed": true
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "GnlP"
+    ]
   },
   {
     "_id": {
@@ -5014,10 +4819,7 @@
         "time": "11:54 AM",
         "completed": false
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 35,
-    "displayCode": "MlEq"
+    ]
   },
   {
     "_id": {
@@ -5060,7 +4862,7 @@
     "discount": 0,
     "total": 2686000,
     "currency": "VND",
-    "status": "returned",
+    "status": "refunded",
     "paymentStatus": "refunded",
     "paymentMethod": "bank-transfer",
     "shippingAddress": {
@@ -5107,16 +4909,13 @@
         "completed": true
       },
       {
-        "status": "Returned",
-        "description": "Order has been returned.",
+        "status": "refunded",
+        "description": "Order has been refunded.",
         "date": "Saturday, Apr 19",
         "time": "03:21 AM",
         "completed": true
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "KbnW"
+    ]
   },
   {
     "_id": {
@@ -5142,8 +4941,8 @@
     ],
     "subtotal": 1376000,
     "shippingFee": 20000,
-    "discount": 0,
-    "total": 1396000,
+    "discount": 112375,
+    "total": 1283625,
     "currency": "VND",
     "status": "processing",
     "paymentStatus": "pending",
@@ -5177,10 +4976,7 @@
         "time": "11:15 PM",
         "completed": false
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "VXoh"
+    ]
   },
   {
     "_id": {
@@ -5199,10 +4995,10 @@
     ],
     "subtotal": 1316000,
     "shippingFee": 30000,
-    "discount": 0,
-    "total": 1346000,
+    "discount": 101548,
+    "total": 1244452,
     "currency": "VND",
-    "status": "returned",
+    "status": "refunded",
     "paymentStatus": "refunded",
     "paymentMethod": "vnpay",
     "shippingAddress": {
@@ -5257,16 +5053,13 @@
         "completed": true
       },
       {
-        "status": "Returned",
-        "description": "Order has been returned.",
+        "status": "refunded",
+        "description": "Order has been refunded.",
         "date": "Thursday, May 22",
         "time": "08:01 PM",
         "completed": true
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "k2dq"
+    ]
   },
   {
     "_id": {
@@ -5341,10 +5134,7 @@
         "time": "11:04 PM",
         "completed": false
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 182,
-    "displayCode": "pCqK"
+    ]
   },
   {
     "_id": {
@@ -5413,10 +5203,7 @@
         "time": "08:55 PM",
         "completed": true
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "3VQD"
+    ]
   },
   {
     "_id": {
@@ -5470,10 +5257,7 @@
         "time": "12:45 PM",
         "completed": false
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "63Jv"
+    ]
   },
   {
     "_id": {
@@ -5492,8 +5276,8 @@
     ],
     "subtotal": 660000,
     "shippingFee": 20000,
-    "discount": 0,
-    "total": 680000,
+    "discount": 10994,
+    "total": 669006,
     "currency": "VND",
     "status": "delivered",
     "paymentStatus": "paid",
@@ -5549,10 +5333,7 @@
         "time": "07:14 AM",
         "completed": true
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 68,
-    "displayCode": "mYIc"
+    ]
   },
   {
     "_id": {
@@ -5574,7 +5355,7 @@
     "discount": 0,
     "total": 119000,
     "currency": "VND",
-    "status": "returned",
+    "status": "refunded",
     "paymentStatus": "refunded",
     "paymentMethod": "vnpay",
     "shippingAddress": {
@@ -5621,16 +5402,13 @@
         "completed": true
       },
       {
-        "status": "Returned",
-        "description": "Order has been returned.",
+        "status": "refunded",
+        "description": "Order has been refunded.",
         "date": "Sunday, Jun 22",
         "time": "11:37 AM",
         "completed": true
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "DL3T"
+    ]
   },
   {
     "_id": {
@@ -5670,8 +5448,8 @@
     ],
     "subtotal": 1951000,
     "shippingFee": 0,
-    "discount": 0,
-    "total": 1951000,
+    "discount": 271828,
+    "total": 1679172,
     "currency": "VND",
     "status": "pending",
     "paymentStatus": "pending",
@@ -5698,10 +5476,7 @@
         "time": "02:59 AM",
         "completed": false
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "1s7m"
+    ]
   },
   {
     "_id": {
@@ -5730,7 +5505,7 @@
     "discount": 0,
     "total": 1202000,
     "currency": "VND",
-    "status": "returned",
+    "status": "refunded",
     "paymentStatus": "refunded",
     "paymentMethod": "vnpay",
     "shippingAddress": {
@@ -5785,16 +5560,13 @@
         "completed": true
       },
       {
-        "status": "Returned",
-        "description": "Order has been returned.",
+        "status": "refunded",
+        "description": "Order has been refunded.",
         "date": "Saturday, Jun 28",
         "time": "04:35 AM",
         "completed": true
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "bH7T"
+    ]
   },
   {
     "_id": {
@@ -5877,10 +5649,7 @@
         "time": "11:45 AM",
         "completed": false
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "Fs9Z"
+    ]
   },
   {
     "_id": {
@@ -5923,7 +5692,7 @@
     "discount": 0,
     "total": 3147000,
     "currency": "VND",
-    "status": "returned",
+    "status": "refunded",
     "paymentStatus": "refunded",
     "paymentMethod": "zaloPay",
     "shippingAddress": {
@@ -5978,16 +5747,13 @@
         "completed": true
       },
       {
-        "status": "Returned",
-        "description": "Order has been returned.",
+        "status": "refunded",
+        "description": "Order has been refunded.",
         "date": "Saturday, Jul 5",
         "time": "05:04 AM",
         "completed": true
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "PpaS"
+    ]
   },
   {
     "_id": {
@@ -6048,10 +5814,7 @@
         "time": "10:20 AM",
         "completed": false
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "VGKo"
+    ]
   },
   {
     "_id": {
@@ -6119,10 +5882,7 @@
         "time": "08:34 PM",
         "completed": false
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "njU4"
+    ]
   },
   {
     "_id": {
@@ -6162,8 +5922,8 @@
     ],
     "subtotal": 1869000,
     "shippingFee": 20000,
-    "discount": 0,
-    "total": 1889000,
+    "discount": 222301,
+    "total": 1666699,
     "currency": "VND",
     "status": "pending",
     "paymentStatus": "pending",
@@ -6190,10 +5950,7 @@
         "time": "11:45 PM",
         "completed": false
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "O50K"
+    ]
   },
   {
     "_id": {
@@ -6269,10 +6026,7 @@
         "time": "05:13 PM",
         "completed": true
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 20,
-    "displayCode": "pU3g"
+    ]
   },
   {
     "_id": {
@@ -6291,8 +6045,8 @@
     ],
     "subtotal": 238000,
     "shippingFee": 15000,
-    "discount": 5000,
-    "total": 248000,
+    "discount": 5096,
+    "total": 247904,
     "currency": "VND",
     "status": "pending",
     "paymentStatus": "pending",
@@ -6319,10 +6073,7 @@
         "time": "07:47 PM",
         "completed": false
       }
-    ],
-    "pointsUsed": 5,
-    "pointsEarned": 0,
-    "displayCode": "lIWa"
+    ]
   },
   {
     "_id": {
@@ -6405,10 +6156,7 @@
         "time": "01:33 AM",
         "completed": false
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 201,
-    "displayCode": "gBJh"
+    ]
   },
   {
     "_id": {
@@ -6476,10 +6224,7 @@
         "time": "05:30 PM",
         "completed": false
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 255,
-    "displayCode": "UJfs"
+    ]
   },
   {
     "_id": {
@@ -6522,7 +6267,7 @@
     "discount": 0,
     "total": 2107000,
     "currency": "VND",
-    "status": "returned",
+    "status": "refunded",
     "paymentStatus": "refunded",
     "paymentMethod": "vnpay",
     "shippingAddress": {
@@ -6569,16 +6314,13 @@
         "completed": true
       },
       {
-        "status": "Returned",
-        "description": "Order has been returned.",
+        "status": "refunded",
+        "description": "Order has been refunded.",
         "date": "Friday, Sep 5",
         "time": "06:50 AM",
         "completed": true
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "CY0S"
+    ]
   },
   {
     "_id": {
@@ -6607,7 +6349,7 @@
     "discount": 0,
     "total": 1046000,
     "currency": "VND",
-    "status": "returned",
+    "status": "refunded",
     "paymentStatus": "refunded",
     "paymentMethod": "momo",
     "shippingAddress": {
@@ -6654,16 +6396,13 @@
         "completed": true
       },
       {
-        "status": "Returned",
-        "description": "Order has been returned.",
+        "status": "refunded",
+        "description": "Order has been refunded.",
         "date": "Tuesday, Sep 16",
         "time": "02:55 AM",
         "completed": true
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "jEfl"
+    ]
   },
   {
     "_id": {
@@ -6745,10 +6484,7 @@
         "time": "11:53 PM",
         "completed": false
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 234,
-    "displayCode": "QGa8"
+    ]
   },
   {
     "_id": {
@@ -6838,10 +6574,7 @@
         "time": "04:41 PM",
         "completed": false
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 182,
-    "displayCode": "TXxM"
+    ]
   },
   {
     "_id": {
@@ -6917,10 +6650,7 @@
         "time": "11:49 PM",
         "completed": false
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 42,
-    "displayCode": "UbeE"
+    ]
   },
   {
     "_id": {
@@ -6981,10 +6711,7 @@
         "time": "08:55 AM",
         "completed": false
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 39,
-    "displayCode": "J1m7"
+    ]
   },
   {
     "_id": {
@@ -7003,8 +6730,8 @@
     ],
     "subtotal": 567000,
     "shippingFee": 20000,
-    "discount": 0,
-    "total": 587000,
+    "discount": 28282,
+    "total": 558718,
     "currency": "VND",
     "status": "pending",
     "paymentStatus": "pending",
@@ -7031,10 +6758,7 @@
         "time": "04:17 AM",
         "completed": false
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "7LQK"
+    ]
   },
   {
     "_id": {
@@ -7123,10 +6847,7 @@
         "time": "07:16 PM",
         "completed": true
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 381,
-    "displayCode": "LymL"
+    ]
   },
   {
     "_id": {
@@ -7201,10 +6922,7 @@
         "time": "07:47 AM",
         "completed": false
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 319,
-    "displayCode": "MwK2"
+    ]
   },
   {
     "_id": {
@@ -7272,10 +6990,7 @@
         "time": "11:33 PM",
         "completed": true
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "YJL2"
+    ]
   },
   {
     "_id": {
@@ -7350,10 +7065,7 @@
         "time": "06:13 PM",
         "completed": true
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 118,
-    "displayCode": "hpb2"
+    ]
   },
   {
     "_id": {
@@ -7429,10 +7141,7 @@
         "time": "02:53 AM",
         "completed": false
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "aoRY"
+    ]
   },
   {
     "_id": {
@@ -7468,7 +7177,7 @@
     "discount": 0,
     "total": 4946000,
     "currency": "VND",
-    "status": "returned",
+    "status": "refunded",
     "paymentStatus": "refunded",
     "paymentMethod": "bank-transfer",
     "shippingAddress": {
@@ -7523,16 +7232,13 @@
         "completed": true
       },
       {
-        "status": "Returned",
-        "description": "Order has been returned.",
+        "status": "refunded",
+        "description": "Order has been refunded.",
         "date": "Friday, Nov 7",
         "time": "05:41 AM",
         "completed": true
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "Qb79"
+    ]
   },
   {
     "_id": {
@@ -7572,8 +7278,8 @@
     ],
     "subtotal": 1472000,
     "shippingFee": 15000,
-    "discount": 0,
-    "total": 1487000,
+    "discount": 155020,
+    "total": 1331980,
     "currency": "VND",
     "status": "pending",
     "paymentStatus": "pending",
@@ -7600,10 +7306,7 @@
         "time": "04:37 PM",
         "completed": false
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 0,
-    "displayCode": "AE5S"
+    ]
   },
   {
     "_id": {
@@ -7647,7 +7350,7 @@
     "total": 2689000,
     "currency": "VND",
     "status": "delivered",
-    "paymentStatus": "paid",
+    "paymentStatus": "pending",
     "paymentMethod": "cod",
     "shippingAddress": {
       "label": "home",
@@ -7700,9 +7403,6 @@
         "time": "03:51 AM",
         "completed": true
       }
-    ],
-    "pointsUsed": 0,
-    "pointsEarned": 268,
-    "displayCode": "u1E8"
+    ]
   }
 ]

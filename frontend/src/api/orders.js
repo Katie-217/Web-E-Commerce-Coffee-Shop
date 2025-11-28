@@ -1,7 +1,18 @@
 import { apiClient } from './client';
 
-export function fetchOrders({ q, status, email, page = 1, limit = 20 } = {}) {
-  return apiClient.get('/orders', { params: { q, status, email, page, limit, includeItems: true } });
+export function fetchOrders(params = {}) {
+  const {
+    q,
+    status,
+    email,
+    page = 1,
+    limit = 20,        // 👈 default 20 (hoặc 50 tuỳ em)
+    includeItems = true,
+  } = params;
+
+  return apiClient.get('/orders', {
+    params: { q, status, email, page, limit, includeItems },
+  });
 }
 
 export function fetchOrderById(id) {
@@ -9,8 +20,9 @@ export function fetchOrderById(id) {
 }
 
 export const OrdersApi = {
-  list: (params) => apiClient.get('/orders', { params }),
-  get: (id) => apiClient.get(`/orders/${encodeURIComponent(id)}`),
+  // dùng chung 1 logic
+  list: (params = {}) => fetchOrders(params),
+  get: (id) => fetchOrderById(id),
   create: (payload) => apiClient.post('/orders', payload),
   updateStatus: (id, status, additionalData = {}) => {
     const payload = { status, ...additionalData };
@@ -20,6 +32,3 @@ export const OrdersApi = {
 };
 
 export default OrdersApi;
-
-
-

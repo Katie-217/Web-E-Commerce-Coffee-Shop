@@ -1,6 +1,6 @@
 
 import React from 'react';
-import './menu.css';
+import '../Menu/menu.css';
 
 const Menu = () => {
   const menuItems = [

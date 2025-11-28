@@ -1,21 +1,21 @@
+// src/lib/client.js
 // Minimal fetch wrapper for frontend API calls
-// - Base URL from Vite env: VITE_API_BASE_URL
+// - Base URL từ biến môi trường CRA
 // - JSON by default
-// - Basic error handling and timeout support
+// - Basic error handling và timeout support
+
+const API_BASE_URL = 'http://localhost:3001/api';
+
 
 const DEFAULT_TIMEOUT_MS = 15000;
 
 function buildUrl(path) {
-  // Default API base URL if not set in env
-  // Backend chạy trên port 3001, frontend trên port 3000
-  const base = import.meta?.env?.VITE_API_BASE_URL || 'http://localhost:3001/api';
   if (path.startsWith('http://') || path.startsWith('https://')) return path;
-  return `${base.replace(/\/$/, '')}/${path.replace(/^\//, '')}`;
+  return `${API_BASE_URL.replace(/\/$/, '')}/${path.replace(/^\//, '')}`;
 }
 
 function applyQuery(url, params) {
   if (!params) return url;
-  // Expect an absolute URL here; preserve origin and pathname
   const u = new URL(url);
   Object.entries(params).forEach(([k, v]) => {
     if (v === undefined || v === null) return;
@@ -25,33 +25,58 @@ function applyQuery(url, params) {
   return u.toString();
 }
 
-let authTokenProvider = null; // optional callback to get token
-export function setAuthTokenProvider(fn) { authTokenProvider = fn; }
+let authTokenProvider = null; // optional callback để lấy token
+export function setAuthTokenProvider(fn) {
+  authTokenProvider = fn;
+}
 
-async function request(path, { method = 'GET', headers, body, params, signal, timeoutMs = DEFAULT_TIMEOUT_MS } = {}) {
+async function request(
+  path,
+  {
+    method = 'GET',
+    headers,
+    body,
+    params,
+    signal,
+    timeoutMs = DEFAULT_TIMEOUT_MS,
+  } = {},
+) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
+  const finalSignal = signal ?? controller.signal;
 
-  const mergedSignal = signal ? new AbortController() : null;
-  if (mergedSignal && signal) {
-    signal.addEventListener('abort', () => mergedSignal.abort());
+  // Lấy token: ưu tiên authTokenProvider, fallback localStorage cho code cũ
+  let authHeader = null;
+  if (authTokenProvider) {
+    authHeader = await authTokenProvider();
+  } else if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('token');
+    if (token) authHeader = `Bearer ${token}`;
   }
 
   try {
     const urlWithQuery = params ? applyQuery(buildUrl(path), params) : buildUrl(path);
-    const authHeader = authTokenProvider ? await authTokenProvider() : null;
+
     const res = await fetch(urlWithQuery, {
       method,
       headers: {
-        'Accept': 'application/json',
-        ...(body && !(body instanceof FormData) ? { 'Content-Type': 'application/json' } : {}),
-        ...(authHeader ? { Authorization: typeof authHeader === 'string' ? authHeader : `Bearer ${authHeader.token || authHeader}` } : {}),
+        Accept: 'application/json',
+        ...(body && !(body instanceof FormData)
+          ? { 'Content-Type': 'application/json' }
+          : {}),
+        ...(authHeader
+          ? {
+              Authorization:
+                typeof authHeader === 'string'
+                  ? authHeader
+                  : `Bearer ${authHeader.token || authHeader}`,
+            }
+          : {}),
         ...headers,
       },
       body: body && !(body instanceof FormData) ? JSON.stringify(body) : body,
-      signal: mergedSignal ? mergedSignal.signal : controller.signal,
-      // No cookies required for this API; avoid CORS credential issues
-      credentials: 'omit',
+      signal: finalSignal,
+      credentials: 'include', // giữ behaviour cũ
     });
 
     const contentType = res.headers.get('content-type') || '';
@@ -76,9 +101,13 @@ export const apiClient = {
   post: (path, body, options) => request(path, { method: 'POST', body, ...(options || {}) }),
   put: (path, body, options) => request(path, { method: 'PUT', body, ...(options || {}) }),
   patch: (path, body, options) => request(path, { method: 'PATCH', body, ...(options || {}) }),
-  delete: (path, options) => request(path, { method: 'DELETE', ...(options || {}) }),
+  delete: (path, options) =>
+    request(path, { method: 'DELETE', ...(options || {}) }),
 };
 
 export default apiClient;
 
-
+// Backwards-compatible helper cho code cũ đang dùng apiGet
+export async function apiGet(path, params = {}, { signal } = {}) {
+  return apiClient.get(path, { params, signal });
+}

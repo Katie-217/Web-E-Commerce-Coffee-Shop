@@ -1,512 +1,1192 @@
-[
-  {
-    "_id": {
-      "$oid": "691afdb4569e89354a453005"
-    },
-    "id": 1,
-    "name": "Trung Nguyên Legend Culi Robusta",
-    "imageUrl": "https://res.cloudinary.com/doad7e047/image/upload/v1764051953/products/products/local-product-1-trung-nguyen-legend-culi-robusta.jpg",
-    "description": "Hạt Culi Robusta rang mộc của Trung Nguyên Legend với vị đậm và hậu ngọt dài.",
-    "category": "Roasted coffee",
-    "stock": true,
-    "sku": "RC-TN-001",
-    "price": 119000,
-    "quantity": 140,
-    "status": "Publish",
-    "createdAt": "2025-10-20T07:45:00Z",
-    "updatedAt": "2025-11-25T06:25:52.922Z"
+[{
+  "_id": {
+    "$oid": "6927ad704639e2dc82d7bee7"
   },
-  {
-    "_id": {
-      "$oid": "691afdb4569e89354a453006"
-    },
-    "id": 2,
-    "name": "Trung Nguyên Legend Arabica Cầu Đất",
-    "imageUrl": "https://res.cloudinary.com/doad7e047/image/upload/v1764051954/products/products/local-product-2-trung-nguyen-legend-arabica-cau-at.png",
-    "description": "Arabica select từ nông trại Cầu Đất, hương hoa quả và vị chua thanh.",
-    "category": "Roasted coffee",
-    "stock": true,
-    "sku": "RC-TN-002",
-    "price": 165000,
-    "quantity": 90,
-    "status": "Publish",
-    "createdAt": "2025-10-21T06:15:00Z",
-    "updatedAt": "2025-11-25T06:25:54.430Z"
+  "id": 1,
+  "name": "Trung Nguyên Legend Culi Robusta",
+  "imageUrl": "https://res.cloudinary.com/dztnbf2kj/image/upload/v1764214984/products/nfcdr1dfgyanvqa5s7jk.webp",
+  "description": "Hạt Culi Robusta rang mộc của Trung Nguyên Legend với vị đậm, hậu ngọt dài, phù hợp pha phin truyền thống.",
+  "category": "Roasted coffee",
+  "stock": true,
+  "sku": "RC-TN-001",
+  "price": 119000,
+  "quantity": 140,
+  "status": "Publish",
+  "variants": [
+    {
+      "name": "size",
+      "options": [
+        {
+          "label": "250g",
+          "priceDelta": 0
+        },
+        {
+          "label": "500g",
+          "priceDelta": 30000
+        },
+        {
+          "label": "1kg",
+          "priceDelta": 80000
+        }
+      ]
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-10-20T07:45:00.000Z"
   },
-  {
-    "_id": {
-      "$oid": "691afdb4569e89354a453007"
-    },
-    "id": 3,
-    "name": "Highlands Coffee Premium Blend",
-    "imageUrl": "https://res.cloudinary.com/doad7e047/image/upload/v1764051956/products/products/local-product-3-highlands-coffee-premium-blend.png",
-    "description": "Blend rang vừa từ Highlands Coffee, cân bằng giữa Robusta và Arabica.",
-    "category": "Roasted coffee",
-    "stock": true,
-    "sku": "RC-HC-003",
-    "price": 135000,
-    "quantity": 110,
-    "status": "Publish",
-    "createdAt": "2025-10-18T05:10:00Z",
-    "updatedAt": "2025-11-25T06:25:57.120Z"
+  "updatedAt": {
+    "$date": "2025-11-27T03:43:08.781Z"
   },
-  {
-    "_id": {
-      "$oid": "691afdb4569e89354a453008"
-    },
-    "id": 4,
-    "name": "Highlands Coffee Moka",
-    "imageUrl": "https://res.cloudinary.com/doad7e047/image/upload/v1764051959/products/products/local-product-4-highlands-coffee-moka.png",
-    "description": "Dòng Moka quý hiếm, hạt nhỏ hương thơm socola đặc trưng.",
-    "category": "Roasted coffee",
-    "stock": false,
-    "sku": "RC-HC-004",
-    "price": 189000,
-    "quantity": 0,
-    "status": "Inactive",
-    "createdAt": "2025-09-30T04:30:00Z",
-    "updatedAt": "2025-11-25T06:25:59.409Z"
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6927ad704639e2dc82d7bee8"
   },
-  {
-    "_id": {
-      "$oid": "691afdb4569e89354a453009"
-    },
-    "id": 5,
-    "name": "Phúc Long Signature Robusta",
-    "imageUrl": "https://res.cloudinary.com/doad7e047/image/upload/v1764051961/products/products/local-product-5-phuc-long-signature-robusta.png",
-    "description": "Robusta rang vừa của Phúc Long, vị đậm đà và thơm mùi caramel.",
-    "category": "Roasted coffee",
-    "stock": true,
-    "sku": "RC-PL-005",
-    "price": 99000,
-    "quantity": 160,
-    "status": "Publish",
-    "createdAt": "2025-10-12T09:05:00Z",
-    "updatedAt": "2025-11-25T06:26:01.455Z"
+  "id": 2,
+  "name": "Cà Phê Hạt Mộc Trung Nguyên Legend Success 1",
+  "imageUrl": "https://res.cloudinary.com/dztnbf2kj/image/upload/v1764215085/products/dpclht1bk8xcxofy1t64.webp",
+  "description": "Arabica Cầu Đất hương hoa quả và vị chua thanh, phù hợp pha pour-over.",
+  "category": "Roasted coffee",
+  "stock": true,
+  "sku": "RC-TN-002",
+  "price": 165000,
+  "quantity": 90,
+  "status": "Publish",
+  "variants": [
+    {
+      "name": "size",
+      "options": [
+        {
+          "label": "250g",
+          "priceDelta": 0
+        },
+        {
+          "label": "500g",
+          "priceDelta": 32000
+        }
+      ]
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-10-21T06:15:00.000Z"
   },
-  {
-    "_id": {
-      "$oid": "691afdb4569e89354a45300a"
-    },
-    "id": 6,
-    "name": "Phúc Long Arabica Honey",
-    "imageUrl": "https://res.cloudinary.com/doad7e047/image/upload/v1764051963/products/products/local-product-6-phuc-long-arabica-honey.png",
-    "description": "Arabica honey process từ Đà Lạt với hương mật ong và hoa nhài.",
-    "category": "Roasted coffee",
-    "stock": true,
-    "sku": "RC-PL-006",
-    "price": 175000,
-    "quantity": 70,
-    "status": "Publish",
-    "createdAt": "2025-10-08T08:00:00Z",
-    "updatedAt": "2025-11-25T06:26:03.393Z"
+  "updatedAt": {
+    "$date": "2025-11-27T03:44:49.056Z"
   },
-  {
-    "_id": {
-      "$oid": "691afdb4569e89354a45300b"
-    },
-    "id": 7,
-    "name": "The Coffee House Signature Blend",
-    "imageUrl": "https://res.cloudinary.com/doad7e047/image/upload/v1764051965/products/products/local-product-7-the-coffee-house-signature-blend.png",
-    "description": "Blend đặc trưng kết hợp hạt từ Lâm Đồng và Gia Lai.",
-    "category": "Roasted coffee",
-    "stock": true,
-    "sku": "RC-TCH-007",
-    "price": 145000,
-    "quantity": 130,
-    "status": "Publish",
-    "createdAt": "2025-10-15T07:00:00Z",
-    "updatedAt": "2025-11-25T06:26:05.795Z"
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6927ad704639e2dc82d7bee9"
   },
-  {
-    "_id": {
-      "$oid": "691afdb4569e89354a45300c"
-    },
-    "id": 8,
-    "name": "The Coffee House Cold Brew Roast",
-    "imageUrl": "https://res.cloudinary.com/doad7e047/image/upload/v1764051967/products/products/local-product-8-the-coffee-house-cold-brew-roast.png",
-    "description": "Rang đặc biệt cho cold brew, vị dịu, hậu ngọt thanh.",
-    "category": "Roasted coffee",
-    "stock": false,
-    "sku": "RC-TCH-008",
-    "price": 125000,
-    "quantity": 0,
-    "status": "Inactive",
-    "createdAt": "2025-09-25T09:20:00Z",
-    "updatedAt": "2025-11-25T06:26:09.016Z"
+  "id": 3,
+  "name": "Highlands Coffee Culi Blend",
+  "imageUrl": "https://res.cloudinary.com/dztnbf2kj/image/upload/v1764215261/products/uym4qckmtun4z1rfw2df.jpg",
+  "description": "Blend rang vừa, cân bằng giữa Robusta và Arabica, dùng cho cả espresso và phin.",
+  "category": "Roasted coffee",
+  "stock": true,
+  "sku": "RC-HC-003",
+  "price": 135000,
+  "quantity": 110,
+  "status": "Publish",
+  "variants": [
+    {
+      "name": "size",
+      "options": [
+        {
+          "label": "250g",
+          "priceDelta": 0
+        },
+        {
+          "label": "500g",
+          "priceDelta": 28000
+        },
+        {
+          "label": "1kg",
+          "priceDelta": 75000
+        }
+      ]
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-10-18T05:10:00.000Z"
   },
-  {
-    "_id": {
-      "$oid": "691afdb4569e89354a45300d"
-    },
-    "id": 9,
-    "name": "Trung Nguyên Legend G7 Full Set",
-    "imageUrl": "https://res.cloudinary.com/doad7e047/image/upload/v1764051970/products/products/local-product-9-trung-nguyen-legend-g7-full-set.png",
-    "description": "Combo G7 gồm cà phê hòa tan, phin inox và ly logo Legend.",
-    "category": "Coffee sets",
-    "stock": true,
-    "sku": "CS-TN-009",
-    "price": 259000,
-    "quantity": 80,
-    "status": "Publish",
-    "createdAt": "2025-10-10T05:15:00Z",
-    "updatedAt": "2025-11-25T06:26:10.438Z"
+  "updatedAt": {
+    "$date": "2025-11-27T03:47:44.951Z"
   },
-  {
-    "_id": {
-      "$oid": "691afdb4569e89354a45300e"
-    },
-    "id": 10,
-    "name": "Trung Nguyên Chinh Phục 5",
-    "imageUrl": "https://res.cloudinary.com/doad7e047/image/upload/v1764051972/products/products/local-product-10-trung-nguyen-chinh-phuc-5.png",
-    "description": "Bộ quà tặng Chinh Phục 5 với 5 loại cà phê rang xay và phụ kiện.",
-    "category": "Coffee sets",
-    "stock": true,
-    "sku": "CS-TN-010",
-    "price": 499000,
-    "quantity": 45,
-    "status": "Publish",
-    "createdAt": "2025-10-01T04:40:00Z",
-    "updatedAt": "2025-11-25T06:26:12.086Z"
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6927ad704639e2dc82d7beea"
   },
-  {
-    "_id": {
-      "$oid": "691afdb4569e89354a45300f"
-    },
-    "id": 11,
-    "name": "Highlands Coffee Gift Box 2025",
-    "imageUrl": "https://res.cloudinary.com/doad7e047/image/upload/v1764051974/products/products/local-product-11-highlands-coffee-gift-box-2025.png",
-    "description": "Hộp quà gồm 3 gói cà phê rang và bộ ly sứ Highlands.",
-    "category": "Coffee sets",
-    "stock": true,
-    "sku": "CS-HC-011",
-    "price": 389000,
-    "quantity": 60,
-    "status": "Publish",
-    "createdAt": "2025-10-05T06:05:00Z",
-    "updatedAt": "2025-11-25T06:26:14.668Z"
+  "id": 4,
+  "name": "Highlands Coffee Moka",
+  "imageUrl": "https://res.cloudinary.com/dztnbf2kj/image/upload/v1764215204/products/y0nxyqlcz1xwispsalsp.webp",
+  "description": "Dòng Moka quý hiếm, hạt nhỏ hương thơm socola đặc trưng, chỉ bán 1 cỡ túi.",
+  "category": "Roasted coffee",
+  "stock": false,
+  "sku": "RC-HC-004",
+  "price": 189000,
+  "quantity": 0,
+  "status": "Inactive",
+  "createdAt": {
+    "$date": "2025-09-30T04:30:00.000Z"
   },
-  {
-    "_id": {
-      "$oid": "691afdb4569e89354a453010"
-    },
-    "id": 12,
-    "name": "Highlands Coffee Combo Phin",
-    "imageUrl": "https://res.cloudinary.com/doad7e047/image/upload/v1764051976/products/products/local-product-12-highlands-coffee-combo-phin.png",
-    "description": "Combo phin inox, cà phê rang xay và sữa đặc phù hợp pha phin.",
-    "category": "Coffee sets",
-    "stock": false,
-    "sku": "CS-HC-012",
-    "price": 329000,
-    "quantity": 0,
-    "status": "Inactive",
-    "createdAt": "2025-09-10T03:30:00Z",
-    "updatedAt": "2025-11-25T06:26:16.246Z"
+  "updatedAt": {
+    "$date": "2025-11-27T03:46:50.672Z"
   },
-  {
-    "_id": {
-      "$oid": "691afdb4569e89354a453011"
-    },
-    "id": 13,
-    "name": "Phúc Long Gift Set Heritage",
-    "imageUrl": "https://res.cloudinary.com/doad7e047/image/upload/v1764051978/products/products/local-product-13-phuc-long-gift-set-heritage.png",
-    "description": "Hộp quà Heritage gồm cà phê rang, trà Oolong và bình giữ nhiệt.",
-    "category": "Coffee sets",
-    "stock": true,
-    "sku": "CS-PL-013",
-    "price": 415000,
-    "quantity": 52,
-    "status": "Publish",
-    "createdAt": "2025-10-14T07:25:00Z",
-    "updatedAt": "2025-11-25T06:26:18.017Z"
+  "variants": [],
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6927ad704639e2dc82d7beeb"
   },
-  {
-    "_id": {
-      "$oid": "691afdb4569e89354a453012"
-    },
-    "id": 14,
-    "name": "Phúc Long Cold Brew Starter",
-    "imageUrl": "https://res.cloudinary.com/doad7e047/image/upload/v1764051979/products/products/local-product-14-phuc-long-cold-brew-starter.png",
-    "description": "Bộ cold brew gồm hũ thủy tinh 1L, cà phê xay lạnh và bộ lọc vải.",
-    "category": "Coffee sets",
-    "stock": true,
-    "sku": "CS-PL-014",
-    "price": 289000,
-    "quantity": 66,
-    "status": "Publish",
-    "createdAt": "2025-09-28T08:10:00Z",
-    "updatedAt": "2025-11-25T06:26:19.893Z"
+  "id": 5,
+  "name": "Phúc Long Signature Robusta",
+  "imageUrl": "https://res.cloudinary.com/dztnbf2kj/image/upload/v1764215324/products/ozwpwrigbyj8axzcdx3h.webp",
+  "description": "Robusta rang vừa, vị đậm đà, hậu caramel nhẹ, phù hợp uống sữa đá.",
+  "category": "Roasted coffee",
+  "stock": true,
+  "sku": "RC-PL-005",
+  "price": 99000,
+  "quantity": 160,
+  "status": "Publish",
+  "variants": [
+    {
+      "name": "size",
+      "options": [
+        {
+          "label": "250g",
+          "priceDelta": 0
+        },
+        {
+          "label": "500g",
+          "priceDelta": 25000
+        }
+      ]
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-10-12T09:05:00.000Z"
   },
-  {
-    "_id": {
-      "$oid": "691afdb4569e89354a453013"
-    },
-    "id": 15,
-    "name": "The Coffee House Home Barista",
-    "imageUrl": "https://res.cloudinary.com/doad7e047/image/upload/v1764051981/products/products/local-product-15-the-coffee-house-home-barista.png",
-    "description": "Bộ dụng cụ pha pour-over với nồi rót cổ ngỗng và cà phê signature.",
-    "category": "Coffee sets",
-    "stock": true,
-    "sku": "CS-TCH-015",
-    "price": 475000,
-    "quantity": 35,
-    "status": "Publish",
-    "createdAt": "2025-10-02T09:45:00Z",
-    "updatedAt": "2025-11-25T06:26:21.438Z"
+  "updatedAt": {
+    "$date": "2025-11-27T03:48:48.723Z"
   },
-  {
-    "_id": {
-      "$oid": "691afdb4569e89354a453014"
-    },
-    "id": 16,
-    "name": "The Coffee House Latte Art Kit",
-    "imageUrl": "https://res.cloudinary.com/doad7e047/image/upload/v1764051983/products/products/local-product-16-the-coffee-house-latte-art-kit.png",
-    "description": "Bao gồm pitcher inox, bột cocoa trang trí và cà phê Espresso Blend.",
-    "category": "Coffee sets",
-    "stock": true,
-    "sku": "CS-TCH-016",
-    "price": 329000,
-    "quantity": 58,
-    "status": "Publish",
-    "createdAt": "2025-09-22T06:50:00Z",
-    "updatedAt": "2025-11-25T06:26:22.937Z"
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6927ad704639e2dc82d7beec"
   },
-  {
-    "_id": {
-      "$oid": "691afdb4569e89354a453015"
-    },
-    "id": 17,
-    "name": "Ly Sứ Trung Nguyên Legend Signature 330ml",
-    "imageUrl": "https://res.cloudinary.com/doad7e047/image/upload/v1764051984/products/products/local-product-17-ly-su-trung-nguyen-legend-signature-330m.png",
-    "description": "Ly sứ trắng in logo Trung Nguyên Legend, giữ nhiệt tốt.",
-    "category": "Cups & Mugs",
-    "stock": true,
-    "sku": "CM-TN-017",
-    "price": 129000,
-    "quantity": 210,
-    "status": "Publish",
-    "createdAt": "2025-08-30T07:10:00Z",
-    "updatedAt": "2025-11-25T06:26:24.478Z"
+  "id": 6,
+  "name": "Phúc Long Arabica Culi",
+  "imageUrl": "https://res.cloudinary.com/dztnbf2kj/image/upload/v1764215360/products/jfxxwwtoquffroxx3hcp.jpg",
+  "description": "Arabica honey process từ Đà Lạt với hương mật ong và hoa nhài.",
+  "category": "Roasted coffee",
+  "stock": true,
+  "sku": "RC-PL-006",
+  "price": 175000,
+  "quantity": 70,
+  "status": "Publish",
+  "variants": [
+    {
+      "name": "size",
+      "options": [
+        {
+          "label": "250g",
+          "priceDelta": 0
+        },
+        {
+          "label": "500g",
+          "priceDelta": 35000
+        }
+      ]
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-10-08T08:00:00.000Z"
   },
-  {
-    "_id": {
-      "$oid": "691afdb4569e89354a453016"
-    },
-    "id": 18,
-    "name": "Ly Sứ Trung Nguyên Legend Heritage",
-    "imageUrl": "https://res.cloudinary.com/doad7e047/image/upload/v1764051986/products/products/local-product-18-ly-su-trung-nguyen-legend-heritage.jpg",
-    "description": "Phiên bản giới hạn với họa tiết trống đồng, dung tích 400ml.",
-    "category": "Cups & Mugs",
-    "stock": false,
-    "sku": "CM-TN-018",
-    "price": 189000,
-    "quantity": 0,
-    "status": "Inactive",
-    "createdAt": "2025-07-12T05:45:00Z",
-    "updatedAt": "2025-11-25T06:26:25.853Z"
+  "updatedAt": {
+    "$date": "2025-11-27T03:49:40.349Z"
   },
-  {
-    "_id": {
-      "$oid": "691afdb4569e89354a453017"
-    },
-    "id": 19,
-    "name": "Ly Sứ Highlands Coffee 2025",
-    "imageUrl": "https://res.cloudinary.com/doad7e047/image/upload/v1764051987/products/products/local-product-19-ly-su-highlands-coffee-2025.jpg",
-    "description": "Ly sứ đỏ logo Highlands, bộ 2 ly cho quán cà phê tại nhà.",
-    "category": "Cups & Mugs",
-    "stock": true,
-    "sku": "CM-HC-019",
-    "price": 159000,
-    "quantity": 175,
-    "status": "Publish",
-    "createdAt": "2025-09-05T06:20:00Z",
-    "updatedAt": "2025-11-25T06:26:27.392Z"
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6927ad704639e2dc82d7beed"
   },
-  {
-    "_id": {
-      "$oid": "691afdb4569e89354a453018"
-    },
-    "id": 20,
-    "name": "Ly Thủy Tinh Highlands Cold Brew 500ml",
-    "imageUrl": "https://res.cloudinary.com/doad7e047/image/upload/v1764051989/products/products/local-product-20-ly-thuy-tinh-highlands-cold-brew-500ml.jpg",
-    "description": "Ly thủy tinh chịu nhiệt với nắp tre, phù hợp cho cold brew mang đi.",
-    "category": "Cups & Mugs",
-    "stock": true,
-    "sku": "CM-HC-020",
-    "price": 185000,
-    "quantity": 142,
-    "status": "Publish",
-    "createdAt": "2025-09-18T09:35:00Z",
-    "updatedAt": "2025-11-25T06:26:28.712Z"
+  "id": 7,
+  "name": "The Coffee House - Original Roasted Coffee",
+  "imageUrl": "https://res.cloudinary.com/dztnbf2kj/image/upload/v1764215426/products/xnfecpd4krxxlkdolywx.png",
+  "description": "Blend đặc trưng kết hợp hạt từ Lâm Đồng và Gia Lai cho hương vị cân bằng.",
+  "category": "Roasted coffee",
+  "stock": true,
+  "sku": "RC-TCH-007",
+  "price": 145000,
+  "quantity": 130,
+  "status": "Publish",
+  "variants": [
+    {
+      "name": "size",
+      "options": [
+        {
+          "label": "250g",
+          "priceDelta": 0
+        },
+        {
+          "label": "1kg",
+          "priceDelta": 90000
+        }
+      ]
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-10-15T07:00:00.000Z"
   },
-  {
-    "_id": {
-      "$oid": "691afdb4569e89354a453019"
-    },
-    "id": 21,
-    "name": "Ly Sứ Phúc Long Heritage 350ml",
-    "imageUrl": "https://res.cloudinary.com/doad7e047/image/upload/v1764051990/products/products/local-product-21-ly-su-phuc-long-heritage-350ml.jpg",
-    "description": "Ly men sứ xanh ngọc in nổi logo Phúc Long, tặng kèm nắp silicon.",
-    "category": "Cups & Mugs",
-    "stock": true,
-    "sku": "CM-PL-021",
-    "price": 175000,
-    "quantity": 160,
-    "status": "Publish",
-    "createdAt": "2025-08-24T08:55:00Z",
-    "updatedAt": "2025-11-25T06:26:30.066Z"
+  "updatedAt": {
+    "$date": "2025-11-27T03:50:30.715Z"
   },
-  {
-    "_id": {
-      "$oid": "691afdb4569e89354a45301a"
-    },
-    "id": 22,
-    "name": "Bình Giữ Nhiệt Phúc Long 600ml",
-    "imageUrl": "https://res.cloudinary.com/doad7e047/image/upload/v1764051991/products/products/local-product-22-binh-giu-nhiet-phuc-long-600ml.png",
-    "description": "Bình inox 2 lớp giữ nhiệt 12 giờ, khóa chống rò rỉ.",
-    "category": "Cups & Mugs",
-    "stock": true,
-    "sku": "CM-PL-022",
-    "price": 329000,
-    "quantity": 120,
-    "status": "Publish",
-    "createdAt": "2025-09-02T07:05:00Z",
-    "updatedAt": "2025-11-25T06:26:32.021Z"
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6927ad704639e2dc82d7beee"
   },
-  {
-    "_id": {
-      "$oid": "691afdb4569e89354a45301b"
-    },
-    "id": 23,
-    "name": "Ly Giữ Nhiệt The Coffee House On-The-Go",
-    "imageUrl": "https://res.cloudinary.com/doad7e047/image/upload/v1764051993/products/products/local-product-23-ly-giu-nhiet-the-coffee-house-on-the-go.png",
-    "description": "Ly giữ nhiệt 480ml với dây xách silicon và logo TCH.",
-    "category": "Cups & Mugs",
-    "stock": true,
-    "sku": "CM-TCH-023",
-    "price": 315000,
-    "quantity": 98,
-    "status": "Publish",
-    "createdAt": "2025-09-14T06:30:00Z",
-    "updatedAt": "2025-11-25T06:26:33.975Z"
+  "id": 8,
+  "name": "Guru 3 blend Cold brew - Strong Cold",
+  "imageUrl": "https://res.cloudinary.com/dztnbf2kj/image/upload/v1764215509/products/sxcbwugv2ewmbknukmsn.png",
+  "description": "Rang đặc biệt cho cold brew, vị dịu, hậu ngọt thanh, chỉ bán dạng xay sẵn.",
+  "category": "Roasted coffee",
+  "stock": false,
+  "sku": "RC-TCH-008",
+  "price": 125000,
+  "quantity": 0,
+  "status": "Inactive",
+  "createdAt": {
+    "$date": "2025-09-25T09:20:00.000Z"
   },
-  {
-    "_id": {
-      "$oid": "691afdb4569e89354a45301c"
-    },
-    "id": 24,
-    "name": "Ly Sứ The Coffee House Moment 250ml",
-    "imageUrl": "https://res.cloudinary.com/doad7e047/image/upload/v1764051995/products/products/local-product-24-ly-su-the-coffee-house-moment-250ml.png",
-    "description": "Ly sứ men mờ tông be, thiết kế tối giản dành cho latte.",
-    "category": "Cups & Mugs",
-    "stock": false,
-    "sku": "CM-TCH-024",
-    "price": 149000,
-    "quantity": 0,
-    "status": "Inactive",
-    "createdAt": "2025-07-30T05:00:00Z",
-    "updatedAt": "2025-11-25T06:26:37.123Z"
+  "updatedAt": {
+    "$date": "2025-11-27T03:51:54.539Z"
   },
-  {
-    "_id": {
-      "$oid": "691afdb4569e89354a45301d"
-    },
-    "id": 25,
-    "name": "Phin Inox Trung Nguyên Legend 170ml",
-    "imageUrl": "https://res.cloudinary.com/doad7e047/image/upload/v1764051998/products/products/local-product-25-phin-inox-trung-nguyen-legend-170ml.png",
-    "description": "Phin inox sáng bóng khắc logo Legend, phù hợp cho cà phê phin chuẩn Việt.",
-    "category": "Coffee makers and grinders",
-    "stock": true,
-    "sku": "MG-TN-025",
-    "price": 189000,
-    "quantity": 115,
-    "status": "Publish",
-    "createdAt": "2025-08-18T04:50:00Z",
-    "updatedAt": "2025-11-25T06:26:39.248Z"
+  "variants": [],
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6927ad704639e2dc82d7beef"
   },
-  {
-    "_id": {
-      "$oid": "691afdb4569e89354a45301e"
-    },
-    "id": 26,
-    "name": "Ống Lọc Cà Phê Giấy Trung Nguyên",
-    "imageUrl": "https://res.cloudinary.com/doad7e047/image/upload/v1764052001/products/products/local-product-26-ong-loc-ca-phe-giay-trung-nguyen.png",
-    "description": "Bộ 100 giấy lọc phù hợp phin Legend và phin gốm.",
-    "category": "Coffee makers and grinders",
-    "stock": true,
-    "sku": "MG-TN-026",
-    "price": 59000,
-    "quantity": 220,
-    "status": "Publish",
-    "createdAt": "2025-09-01T03:35:00Z",
-    "updatedAt": "2025-11-25T06:26:41.327Z"
+  "id": 9,
+  "name": "Trung Nguyên Legend G7 Full Set",
+  "imageUrl": "https://res.cloudinary.com/dztnbf2kj/image/upload/v1764215601/products/m44ldnfyzfne7kbdqwoi.jpg",
+  "description": "Combo G7 gồm cà phê hòa tan, phin inox và ly logo Legend.",
+  "category": "Coffee sets",
+  "stock": true,
+  "sku": "CS-TN-009",
+  "price": 259000,
+  "quantity": 80,
+  "status": "Publish",
+  "variants": [
+    {
+      "name": "size",
+      "options": [
+        {
+          "label": "Basic",
+          "priceDelta": 0
+        },
+        {
+          "label": "Gift",
+          "priceDelta": 40000
+        },
+        {
+          "label": "Premium",
+          "priceDelta": 90000
+        }
+      ]
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-10-10T05:15:00.000Z"
   },
-  {
-    "_id": {
-      "$oid": "691afdb4569e89354a45301f"
-    },
-    "id": 27,
-    "name": "Phin Nhôm Highlands Coffee 150ml",
-    "imageUrl": "https://res.cloudinary.com/doad7e047/image/upload/v1764052003/products/products/local-product-27-phin-nhom-highlands-coffee-150ml.png",
-    "description": "Phin nhôm anod hóa màu đỏ, chuẩn kích thước tiêu chuẩn của Highlands.",
-    "category": "Coffee makers and grinders",
-    "stock": true,
-    "sku": "MG-HC-027",
-    "price": 129000,
-    "quantity": 140,
-    "status": "Publish",
-    "createdAt": "2025-08-26T09:10:00Z",
-    "updatedAt": "2025-11-25T06:26:42.899Z"
+  "updatedAt": {
+    "$date": "2025-11-27T03:53:25.710Z"
   },
-  {
-    "_id": {
-      "$oid": "691afdb4569e89354a453020"
-    },
-    "id": 28,
-    "name": "Bộ Phin Sứ Cao Cấp Highlands",
-    "imageUrl": "https://res.cloudinary.com/doad7e047/image/upload/v1764052004/products/products/local-product-28-bo-phin-su-cao-cap-highlands.png",
-    "description": "Phin sứ trắng kèm đĩa lót và nắp giữ nhiệt, dành cho premium blend.",
-    "category": "Coffee makers and grinders",
-    "stock": false,
-    "sku": "MG-HC-028",
-    "price": 245000,
-    "quantity": 0,
-    "status": "Inactive",
-    "createdAt": "2025-07-14T06:00:00Z",
-    "updatedAt": "2025-11-25T06:26:45.155Z"
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6927ad704639e2dc82d7bef0"
   },
-  {
-    "_id": {
-      "$oid": "691afdb4569e89354a453021"
-    },
-    "id": 29,
-    "name": "Bình French Press Phúc Long 600ml",
-    "imageUrl": "https://res.cloudinary.com/doad7e047/image/upload/v1764052007/products/products/local-product-29-binh-french-press-phuc-long-600ml.png",
-    "description": "Bình ép kiểu Pháp thân thủy tinh, khung inox, phù hợp cà phê lẫn trà.",
-    "category": "Coffee makers and grinders",
-    "stock": true,
-    "sku": "MG-PL-029",
-    "price": 429000,
-    "quantity": 65,
-    "status": "Publish",
-    "createdAt": "2025-08-12T10:05:00Z",
-    "updatedAt": "2025-11-25T06:26:48.041Z"
+  "id": 10,
+  "name": "Bộ Quà Tặng Trung Nguyên Legend",
+  "imageUrl": "https://res.cloudinary.com/dztnbf2kj/image/upload/v1764215665/products/tfo0mybmczq8d4fuqkga.png",
+  "description": "Cà phê WEASEL quý hiếm và đắt nhất thế giới đến từ Trung Nguyên cùng với các phụ kiện.",
+  "category": "Coffee sets",
+  "stock": true,
+  "sku": "CS-TN-010",
+  "price": 431000,
+  "quantity": 5,
+  "status": "Publish",
+  "variants": [
+    {
+      "name": "size",
+      "options": [
+        {
+          "label": "Gift",
+          "priceDelta": 0
+        },
+        {
+          "label": "Premium",
+          "priceDelta": 1500000
+        }
+      ]
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-10-01T04:40:00.000Z"
   },
-  {
-    "_id": {
-      "$oid": "691afdb4569e89354a453022"
-    },
-    "id": 30,
-    "name": "Máy Xay Cà Phê Cầm Tay The Coffee House",
-    "imageUrl": "https://res.cloudinary.com/doad7e047/image/upload/v1764052009/products/products/local-product-30-may-xay-ca-phe-cam-tay-the-coffee-house.jpg",
-    "description": "Máy xay tay burr thép không gỉ, điều chỉnh 18 cấp độ.",
-    "category": "Coffee makers and grinders",
-    "stock": true,
-    "sku": "MG-TCH-030",
-    "price": 895000,
-    "quantity": 48,
-    "status": "Publish",
-    "createdAt": "2025-09-07T07:40:00Z",
-    "updatedAt": "2025-11-25T06:26:49.692Z"
-  }
-]
+  "updatedAt": {
+    "$date": "2025-11-27T03:55:00.906Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6927ad704639e2dc82d7bef1"
+  },
+  "id": 11,
+  "name": "Highlands Coffee Gift Box 2025",
+  "imageUrl": "https://res.cloudinary.com/dztnbf2kj/image/upload/v1764215724/products/dqojb9nowztwbkxsdprb.jpg",
+  "description": "Hộp quà gồm 3 gói cà phê rang và bộ ly sứ Highlands.",
+  "category": "Coffee sets",
+  "stock": true,
+  "sku": "CS-HC-011",
+  "price": 389000,
+  "quantity": 60,
+  "status": "Publish",
+  "variants": [
+    {
+      "name": "size",
+      "options": [
+        {
+          "label": "Basic",
+          "priceDelta": 0
+        },
+        {
+          "label": "Gift",
+          "priceDelta": 45000
+        }
+      ]
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-10-05T06:05:00.000Z"
+  },
+  "updatedAt": {
+    "$date": "2025-11-27T03:55:27.069Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6927ad704639e2dc82d7bef2"
+  },
+  "id": 12,
+  "name": "Highlands Coffee Combo Phin",
+  "imageUrl": "https://res.cloudinary.com/dztnbf2kj/image/upload/v1764216277/products/p4cd6zmtfgec0orryffy.png",
+  "description": "Combo phin inox, cà phê rang xay và sữa đặc phù hợp pha phin.",
+  "category": "Coffee sets",
+  "stock": false,
+  "sku": "CS-HC-012",
+  "price": 329000,
+  "quantity": 0,
+  "status": "Inactive",
+  "createdAt": {
+    "$date": "2025-09-10T03:30:00.000Z"
+  },
+  "updatedAt": {
+    "$date": "2025-11-27T04:04:41.307Z"
+  },
+  "variants": [],
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6927ad704639e2dc82d7bef3"
+  },
+  "id": 13,
+  "name": "Coffee starter kit",
+  "imageUrl": "https://res.cloudinary.com/dztnbf2kj/image/upload/v1764215774/products/lknqklkro9pbkmmjyza8.webp",
+  "description": "Bộ kit cho người mới bắt đầu, gồm hạt cà phê và các dụng cụ pha chế",
+  "category": "Coffee sets",
+  "stock": true,
+  "sku": "CS-PL-013",
+  "price": 415000,
+  "quantity": 12,
+  "status": "Publish",
+  "variants": [
+    {
+      "name": "size",
+      "options": [
+        {
+          "label": "Basic",
+          "priceDelta": 0
+        },
+        {
+          "label": "Gift",
+          "priceDelta": 45000
+        },
+        {
+          "label": "Premium",
+          "priceDelta": 110000
+        }
+      ]
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-10-14T07:25:00.000Z"
+  },
+  "updatedAt": {
+    "$date": "2025-11-27T03:56:41.612Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6927ad704639e2dc82d7bef4"
+  },
+  "id": 14,
+  "name": "Don Pablo Whiskey Infused Coffee Gift Set",
+  "imageUrl": "https://res.cloudinary.com/dztnbf2kj/image/upload/v1764216082/products/jkozuca9bv5609qbfngl.webp",
+  "description": "Bộ quà tặng Whiskey Don Pablo - 3 hỗn hợp hạt cà phê nguyên chất đậm đà: Bourbon, Maple, Irish Vanilla.",
+  "category": "Coffee sets",
+  "stock": true,
+  "sku": "CS-PL-014",
+  "price": 789000,
+  "quantity": 0,
+  "status": "Publish",
+  "variants": [
+    {
+      "name": "size",
+      "options": [
+        {
+          "label": "Standard",
+          "priceDelta": 0
+        }
+      ]
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-09-28T08:10:00.000Z"
+  },
+  "updatedAt": {
+    "$date": "2025-11-27T04:01:25.153Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6927ad704639e2dc82d7bef5"
+  },
+  "id": 15,
+  "name": "The Coffee House Gift Box",
+  "imageUrl": "https://res.cloudinary.com/dztnbf2kj/image/upload/v1764216026/products/er2witdvtjkhcetqkvoa.webp",
+  "description": "Hộp quà Tết gồm 2 hộp cà phê sữa đá và 1 ly The Coffee House.",
+  "category": "Coffee sets",
+  "stock": true,
+  "sku": "CS-TCH-015",
+  "price": 475000,
+  "quantity": 35,
+  "status": "Publish",
+  "variants": [
+    {
+      "name": "size",
+      "options": [
+        {
+          "label": "Basic",
+          "priceDelta": 0
+        },
+        {
+          "label": "Premium",
+          "priceDelta": 120000
+        }
+      ]
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-10-02T09:45:00.000Z"
+  },
+  "updatedAt": {
+    "$date": "2025-11-27T04:00:32.010Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6927ad704639e2dc82d7bef6"
+  },
+  "id": 16,
+  "name": "Coffee Christmas Gifts Set",
+  "imageUrl": "https://res.cloudinary.com/dztnbf2kj/image/upload/v1764216135/products/pgrytbuefuv0pdoseela.jpg",
+  "description": "Bộ quà tặng cà phê xay nguyên chất dành cho mọi người",
+  "category": "Coffee sets",
+  "stock": true,
+  "sku": "CS-TCH-016",
+  "price": 329000,
+  "quantity": 58,
+  "status": "Publish",
+  "variants": [
+    {
+      "name": "size",
+      "options": [
+        {
+          "label": "Basic",
+          "priceDelta": 0
+        },
+        {
+          "label": "Gift",
+          "priceDelta": 35000
+        },
+        {
+          "label": "Premium",
+          "priceDelta": 90000
+        }
+      ]
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-09-22T06:50:00.000Z"
+  },
+  "updatedAt": {
+    "$date": "2025-11-27T04:02:22.990Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6927ad704639e2dc82d7bef7"
+  },
+  "id": 17,
+  "name": "Ly Sứ Trung Nguyên Legend 330ml",
+  "imageUrl": "https://res.cloudinary.com/dztnbf2kj/image/upload/v1764216408/products/rsk60iuk4dnlwfp48c7x.jpg",
+  "description": "Ly sứ trắng in logo Trung Nguyên Legend, dung tích 330ml.",
+  "category": "Cups & Mugs",
+  "stock": true,
+  "sku": "CM-TN-017",
+  "price": 129000,
+  "quantity": 210,
+  "status": "Publish",
+  "variants": [
+    {
+      "name": "size",
+      "options": [
+        {
+          "label": "1 pc",
+          "priceDelta": 0
+        },
+        {
+          "label": "2 pcs",
+          "priceDelta": 70000
+        }
+      ]
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-08-30T07:10:00.000Z"
+  },
+  "updatedAt": {
+    "$date": "2025-11-27T04:06:51.696Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6927ad704639e2dc82d7bef8"
+  },
+  "id": 18,
+  "name": "Ly Thông Điệp Trung Nguyên Legend",
+  "imageUrl": "https://res.cloudinary.com/dztnbf2kj/image/upload/v1764216571/products/etfzv8fsagngtj3qlvy9.webp",
+  "description": "Phiên bản giới hạn với họa tiết trống đồng, dung tích 330ml.",
+  "category": "Cups & Mugs",
+  "stock": false,
+  "sku": "CM-TN-018",
+  "price": 189000,
+  "quantity": 0,
+  "status": "Inactive",
+  "createdAt": {
+    "$date": "2025-07-12T05:45:00.000Z"
+  },
+  "updatedAt": {
+    "$date": "2025-11-27T04:09:34.062Z"
+  },
+  "variants": [],
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6927ad704639e2dc82d7bef9"
+  },
+  "id": 19,
+  "name": "Ly Sứ Highlands Coffee 360ml (Set 2)",
+  "imageUrl": "https://res.cloudinary.com/dztnbf2kj/image/upload/v1764216321/products/hd92uckpsya0hq2xhcq4.webp",
+  "description": "Bộ 2 ly sứ trắng basic logo Highlands cho gia đình, cặp đôi.",
+  "category": "Cups & Mugs",
+  "stock": true,
+  "sku": "CM-HC-019",
+  "price": 159000,
+  "quantity": 175,
+  "status": "Publish",
+  "variants": [
+    {
+      "name": "size",
+      "options": [
+        {
+          "label": "2 pcs",
+          "priceDelta": 0
+        },
+        {
+          "label": "4 pcs",
+          "priceDelta": 155000
+        }
+      ]
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-09-05T06:20:00.000Z"
+  },
+  "updatedAt": {
+    "$date": "2025-11-27T04:05:25.179Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6927ad704639e2dc82d7befa"
+  },
+  "id": 20,
+  "name": "Ly Highlands thân cao hoạ tiết lá",
+  "imageUrl": "https://res.cloudinary.com/dztnbf2kj/image/upload/v1764216187/products/nvh1yxcourrv7clsstse.webp",
+  "description": "Ly thân cao, có ống hút, màu sắc nổi bật, tiện dụng, dễ mang đi.",
+  "category": "Cups & Mugs",
+  "stock": true,
+  "sku": "CM-HC-020",
+  "price": 185000,
+  "quantity": 142,
+  "status": "Publish",
+  "createdAt": {
+    "$date": "2025-09-18T09:35:00.000Z"
+  },
+  "updatedAt": {
+    "$date": "2025-11-27T04:03:09.958Z"
+  },
+  "variants": [],
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6927ad704639e2dc82d7befb"
+  },
+  "id": 21,
+  "name": "Ly Sứ Phúc Long 340ml",
+  "imageUrl": "https://res.cloudinary.com/dztnbf2kj/image/upload/v1764216457/products/vi1x2q6mii4iwpwhasfz.jpg",
+  "description": "Ly caphuchino men sứ trắng in nổi logo Phúc Long, thể tích 340ml.",
+  "category": "Cups & Mugs",
+  "stock": true,
+  "sku": "CM-PL-021",
+  "price": 175000,
+  "quantity": 160,
+  "status": "Publish",
+  "variants": [
+    {
+      "name": "size",
+      "options": [
+        {
+          "label": "1 pc",
+          "priceDelta": 0
+        },
+        {
+          "label": "2 pcs",
+          "priceDelta": 85000
+        },
+        {
+          "label": "4 pcs",
+          "priceDelta": 190000
+        }
+      ]
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-08-24T08:55:00.000Z"
+  },
+  "updatedAt": {
+    "$date": "2025-11-27T04:07:41.021Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6927ad704639e2dc82d7befc"
+  },
+  "id": 22,
+  "name": "Bình Giữ Nhiệt Phúc Long 600ml",
+  "imageUrl": "https://res.cloudinary.com/dztnbf2kj/image/upload/v1764216342/products/qmj27yfxgr8qpxvochxv.png",
+  "description": "Bình inox 2 lớp giữ nhiệt lên đến 12 giờ, khóa chống rò rỉ.",
+  "category": "Cups & Mugs",
+  "stock": true,
+  "sku": "CM-PL-022",
+  "price": 329000,
+  "quantity": 120,
+  "status": "Publish",
+  "createdAt": {
+    "$date": "2025-09-02T07:05:00.000Z"
+  },
+  "updatedAt": {
+    "$date": "2025-11-27T04:05:58.218Z"
+  },
+  "variants": [],
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6927ad704639e2dc82d7befd"
+  },
+  "id": 23,
+  "name": "Ly Giữ Nhiệt The Coffee House Go Green 480ml",
+  "imageUrl": "https://res.cloudinary.com/dztnbf2kj/image/upload/v1764216236/products/i64kxqcfkdbe1vhf9qcd.jpg",
+  "description": "Ly giữ nhiệt 480ml với dây xách silicon và logo The Coffee House.",
+  "category": "Cups & Mugs",
+  "stock": true,
+  "sku": "CM-TCH-023",
+  "price": 315000,
+  "quantity": 98,
+  "status": "Publish",
+  "variants": [
+    {
+      "name": "size",
+      "options": [
+        {
+          "label": "Đen",
+          "priceDelta": 0
+        },
+        {
+          "label": "Hồng",
+          "priceDelta": 0
+        },
+        {
+          "label": "Xanh",
+          "priceDelta": 0
+        }
+      ]
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-09-14T06:30:00.000Z"
+  },
+  "updatedAt": {
+    "$date": "2025-11-27T04:04:06.618Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6927ad704639e2dc82d7befe"
+  },
+  "id": 24,
+  "name": "Ly Sứ The Coffee House Travel Mug",
+  "imageUrl": "https://res.cloudinary.com/dztnbf2kj/image/upload/v1764216523/products/qfzncs8rkxxsaglquuom.jpg",
+  "description": "Ly sứ Travel Mug phiên bản giới hạn được khoác lên mình màu sắc hiện đại,",
+  "category": "Cups & Mugs",
+  "stock": false,
+  "sku": "CM-TCH-024",
+  "price": 149000,
+  "quantity": 0,
+  "status": "Inactive",
+  "createdAt": {
+    "$date": "2025-07-30T05:00:00.000Z"
+  },
+  "updatedAt": {
+    "$date": "2025-11-27T04:08:46.255Z"
+  },
+  "variants": [],
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6927ad704639e2dc82d7beff"
+  },
+  "id": 25,
+  "name": "Phin Inox Trung Nguyên Legend 170ml",
+  "imageUrl": "https://res.cloudinary.com/dztnbf2kj/image/upload/v1764216479/products/lgwvhkm1seo6htggu1kn.webp",
+  "description": "Phin inox sáng bóng khắc logo Legend, phù hợp cho cà phê phin chuẩn Việt.",
+  "category": "Coffee makers and grinders",
+  "stock": true,
+  "sku": "MG-TN-025",
+  "price": 189000,
+  "quantity": 115,
+  "status": "Publish",
+  "variants": [
+    {
+      "name": "size",
+      "options": [
+        {
+          "label": "S",
+          "priceDelta": 0
+        },
+        {
+          "label": "M",
+          "priceDelta": 70000
+        }
+      ]
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-08-18T04:50:00.000Z"
+  },
+  "updatedAt": {
+    "$date": "2025-11-27T04:08:02.417Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6927ad704639e2dc82d7bf00"
+  },
+  "id": 26,
+  "name": "Ống Lọc Cà Phê Giấy (100pcs)",
+  "imageUrl": "https://res.cloudinary.com/dztnbf2kj/image/upload/v1764216386/products/htapan0arblw72qaszbc.jpg",
+  "description": "Bộ 100 giấy lọc phù hợp phin Legend và phin gốm.",
+  "category": "Coffee makers and grinders",
+  "stock": true,
+  "sku": "MG-TN-026",
+  "price": 59000,
+  "quantity": 220,
+  "status": "Publish",
+  "createdAt": {
+    "$date": "2025-09-01T03:35:00.000Z"
+  },
+  "updatedAt": {
+    "$date": "2025-11-27T04:06:28.949Z"
+  },
+  "variants": [],
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6927ad704639e2dc82d7bf01"
+  },
+  "id": 27,
+  "name": "Phin Nhôm Highlands Coffee 150ml",
+  "imageUrl": "https://res.cloudinary.com/dztnbf2kj/image/upload/v1764216437/products/rnqlmtzhk4etapb135zo.png",
+  "description": "Phin nhôm anod hóa màu đỏ, chuẩn kích thước tiêu chuẩn của Highlands.",
+  "category": "Coffee makers and grinders",
+  "stock": true,
+  "sku": "MG-HC-027",
+  "price": 129000,
+  "quantity": 140,
+  "status": "Publish",
+  "variants": [
+    {
+      "name": "size",
+      "options": [
+        {
+          "label": "S",
+          "priceDelta": 0
+        },
+        {
+          "label": "M",
+          "priceDelta": 50000
+        },
+        {
+          "label": "L",
+          "priceDelta": 120000
+        }
+      ]
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-08-26T09:10:00.000Z"
+  },
+  "updatedAt": {
+    "$date": "2025-11-27T04:07:21.044Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6927ad704639e2dc82d7bf02"
+  },
+  "id": 28,
+  "name": "Máy pha cafe Philips EP2221/40",
+  "imageUrl": "https://res.cloudinary.com/dztnbf2kj/image/upload/v1764216547/products/gftuf1wbaelg9xi4psaw.webp",
+  "description": "Máy pha cafe Philips dành cho gia đình. Thưởng thức hương vị cà phê sạch & thơm ngon ngay tại nhà.",
+  "category": "Coffee makers and grinders",
+  "stock": false,
+  "sku": "MG-HC-028",
+  "price": 245000,
+  "quantity": 0,
+  "status": "Inactive",
+  "createdAt": {
+    "$date": "2025-07-14T06:00:00.000Z"
+  },
+  "updatedAt": {
+    "$date": "2025-11-27T04:09:09.604Z"
+  },
+  "variants": [],
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6927ad704639e2dc82d7bf03"
+  },
+  "id": 29,
+  "name": "Bình French Press BODUM Brazil - Đen",
+  "imageUrl": "https://res.cloudinary.com/dztnbf2kj/image/upload/v1764216503/products/j7dk1ymd9xbsajzehuhy.jpg",
+  "description": "Bình ép kiểu Pháp thân thủy tinh, màu đen, phù hợp cà phê lẫn trà.",
+  "category": "Coffee makers and grinders",
+  "stock": true,
+  "sku": "MG-PL-029",
+  "price": 429000,
+  "quantity": 65,
+  "status": "Publish",
+  "variants": [
+    {
+      "name": "size",
+      "options": [
+        {
+          "label": "S",
+          "priceDelta": 0
+        },
+        {
+          "label": "M",
+          "priceDelta": 80000
+        }
+      ]
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-08-12T10:05:00.000Z"
+  },
+  "updatedAt": {
+    "$date": "2025-11-27T04:08:27.461Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6927ad704639e2dc82d7bf04"
+  },
+  "id": 30,
+  "name": "Máy Xay Cà Phê Cầm Tay",
+  "imageUrl": "https://res.cloudinary.com/dztnbf2kj/image/upload/v1764216299/products/jzakyxw6phjqpufrkqic.jpg",
+  "description": "Máy xay tay burr thép không gỉ, điều chỉnh 18 cấp độ.",
+  "category": "Coffee makers and grinders",
+  "stock": true,
+  "sku": "MG-TCH-030",
+  "price": 895000,
+  "quantity": 48,
+  "status": "Publish",
+  "variants": [
+    {
+      "name": "size",
+      "options": [
+        {
+          "label": "Home",
+          "priceDelta": 0
+        },
+        {
+          "label": "Pro",
+          "priceDelta": 250000
+        }
+      ]
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-09-07T07:40:00.000Z"
+  },
+  "updatedAt": {
+    "$date": "2025-11-27T04:05:05.013Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6927ad704639e2dc82d7bf05"
+  },
+  "id": 31,
+  "name": "Arabica Đà Lạt Light Roast",
+  "imageUrl": "https://res.cloudinary.com/dztnbf2kj/image/upload/v1764215116/products/lsaknh0wxcq5cm29e6vs.jpg",
+  "description": "Arabica rang nhạt, hương trái cây tươi và hoa, phù hợp pour-over.",
+  "category": "Roasted coffee",
+  "stock": true,
+  "sku": "RC-DL-031",
+  "price": 155000,
+  "quantity": 60,
+  "status": "Publish",
+  "variants": [
+    {
+      "name": "size",
+      "options": [
+        {
+          "label": "200g",
+          "priceDelta": 0
+        },
+        {
+          "label": "500g",
+          "priceDelta": 45000
+        }
+      ]
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-10-22T07:15:00.000Z"
+  },
+  "updatedAt": {
+    "$date": "2025-11-27T03:45:20.344Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6927ad704639e2dc82d7bf06"
+  },
+  "id": 32,
+  "name": "Cà phê Sáng tạo 1 Trung Nguyên",
+  "imageUrl": "https://res.cloudinary.com/dztnbf2kj/image/upload/v1764215817/products/eo1ovkddw4hyqr0ghmrb.jpg",
+  "description": "Blend Robusta/Arabica rang đậm cho người thích vị cà phê mạnh.",
+  "category": "Roasted coffee",
+  "stock": true,
+  "sku": "RC-MX-032",
+  "price": 98000,
+  "quantity": 180,
+  "status": "Publish",
+  "createdAt": {
+    "$date": "2025-10-18T06:20:00.000Z"
+  },
+  "updatedAt": {
+    "$date": "2025-11-27T03:57:01.355Z"
+  },
+  "variants": [],
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6927ad704639e2dc82d7bf07"
+  },
+  "id": 33,
+  "name": "Combo Ly & Cold Brew Set",
+  "imageUrl": "https://res.cloudinary.com/dztnbf2kj/image/upload/v1764215751/products/hrg8wkciasubl3p2vivf.png",
+  "description": "Combo 1 ly giữ nhiệt và 1 gói cà phê rang cho cold brew.",
+  "category": "Coffee sets",
+  "stock": true,
+  "sku": "CS-CB-033",
+  "price": 355000,
+  "quantity": 40,
+  "status": "Publish",
+  "variants": [
+    {
+      "name": "size",
+      "options": [
+        {
+          "label": "Single",
+          "priceDelta": 0
+        },
+        {
+          "label": "Double",
+          "priceDelta": 170000
+        }
+      ]
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-10-19T08:30:00.000Z"
+  },
+  "updatedAt": {
+    "$date": "2025-11-27T03:55:58.404Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6927ad704639e2dc82d7bf08"
+  },
+  "id": 34,
+  "name": "Set 4 Ly Espresso Gốm",
+  "imageUrl": "https://res.cloudinary.com/dztnbf2kj/image/upload/v1764216061/products/qqx2whsk5naw6c6ymm8q.webp",
+  "description": "Bộ 4 ly espresso gốm men mờ, tông đất, phù hợp phong cách specialty.",
+  "category": "Cups & Mugs",
+  "stock": true,
+  "sku": "CM-ESP-034",
+  "price": 245000,
+  "quantity": 72,
+  "status": "Publish",
+  "createdAt": {
+    "$date": "2025-09-29T05:50:00.000Z"
+  },
+  "updatedAt": {
+    "$date": "2025-11-27T04:01:03.576Z"
+  },
+  "variants": [],
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6927ad704639e2dc82d7bf09"
+  },
+  "id": 35,
+  "name": "Dripper V60 Thủy Tinh 02",
+  "imageUrl": "https://res.cloudinary.com/dztnbf2kj/image/upload/v1764216170/products/i4qljl7dieio3rcujfux.jpg",
+  "description": "Phễu pha V60 size 02 bằng thủy tinh chịu nhiệt, phù hợp 1–2 tách.",
+  "category": "Coffee makers and grinders",
+  "stock": true,
+  "sku": "MG-V60-035",
+  "price": 295000,
+  "quantity": 55,
+  "status": "Publish",
+  "createdAt": {
+    "$date": "2025-09-21T04:20:00.000Z"
+  },
+  "updatedAt": {
+    "$date": "2025-11-27T04:02:52.127Z"
+  },
+  "variants": [],
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6927ad704639e2dc82d7bf0a"
+  },
+  "id": 36,
+  "name": "Kettle Rót Cổ Ngỗng 600ml",
+  "imageUrl": "https://res.cloudinary.com/dztnbf2kj/image/upload/v1764216108/products/iszgjrl6il354iwjwxmi.jpg",
+  "description": "Ấm rót cổ ngỗng 600ml dành cho pour-over, inox 304.",
+  "category": "Coffee makers and grinders",
+  "stock": true,
+  "sku": "MG-KTL-036",
+  "price": 659000,
+  "quantity": 38,
+  "status": "Publish",
+  "variants": [
+    {
+      "name": "size",
+      "options": [
+        {
+          "label": "Black",
+          "priceDelta": 0
+        },
+        {
+          "label": "Silver",
+          "priceDelta": 20000
+        }
+      ]
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-09-25T06:45:00.000Z"
+  },
+  "updatedAt": {
+    "$date": "2025-11-27T04:01:50.914Z"
+  },
+  "__v": 0
+}]

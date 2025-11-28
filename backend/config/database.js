@@ -1,49 +1,49 @@
+// backend/config/database.js
 const mongoose = require('mongoose');
 require('dotenv').config();
 
-// MongoDB Connection String
-// Mặc định: mongodb://localhost:27017
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017';
-// Default database name: CoffeeDB (based on MongoDB Compass structure)
-const DATABASE_NAME = process.env.DATABASE_NAME || 'CoffeeDB';
+// Dùng chung với seed.js:
+// seed.js: MONGO_URI || 'mongodb://127.0.0.1:27017/CoffeeDB'
+const MONGO_URI =
+  process.env.MONGO_URI ||
+  process.env.MONGODB_URI ||
+  'mongodb://127.0.0.1:27017/CoffeeDB';
 
-// Build connection string with DB name when missing (e.g., mongodb://host:port)
-let connectionString = MONGODB_URI;
-const hasDbInUri = /mongodb(\+srv)?:\/\/[^/]+\/[A-Za-z0-9_.-]+/.test(MONGODB_URI);
-if (DATABASE_NAME && !hasDbInUri) {
-  connectionString = `${MONGODB_URI.replace(/\/$/, '')}/${DATABASE_NAME}`;
-}
-
-// MongoDB Connection Options
-const options = {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  // Các options khác nếu cần
-  // serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
-  // socketTimeoutMS: 45000, // Close sockets after 45s of inactivity
-};
-
-// Connect to MongoDB
-const connectDB = async () => {
+async function connectDB() {
   try {
-    await mongoose.connect(connectionString, options);
-    
-    mongoose.connection.on('error', (err) => {
+    const conn = await mongoose.connect(MONGO_URI, {
+      // 2 option này đã deprecated nhưng không sao nếu còn, có thể bỏ
+      // useNewUrlParser: true,
+      // useUnifiedTopology: true,
+    });
+
+    console.log('✅ MongoDB Connected Successfully!');
+    console.log(`📊 Database: ${conn.connection.name}`);
+    console.log(`🔗 Connection String: ${MONGO_URI}`);
+
+    const db = mongoose.connection;
+    db.on('error', (err) => {
       console.error('❌ MongoDB connection error:', err);
     });
-    
+    db.on('disconnected', () => {
+      console.log('⚠️  MongoDB disconnected');
+    });
+    db.on('reconnected', () => {
+      console.log('✅ MongoDB reconnected');
+    });
   } catch (error) {
     console.error('❌ MongoDB connection error:', error.message);
-    // Exit process with failure
     process.exit(1);
   }
-};
+}
 
-// Graceful shutdown
-process.on('SIGINT', async () => {
-  await mongoose.connection.close();
-  process.exit(0);
-});
-
+// export đúng là 1 function
 module.exports = connectDB;
+
+
+
+
+
+
+
 

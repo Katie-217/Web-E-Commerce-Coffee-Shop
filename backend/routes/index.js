@@ -19,6 +19,8 @@ const ordersRouter = require('./orders');
 const addressesRouter = require('./addresses');
 const categoriesRouter = require('./categories');
 const uploadRouter = require('./upload');
+const debugRouter = require('./debug');
+const authRouter      = require('./auth');
 
 /**
  * API Endpoints Documentation
@@ -39,6 +41,9 @@ const uploadRouter = require('./upload');
  * - GET    /api/orders/:id            - Lấy chi tiết order
  * - PATCH  /api/orders/:id            - Cập nhật status của order
  * 
+ * Debug API (/api/debug):
+ * - GET    /api/debug/collections     - Liệt kê tất cả collections
+ * - GET    /api/debug/db-info         - Thông tin database
  */
 
 // Mount routes
@@ -48,6 +53,8 @@ router.use('/orders', ordersRouter);
 router.use('/addresses', addressesRouter);
 router.use('/categories', categoriesRouter);
 router.use('/upload', uploadRouter);
+router.use('/debug', debugRouter);
+router.use('/auth', authRouter); 
 
 // API Info endpoint - Tổng hợp thông tin về các API endpoints và collections
 router.get('/info', (req, res) => {

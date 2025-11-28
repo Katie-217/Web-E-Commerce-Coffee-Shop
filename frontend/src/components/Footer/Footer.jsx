@@ -3,53 +3,62 @@ import "./footer.css";
 
 const Footer = () => {
   return (
-    <>
-      <div className="section-divider"></div>
-      <footer className="footer">
-        <div className="footer-container">      
-          <div className="footer-left">
-            <div className="brand">
-              <img src="/images/logo.png" alt="Monster Coffee" />
-            </div>
-            <p>
-              Monster Coffee mong rằng chúng tôi luôn mang đến cho khách hàng những trải
-              nghiệm tốt nhất, tạo ra những khoảnh khắc khó quên khi đến với Monster.
-            </p>
-            <div className="footer-socials">
-              <span></span>
-              <span></span>
-              <span></span>
-              <span></span>
-            </div>
+    <footer className="footer">
+      <div className="footer-container">
+        <div className="footer-left">
+          <div className="brand">
+            <img src="/images/logo.png" alt="Monster Coffee" />
           </div>
-
-          <div className="footer-right">
-            <div className="footer-block">
-              <h3>HỆ THỐNG CỬA HÀNG</h3>
-              <ul>
-                <li>CN1: Tầng 6 tòa nhà Ladeco, 266 Đội Cấn, phường Liễu Giai, Hà Nội, Việt Nam</li>
-                <li>CN2: Tòa nhà Lữ Gia, 70 Lữ Gia, phường 15, quận 11, TP. HCM, Việt Nam</li>
-              </ul>
-            </div>
-            <div className="footer-block">
-              <h3>LIÊN HỆ</h3>
-              <ul>
-                <li>Hotline đặt hàng: 19006750</li>
-                <li>Email: support@sapo.vn</li>
-                <li>Thứ 2 - Thứ 6: 7am - 10pm</li>
-                <li>Thứ 7 - Chủ nhật: 8am - 9pm</li>
-              </ul>
-            </div>
+          <p>
+            Monster Coffee hopes to always bring our customers the best
+            experiences and create unforgettable moments whenever you visit
+            Monster.
+          </p>
+          <div className="footer-socials">
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
           </div>
         </div>
 
-        <div className="footer-bottom">
-        <button className="back-to-top" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+        <div className="footer-right">
+          <div className="footer-block">
+            <h3>STORE LOCATIONS</h3>
+            <ul>
+              <li>
+                Branch 1: 6th Floor, Ladeco Building, 266 Đội Cấn, Liễu Giai
+                Ward, Hà Nội, Việt Nam
+              </li>
+              <li>
+                Branch 2: Lữ Gia Building, 70 Lữ Gia, Ward 15, District 11,
+                Ho Chi Minh City, Việt Nam
+              </li>
+            </ul>
+          </div>
+          <div className="footer-block">
+            <h3>CONTACT</h3>
+            <ul>
+              <li>Order hotline: 19006750</li>
+              <li>Email: support@sapo.vn</li>
+              <li>Monday - Friday: 7am - 10pm</li>
+              <li>Saturday - Sunday: 8am - 9pm</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div className="footer-bottom">
+        <button
+          className="back-to-top"
+          onClick={() =>
+            window.scrollTo({ top: 0, behavior: "smooth" })
+          }
+        >
           ↑
         </button>
-        </div>
-      </footer>
-    </>
+      </div>
+    </footer>
   );
 };
 

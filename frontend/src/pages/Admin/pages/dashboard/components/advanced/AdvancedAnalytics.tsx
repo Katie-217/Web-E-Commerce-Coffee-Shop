@@ -426,7 +426,55 @@ const AdvancedAnalyticsSection: React.FC = () => {
     // Determine if we should convert to thousands (k) - only for monetary values
     const shouldConvertToK = (chartType === 'revenue' || chartType === 'profit' || selectedMetric === 'sales' || selectedMetric === 'income' || selectedMetric === 'profit') && chartType !== 'orders';
 
-    labels.forEach((label) => {
+    // Helper function to get previous period label for comparison
+    // When timeframe is 'year' and detail is 'month', compare same month of previous year (YoY)
+    // When timeframe is 'month' and detail is 'week', compare same week of previous month
+    // When timeframe is 'quarter' and detail is 'month', compare same month of previous quarter
+    // Otherwise, compare with the previous period (previous month, previous week, etc.)
+    const getPreviousPeriodLabel = (currentLabel: string, detail: ChartDetail): string | null => {
+      // For year timeframe with month detail, compare same month of previous year (YoY)
+      if (timeframe === 'year' && detail === 'month') {
+        // Same month name, but from previous year's data
+        return currentLabel;
+      }
+      // For month timeframe with week detail, compare same week of previous month
+      else if (timeframe === 'month' && detail === 'week') {
+        // Same week day name, but from previous month's data
+        return currentLabel;
+      }
+      // For quarter timeframe with month detail, compare same month of previous quarter
+      else if (timeframe === 'quarter' && detail === 'month') {
+        // Same month name, but from previous quarter's data
+        return currentLabel;
+      }
+      // For other cases, compare with the previous period
+      else {
+        if (detail === 'month') {
+          const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          const currentIndex = monthNames.indexOf(currentLabel);
+          if (currentIndex === -1) return null;
+          // Get previous month (if Jan, previous is Dec of previous period)
+          const prevIndex = currentIndex === 0 ? 11 : currentIndex - 1;
+          return monthNames[prevIndex];
+        } else if (detail === 'week') {
+          const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+          const currentIndex = dayNames.indexOf(currentLabel);
+          if (currentIndex === -1) return null;
+          const prevIndex = currentIndex === 0 ? 6 : currentIndex - 1;
+          return dayNames[prevIndex];
+        } else if (detail === 'quarter') {
+          const quarter = parseInt(currentLabel.replace('Q', ''));
+          if (quarter === 1) return 'Q4';
+          return `Q${quarter - 1}`;
+        } else if (detail === 'year') {
+          const year = parseInt(currentLabel);
+          return (year - 1).toString();
+        }
+      }
+      return null;
+    };
+
+    labels.forEach((label, index) => {
       const periodOrders = groups[label] || [];
       let value = 0;
 
@@ -473,7 +521,13 @@ const AdvancedAnalyticsSection: React.FC = () => {
       current.push(shouldConvertToK ? value / 1000 : value);
 
       if (previous) {
-        const prevPeriodOrders = previousGroups?.[label] || [];
+        // For comparison, we need to get the previous period's data
+        // If chartDetail is 'month', compare with the previous month (not same month of previous year)
+        // If chartDetail is 'year', compare with the previous year
+        // If chartDetail is 'quarter', compare with the previous quarter
+        // If chartDetail is 'week', compare with the previous week
+        const prevLabel = getPreviousPeriodLabel(label, chartDetail);
+        const prevPeriodOrders = prevLabel && previousGroups ? (previousGroups[prevLabel] || []) : [];
         let prevValue = 0;
 
         if (chartType === 'productTypes') {
@@ -700,11 +754,27 @@ const AdvancedAnalyticsSection: React.FC = () => {
         // Fetch current period orders
         const params: any = { page: 1, limit: 10000, includeItems: 'true' };
         if (rangeStart && rangeEnd) {
-          params.range = timeframe;
+          // Always use 'custom' range when we have specific dates
+          // Backend supports: 'today', 'yesterday', 'week', 'month', 'custom'
+          params.range = 'custom';
           params.startDate = rangeStart.toISOString();
           params.endDate = rangeEnd.toISOString();
         } else {
-          params.range = timeframe;
+          // Fallback to timeframe if no dates provided
+          // Map timeframe to backend-supported ranges
+          if (timeframe === 'week') {
+            params.range = 'week';
+          } else if (timeframe === 'month') {
+            params.range = 'month';
+          } else {
+            // For 'year' and 'quarter', we need to use 'custom' with calculated dates
+            params.range = 'custom';
+            const fallbackRange = getDateRange();
+            if (fallbackRange.rangeStart && fallbackRange.rangeEnd) {
+              params.startDate = fallbackRange.rangeStart.toISOString();
+              params.endDate = fallbackRange.rangeEnd.toISOString();
+            }
+          }
         }
 
         const res = await fetchOrders(params);
@@ -714,9 +784,39 @@ const AdvancedAnalyticsSection: React.FC = () => {
         // Fetch previous period orders if comparison is enabled
         let prevOrders: any[] = [];
         if (compareWithPrevious && rangeStart && rangeEnd) {
-          const periodDiff = rangeEnd.getTime() - rangeStart.getTime();
-          const prevRangeEnd = new Date(rangeStart.getTime() - 1);
-          const prevRangeStart = new Date(prevRangeEnd.getTime() - periodDiff);
+          let prevRangeStart: Date;
+          let prevRangeEnd: Date;
+
+          // Calculate previous period based on timeframe
+          if (timeframe === 'year') {
+            // Previous year: same date range but one year earlier
+            prevRangeStart = new Date(rangeStart);
+            prevRangeStart.setFullYear(rangeStart.getFullYear() - 1);
+            prevRangeEnd = new Date(rangeEnd);
+            prevRangeEnd.setFullYear(rangeEnd.getFullYear() - 1);
+          } else if (timeframe === 'quarter') {
+            // Previous quarter: same date range but one quarter earlier
+            prevRangeStart = new Date(rangeStart);
+            prevRangeStart.setMonth(rangeStart.getMonth() - 3);
+            prevRangeEnd = new Date(rangeEnd);
+            prevRangeEnd.setMonth(rangeEnd.getMonth() - 3);
+          } else if (timeframe === 'month') {
+            // Previous month: same date range but one month earlier
+            prevRangeStart = new Date(rangeStart);
+            prevRangeStart.setMonth(rangeStart.getMonth() - 1);
+            prevRangeEnd = new Date(rangeEnd);
+            prevRangeEnd.setMonth(rangeEnd.getMonth() - 1);
+          } else if (timeframe === 'week') {
+            // Previous week: same date range but one week earlier
+            const periodDiff = rangeEnd.getTime() - rangeStart.getTime();
+            prevRangeEnd = new Date(rangeStart.getTime() - 1);
+            prevRangeStart = new Date(prevRangeEnd.getTime() - periodDiff);
+          } else {
+            // Fallback: use period difference
+            const periodDiff = rangeEnd.getTime() - rangeStart.getTime();
+            prevRangeEnd = new Date(rangeStart.getTime() - 1);
+            prevRangeStart = new Date(prevRangeEnd.getTime() - periodDiff);
+          }
 
           const prevParams: any = { page: 1, limit: 10000, includeItems: 'true', range: 'custom' };
           prevParams.startDate = prevRangeStart.toISOString();
@@ -978,7 +1078,16 @@ const AdvancedAnalyticsSection: React.FC = () => {
         </div>
 
       {/* KPI Cards Row */}
-      <div className={`grid grid-cols-1 gap-4 mb-6 ${selectedMetric === 'profit' || selectedMetric === 'income' || selectedMetric === 'sales' || selectedMetric === 'orders' ? 'md:grid-cols-3' : 'md:grid-cols-4'}`}>
+      <div
+        className={`grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 ${
+          selectedMetric === 'profit' ||
+          selectedMetric === 'income' ||
+          selectedMetric === 'sales' ||
+          selectedMetric === 'orders'
+            ? 'md:grid-cols-3'
+            : 'md:grid-cols-4'
+        }`}
+      >
         {selectedMetric === 'orders' ? (
           <>
             {/* Card 1: Total Orders */}
@@ -1665,12 +1774,12 @@ const AdvancedAnalyticsSection: React.FC = () => {
               <thead>
                 {chartType === 'productTypes' ? (
                   <tr className="border-b border-dashed border-gray-700 text-sm text-text-secondary uppercase tracking-wide">
-                    <th className="p-3 text-left text-rose-300">Category</th>
-                    <th className="p-3 text-left text-rose-300">Brand</th>
-                    <th className="p-3 text-left text-rose-300">Product</th>
-                    <th className="p-3 text-center text-rose-300">Qty Sold</th>
-                    <th className="p-3 text-center text-rose-300">Revenue</th>
-                    <th className="p-3 text-center text-rose-300">Share (%)</th>
+                    <th className="p-3 text-left text-text-secondary">Category</th>
+                    <th className="p-3 text-left text-text-secondary">Brand</th>
+                    <th className="p-3 text-left text-text-secondary">Product</th>
+                    <th className="p-3 text-center text-text-secondary">Qty Sold</th>
+                    <th className="p-3 text-center text-text-secondary">Revenue</th>
+                    <th className="p-3 text-center text-text-secondary">Share (%)</th>
                   </tr>
                 ) : chartType === 'productsSold' ? (
                   <tr className="border-b border-gray-700 text-sm text-text-secondary">
@@ -1887,8 +1996,8 @@ const AdvancedAnalyticsSection: React.FC = () => {
                         className="border-b border-gray-700 hover:bg-gray-800/50 transition-colors"
                       >
                         <td className="p-3 text-text-primary font-medium text-center">{row.period}</td>
-                        <td className="p-3 text-text-primary text-center">{formatAmount(row.revenue)}</td>
-                        <td className="p-3 text-text-primary text-center">{formatAmount(row.profit)}</td>
+                        <td className="p-3 text-text-primary text-center whitespace-nowrap">{formatAmount(row.revenue)}</td>
+                        <td className="p-3 text-text-primary text-center whitespace-nowrap">{formatAmount(row.profit)}</td>
                         <td className="p-3 text-text-primary text-center">
                           {row.orders.toLocaleString('en-US')}
                         </td>

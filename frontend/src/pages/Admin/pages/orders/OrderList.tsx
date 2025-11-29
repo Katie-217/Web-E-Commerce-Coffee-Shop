@@ -381,49 +381,51 @@ const OrderList: React.FC<OrderListProps> = ({ onOrderClick }) => {
   return (
     <div className="space-y-6">
       {/* Summary Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-background-light p-4 rounded-lg flex items-center gap-4">
-          <div className="p-3 bg-yellow-500/20 rounded-lg">
-            <Calendar className="w-6 h-6 text-yellow-400" />
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+        <div className="bg-background-light p-3 md:p-4 rounded-lg flex items-center gap-3 md:gap-4">
+          <div className="p-2 md:p-3 bg-yellow-500/20 rounded-lg">
+            <Calendar className="w-5 h-5 md:w-6 md:h-6 text-yellow-400" />
           </div>
           <div>
-            <p className="text-2xl font-bold text-text-primary">{stats.pendingCount}</p>
-            <p className="text-sm text-text-secondary">Pending</p>
+            <p className="text-xl md:text-2xl font-bold text-text-primary">{stats.pendingCount}</p>
+            <p className="text-xs md:text-sm text-text-secondary md:text-base">Pending</p>
           </div>
         </div>
-        <div className="bg-background-light p-4 rounded-lg flex items-center gap-4">
-          <div className="p-3 bg-green-500/20 rounded-lg">
-            <CheckCircle className="w-6 h-6 text-green-400" />
+        <div className="bg-background-light p-3 md:p-4 rounded-lg flex items-center gap-3 md:gap-4">
+          <div className="p-2 md:p-3 bg-green-500/20 rounded-lg">
+            <CheckCircle className="w-5 h-5 md:w-6 md:h-6 text-green-400" />
           </div>
           <div>
-            <p className="text-2xl font-bold text-text-primary">{stats.completedCount}</p>
-            <p className="text-sm text-text-secondary">Delivered</p>
+            <p className="text-xl md:text-2xl font-bold text-text-primary">{stats.completedCount}</p>
+            <p className="text-xs md:text-sm md:text-base text-text-secondary">Delivered</p>
           </div>
         </div>
-        <div className="bg-background-light p-4 rounded-lg flex items-center gap-4">
-          <div className="p-3 bg-gray-500/20 rounded-lg">
-            <Wallet className="w-6 h-6 text-gray-400" />
+        <div className="bg-background-light p-3 md:p-4 rounded-lg flex items-center gap-3 md:gap-4">
+          <div className="p-2 md:p-3 bg-gray-500/20 rounded-lg">
+            <Wallet className="w-5 h-5 md:w-6 md:h-6 text-gray-400" />
           </div>
           <div>
-            <p className="text-2xl font-bold text-text-primary">{stats.refundedCount}</p>
-            <p className="text-sm text-text-secondary">Refunded</p>
+            <p className="text-xl md:text-2xl font-bold text-text-primary">{stats.refundedCount}</p>
+            <p className="text-xs md:text-sm md:text-base text-text-secondary">Refunded</p>
           </div>
         </div>
-        <div className="bg-background-light p-4 rounded-lg flex items-center gap-4">
-          <div className="p-3 bg-red-500/20 rounded-lg">
-            <AlertCircle className="w-6 h-6 text-red-400" />
+        <div className="bg-background-light p-3 md:p-4 rounded-lg flex items-center gap-3 md:gap-4">
+          <div className="p-2 md:p-3 bg-red-500/20 rounded-lg">
+            <AlertCircle className="w-5 h-5 md:w-6 md:h-6 text-red-400" />
           </div>
           <div>
-            <p className="text-2xl font-bold text-text-primary">{stats.failedCount}</p>
-            <p className="text-sm text-text-secondary">Cancelled</p>
+            <p className="text-xl md:text-2xl font-bold text-text-primary">{stats.failedCount}</p>
+            <p className="text-xs md:text-sm md:text-base text-text-secondary">Cancelled</p>
           </div>
         </div>
       </div>
 
       {/* Search and Controls */}
-      <div className="bg-background-light p-6 rounded-lg shadow-lg">
-        <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-          <input
+      <div className="bg-background-light p-4 md:p-6 rounded-lg shadow-lg">
+        <div className="flex flex-row items-center mb-4 md:mb-6 gap-3 md:gap-4 w-full min-w-0">
+          {/* Hàng search + Export: desktop 1 hàng, màn nhỏ có thể xuống dòng để dropdown không bị ẩn */}
+          <div className="ml-auto flex flex-wrap items-center justify-end gap-3 w-full md:w-auto min-w-0 max-w-full overflow-visible">
+            <input
             type="text"
             placeholder="Search Order"
             value={searchQuery}
@@ -437,19 +439,20 @@ const OrderList: React.FC<OrderListProps> = ({ onOrderClick }) => {
                 e.preventDefault();
               }
             }}
-            className="bg-background-dark border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary text-text-primary w-full md:w-auto"
+            className="bg-background-dark border border-gray-600 rounded-lg px-3 md:px-4 py-1.5 md:py-2 focus:outline-none focus:ring-2 focus:ring-primary text-text-primary text-sm md:text-base w-full sm:w-64 md:w-72 min-w-[200px] max-w-full"
           />
-          <div className="flex items-center gap-3">
-            <ExportDropdown disabled={noneChecked} onExport={handleExport} />
+            <div className="flex items-center gap-3 flex-shrink-0">
+              <ExportDropdown disabled={noneChecked} onExport={handleExport} />
+            </div>
           </div>
         </div>
 
         {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-left table-fixed">
+        <div className="overflow-x-auto -mx-4 md:mx-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          <table className="w-full text-left min-w-[1200px]">
             <thead>
-              <tr className="border-b border-gray-700 text-sm text-text-secondary">
-                <th className="p-3 w-12 text-center">
+              <tr className="border-b border-gray-700 text-xs md:text-sm text-text-secondary">
+                <th className="p-2 md:p-3 w-10 md:w-12 text-center">
                   <input 
                     type="checkbox" 
                     checked={allChecked} 
@@ -458,13 +461,13 @@ const OrderList: React.FC<OrderListProps> = ({ onOrderClick }) => {
                     className="rounded border-gray-600 bg-background-dark cursor-pointer"
                   />
                 </th>
-                <th className="p-3 w-32 text-center">ORDER</th>
-                <th className="p-3 w-48 text-left pl-4">DATE</th>
-                <th className="p-3 w-72 text-left pl-4 pr-4">CUSTOMERS</th>
-                <th className="p-3 w-36 text-center">ORDER STATUS</th>
-                <th className="p-3 w-36 text-center">PAYMENT STATUS</th>
-                <th className="p-3 w-32 text-center">METHOD</th>
-                <th className="p-3 w-40 text-center">TOTAL</th>
+                <th className="p-2 md:p-3 min-w-[80px] text-center">ORDER</th>
+                <th className="p-2 md:p-3 min-w-[120px] text-left pl-2 md:pl-4">DATE</th>
+                <th className="p-2 md:p-3 min-w-[180px] text-left pl-2 md:pl-4 pr-2 md:pr-4">CUSTOMERS</th>
+                <th className="p-2 md:p-3 min-w-[100px] text-center">ORDER STATUS</th>
+                <th className="p-2 md:p-3 min-w-[100px] text-center">PAYMENT STATUS</th>
+                <th className="p-2 md:p-3 min-w-[60px] text-center">METHOD</th>
+                <th className="p-2 md:p-3 min-w-[100px] text-center">TOTAL</th>
               </tr>
             </thead>
             <tbody>
@@ -494,7 +497,7 @@ const OrderList: React.FC<OrderListProps> = ({ onOrderClick }) => {
                     }
                   }}
                 >
-                  <td className="p-3 text-center" onClick={(e) => e.stopPropagation()}>
+                  <td className="p-2 md:p-3 text-center" onClick={(e) => e.stopPropagation()}>
                     <input 
                       type="checkbox" 
                       checked={isChecked}
@@ -502,18 +505,18 @@ const OrderList: React.FC<OrderListProps> = ({ onOrderClick }) => {
                       className="rounded border-gray-600 bg-background-dark cursor-pointer"
                     />
                   </td>
-                  <td className="p-3 text-center">
-                    <span className="font-semibold text-primary">
+                  <td className="p-2 md:p-3 text-center">
+                    <span className="font-semibold text-primary text-xs md:text-sm">
                       {getDisplayCode(order)}
                     </span>
                   </td>
-                  <td className="p-3 w-48 text-left pl-4 text-text-secondary">
-                    <span className="text-xs whitespace-nowrap">
+                  <td className="p-2 md:p-3 text-left pl-2 md:pl-4 text-text-secondary">
+                    <span className="text-xs md:text-sm whitespace-nowrap">
                       {order.createdAt ? new Date(order.createdAt).toLocaleString() : ''}
                     </span>
                   </td>
-                  <td className="p-3 w-72 text-left pl-4 pr-4">
-                    <div className="flex items-center gap-3 min-w-0">
+                  <td className="p-2 md:p-3 text-left pl-2 md:pl-4 pr-2 md:pr-4">
+                    <div className="flex items-center gap-2 md:gap-3 min-w-0">
                       <div className="flex-shrink-0">
                         {(() => {
                           // Get customer data from map - same approach as customer component
@@ -531,32 +534,32 @@ const OrderList: React.FC<OrderListProps> = ({ onOrderClick }) => {
                                 40
                               )}
                               alt={order.customerEmail || 'Customer'}
-                              className="w-8 h-8 rounded-full object-cover"
+                              className="w-6 h-6 md:w-8 md:h-8 rounded-full object-cover"
                             />
                           );
                         })()}
                       </div>
                       <div className="flex flex-col min-w-0 flex-1">
-                        <p className="font-medium text-text-secondary truncate">{order.customerName || order.customerEmail?.split('@')[0]?.replace(/\./g, ' ') || 'Customer'}</p>
-                        <p className="text-xs text-text-secondary truncate">{order.customerEmail}</p>
+                        <p className="font-medium text-text-secondary truncate text-xs md:text-sm">{order.customerName || order.customerEmail?.split('@')[0]?.replace(/\./g, ' ') || 'Customer'}</p>
+                        <p className="text-xs md:text-sm text-text-secondary truncate">{order.customerEmail}</p>
                       </div>
                     </div>
                   </td>
-                  <td className="p-3 text-center">
+                  <td className="p-2 md:p-3 text-center">
                     <div className="flex justify-center">
                       <Badge color={getOrderStatusColor(order.status || 'Processing')}>
-                        {formatOrderStatusText(order.status)}
+                        <span className="text-xs md:text-sm">{formatOrderStatusText(order.status)}</span>
                       </Badge>
                     </div>
                   </td>
-                  <td className="p-3 text-center">
+                  <td className="p-2 md:p-3 text-center">
                     <div className="flex justify-center">
                       <Badge color={getPaymentStatusColor(paymentStatusFrom(order.paymentStatus || order.status))}>
-                        {paymentStatusFrom(order.paymentStatus || order.status)}
+                        <span className="text-xs md:text-sm">{paymentStatusFrom(order.paymentStatus || order.status)}</span>
                       </Badge>
                     </div>
                   </td>
-                  <td className="p-3 text-center">
+                  <td className="p-2 md:p-3 text-center">
                     <div className="flex items-center justify-center relative group">
                       {(() => {
                         const Icon = getPaymentMethodIcon(order.paymentMethod);
@@ -564,7 +567,7 @@ const OrderList: React.FC<OrderListProps> = ({ onOrderClick }) => {
                         const label = getPaymentMethodLabel(order.paymentMethod);
                         return (
                           <>
-                            <Icon size={20} className={colorClass} />
+                            <Icon size={18} className={colorClass} />
                             <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-10 border border-gray-700">
                               {label}
                               <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
@@ -576,8 +579,8 @@ const OrderList: React.FC<OrderListProps> = ({ onOrderClick }) => {
                       })()}
                     </div>
                   </td>
-                  <td className="p-3 text-center">
-                    <span className="text-sm text-text-secondary">
+                  <td className="p-2 md:p-3 text-center">
+                    <span className="text-xs md:text-sm text-text-secondary font-medium whitespace-nowrap">
                       {formatVND(Number(order.total) || 0)}
                     </span>
                   </td>
@@ -590,20 +593,64 @@ const OrderList: React.FC<OrderListProps> = ({ onOrderClick }) => {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex justify-between items-center mt-6 text-sm text-text-secondary">
-            <p>Showing {displayStartIndex} to {displayEndIndex} of {total} entries</p>
+          <div className="flex flex-col sm:flex-row justify-between items-center mt-4 md:mt-6 gap-3 text-xs md:text-sm text-text-secondary">
+            <p className="text-center sm:text-left">Showing {displayStartIndex} to {displayEndIndex} of {total} entries</p>
             <div className="flex items-center gap-1">
               <button
                 onClick={() => handlePageChange(1)}
                 disabled={currentPage === 1}
-                className="px-3 py-1 rounded-md hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-3 py-1 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{
+                  transition: 'none !important',
+                  boxShadow: 'none !important',
+                  WebkitTransition: 'none !important',
+                  MozTransition: 'none !important',
+                  OTransition: 'none !important',
+                  backgroundColor: 'transparent',
+                }}
+                onMouseEnter={(e) => {
+                  if (currentPage !== 1) {
+                    e.currentTarget.style.transition = 'none';
+                    e.currentTarget.style.boxShadow = 'none';
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (currentPage !== 1) {
+                    e.currentTarget.style.transition = 'none';
+                    e.currentTarget.style.boxShadow = 'none';
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                  }
+                }}
               >
                 «
               </button>
               <button
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 1}
-                className="px-3 py-1 rounded-md hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-3 py-1 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{
+                  transition: 'none !important',
+                  boxShadow: 'none !important',
+                  WebkitTransition: 'none !important',
+                  MozTransition: 'none !important',
+                  OTransition: 'none !important',
+                  backgroundColor: 'transparent',
+                }}
+                onMouseEnter={(e) => {
+                  if (currentPage !== 1) {
+                    e.currentTarget.style.transition = 'none';
+                    e.currentTarget.style.boxShadow = 'none';
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (currentPage !== 1) {
+                    e.currentTarget.style.transition = 'none';
+                    e.currentTarget.style.boxShadow = 'none';
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                  }
+                }}
               >
                 ‹
               </button>
@@ -618,15 +665,37 @@ const OrderList: React.FC<OrderListProps> = ({ onOrderClick }) => {
                 } else {
                   pageNum = currentPage - 2 + i;
                 }
+                const isActive = currentPage === pageNum;
                 return (
                   <button
                     key={pageNum}
                     onClick={() => handlePageChange(pageNum)}
                     className={`px-3 py-1 rounded-md ${
-                      currentPage === pageNum
+                      isActive
                         ? 'bg-primary text-white'
-                        : 'hover:bg-gray-700'
+                        : ''
                     }`}
+                    style={{
+                      transition: 'none !important',
+                      boxShadow: 'none !important',
+                      WebkitTransition: 'none !important',
+                      MozTransition: 'none !important',
+                      OTransition: 'none !important',
+                      backgroundColor: isActive ? 'rgb(124, 58, 237)' : 'transparent',
+                      color: isActive ? 'rgb(255, 255, 255)' : 'rgb(156, 163, 175)',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transition = 'none';
+                      e.currentTarget.style.boxShadow = 'none';
+                      e.currentTarget.style.backgroundColor = isActive ? 'rgb(124, 58, 237)' : 'transparent';
+                      e.currentTarget.style.color = isActive ? 'rgb(255, 255, 255)' : 'rgb(156, 163, 175)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transition = 'none';
+                      e.currentTarget.style.boxShadow = 'none';
+                      e.currentTarget.style.backgroundColor = isActive ? 'rgb(124, 58, 237)' : 'transparent';
+                      e.currentTarget.style.color = isActive ? 'rgb(255, 255, 255)' : 'rgb(156, 163, 175)';
+                    }}
                   >
                     {pageNum}
                   </button>
@@ -638,7 +707,28 @@ const OrderList: React.FC<OrderListProps> = ({ onOrderClick }) => {
               {totalPages > 5 && (
                 <button
                   onClick={() => handlePageChange(totalPages)}
-                  className="px-3 py-1 rounded-md hover:bg-gray-700"
+                  className="px-3 py-1 rounded-md"
+                  style={{
+                    transition: 'none !important',
+                    boxShadow: 'none !important',
+                    WebkitTransition: 'none !important',
+                    MozTransition: 'none !important',
+                    OTransition: 'none !important',
+                    backgroundColor: 'transparent',
+                    color: 'rgb(156, 163, 175)',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transition = 'none';
+                    e.currentTarget.style.boxShadow = 'none';
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.color = 'rgb(156, 163, 175)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transition = 'none';
+                    e.currentTarget.style.boxShadow = 'none';
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.color = 'rgb(156, 163, 175)';
+                  }}
                 >
                   {totalPages}
                 </button>
@@ -646,14 +736,58 @@ const OrderList: React.FC<OrderListProps> = ({ onOrderClick }) => {
               <button
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
-                className="px-3 py-1 rounded-md hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-3 py-1 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{
+                  transition: 'none !important',
+                  boxShadow: 'none !important',
+                  WebkitTransition: 'none !important',
+                  MozTransition: 'none !important',
+                  OTransition: 'none !important',
+                  backgroundColor: 'transparent',
+                }}
+                onMouseEnter={(e) => {
+                  if (currentPage !== totalPages) {
+                    e.currentTarget.style.transition = 'none';
+                    e.currentTarget.style.boxShadow = 'none';
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (currentPage !== totalPages) {
+                    e.currentTarget.style.transition = 'none';
+                    e.currentTarget.style.boxShadow = 'none';
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                  }
+                }}
               >
                 ›
               </button>
               <button
                 onClick={() => handlePageChange(totalPages)}
                 disabled={currentPage === totalPages}
-                className="px-3 py-1 rounded-md hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-3 py-1 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{
+                  transition: 'none !important',
+                  boxShadow: 'none !important',
+                  WebkitTransition: 'none !important',
+                  MozTransition: 'none !important',
+                  OTransition: 'none !important',
+                  backgroundColor: 'transparent',
+                }}
+                onMouseEnter={(e) => {
+                  if (currentPage !== totalPages) {
+                    e.currentTarget.style.transition = 'none';
+                    e.currentTarget.style.boxShadow = 'none';
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (currentPage !== totalPages) {
+                    e.currentTarget.style.transition = 'none';
+                    e.currentTarget.style.boxShadow = 'none';
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                  }
+                }}
               >
                 »
               </button>

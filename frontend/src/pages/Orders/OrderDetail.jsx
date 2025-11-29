@@ -109,7 +109,6 @@ const OrderDetail = () => {
 
       if (!res.ok) {
         const text = await res.text();
-        console.error("OrderDetail ERROR response:", text);
         throw new Error(
           "Failed to fetch order details (status " + res.status + ")"
         );
@@ -118,7 +117,6 @@ const OrderDetail = () => {
       const contentType = res.headers.get("content-type") || "";
       if (!contentType.includes("application/json")) {
         const text = await res.text();
-        console.error("OrderDetail – non-JSON response:", text);
         throw new Error(
           "Server returned non-JSON data (usually caused by calling the wrong API URL)."
         );
@@ -129,7 +127,6 @@ const OrderDetail = () => {
       const orderData = data.data || data.order || data;
       setOrder(orderData);
     } catch (err) {
-      console.error(err);
       setError(err.message || "An error occurred while loading the order.");
     } finally {
       setLoading(false);
@@ -167,7 +164,6 @@ const OrderDetail = () => {
 
     return count;
   }, [order]);
-  console.log("ORDER DETAIL", order);
 
 
 

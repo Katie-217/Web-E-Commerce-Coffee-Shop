@@ -26,7 +26,6 @@ export function AuthProvider({ children }) {
       try {
         localStorage.setItem("user", JSON.stringify(userData));
       } catch (e) {
-        console.error("Failed to store user in localStorage", e);
       }
     } else {
       localStorage.removeItem("user");
@@ -49,7 +48,6 @@ export function AuthProvider({ children }) {
       persistAuth({ token, user: meData }, meData);
       return meData;
     } catch (err) {
-      console.error("loginWithToken /me error", err);
       setUser(null);
       localStorage.removeItem("user");
       localStorage.removeItem("token");
@@ -97,7 +95,6 @@ export function AuthProvider({ children }) {
           if (!cancelled) setUser(null);
         }
       } catch (e) {
-        console.error("Failed to init auth", e);
         if (!cancelled) setUser(null);
       } finally {
         if (!cancelled) setLoading(false);
@@ -121,11 +118,12 @@ export function AuthProvider({ children }) {
 
       // Nếu backend chỉ trả token → gọi /me để lấy full user (có wishlist)
       if (token && !userData) {
-        await loginWithToken(token);
-        return;
+        const meData = await loginWithToken(token);
+        return meData;
       }
 
-      return persistAuth(data, { email });
+      const finalUserData = persistAuth(data, { email });
+      return finalUserData || userData;
     } finally {
       setLoading(false);
     }
@@ -138,12 +136,14 @@ export function AuthProvider({ children }) {
       const token = data?.token;
       const userData = data?.user;
 
+      // Nếu backend chỉ trả token → gọi /me để lấy full user (có wishlist, role)
       if (token && !userData) {
-        await loginWithToken(token);
-        return;
+        const meData = await loginWithToken(token);
+        return meData;
       }
 
-      return persistAuth(data, { name, email });
+      const finalUserData = persistAuth(data, { name, email });
+      return finalUserData || userData;
     } finally {
       setLoading(false);
     }
@@ -153,7 +153,6 @@ export function AuthProvider({ children }) {
     try {
       authService.logout && authService.logout();
     } catch (e) {
-      console.warn("authService.logout error", e);
     }
 
     // clear luôn localStorage + axios header

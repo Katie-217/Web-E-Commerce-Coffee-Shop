@@ -192,7 +192,6 @@ const ProductCarousel = () => {
           category: apiCat,
         });
 
-        console.log("Carousel items:", items);
 
         if (!mounted) return;
         setProducts(Array.isArray(items) ? items : []);

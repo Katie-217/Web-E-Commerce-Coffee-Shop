@@ -111,7 +111,6 @@ router.put("/profile", authMiddleware, async (req, res) => {
 
     return res.json(toUserPayload(customer));
   } catch (err) {
-    console.error("[account/profile] error:", err);
     return res
       .status(500)
       .json({ message: "Update profile failed", error: err.message });

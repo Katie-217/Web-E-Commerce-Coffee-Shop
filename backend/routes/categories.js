@@ -60,13 +60,11 @@ const aggregateFromCollection = async (collection, label) => {
   try {
     const cursor = collection.aggregate(CATEGORY_PIPELINE);
     const results = await cursor.toArray();
-    console.log(`📊 Categories from ${label}:`, results.length);
     return results.map((item) => ({
       name: item._id,
       count: item.count,
     }));
   } catch (error) {
-    console.log(`❌ Failed to aggregate categories from ${label}:`, error.message);
     return [];
   }
 };
@@ -74,13 +72,11 @@ const aggregateFromCollection = async (collection, label) => {
 const aggregateFromModel = async () => {
   try {
     const results = await Product.aggregate(CATEGORY_PIPELINE);
-    console.log(`📊 Categories from Product model:`, results.length);
     return results.map((item) => ({
       name: item._id,
       count: item.count,
     }));
   } catch (error) {
-    console.log('❌ Failed to aggregate categories from Product model:', error.message);
     return [];
   }
 };
@@ -99,7 +95,6 @@ router.get('/', async (req, res) => {
         addCategoriesToMap(categoriesMap, results);
       }
     } catch (error) {
-      console.log('❌ Unable to access products.productsList for categories:', error.message);
     }
 
     // Try default DB > productsList
@@ -112,7 +107,6 @@ router.get('/', async (req, res) => {
           addCategoriesToMap(categoriesMap, results);
         }
       } catch (error) {
-        console.log('❌ Unable to access productsList for categories:', error.message);
       }
     }
 
@@ -135,7 +129,6 @@ router.get('/', async (req, res) => {
       count: categories.length,
     });
   } catch (error) {
-    console.error('❌ Error fetching categories:', error);
     res.status(500).json({
       success: false,
       message: 'Error fetching categories',
@@ -157,11 +150,9 @@ const updateManyProducts = async (collection, filter, update, label) => {
   try {
     const result = await collection.updateMany(filter, { $set: update });
     if (result.modifiedCount) {
-      console.log(`✅ Updated ${result.modifiedCount} products in ${label}`);
     }
     return result.modifiedCount;
   } catch (error) {
-    console.log(`❌ Failed to update in ${label}:`, error.message);
     return 0;
   }
 };
@@ -170,11 +161,9 @@ const deleteManyProducts = async (collection, filter, label) => {
   try {
     const result = await collection.deleteMany(filter);
     if (result.deletedCount) {
-      console.log(`🗑️ Deleted ${result.deletedCount} products in ${label}`);
     }
     return result.deletedCount || 0;
   } catch (error) {
-    console.log(`❌ Failed to delete in ${label}:`, error.message);
     return 0;
   }
 };
@@ -217,7 +206,6 @@ router.patch('/:categoryName', async (req, res) => {
         modifiedCount += await updateManyProducts(coll, filter, updateFields, 'products.productsList');
       }
     } catch (error) {
-      console.log('❌ Unable to access products.productsList for update:', error.message);
     }
 
     if (modifiedCount === 0) {
@@ -228,7 +216,6 @@ router.patch('/:categoryName', async (req, res) => {
           modifiedCount += await updateManyProducts(coll, filter, updateFields, 'productsList');
         }
       } catch (error) {
-        console.log('❌ Unable to access productsList for update:', error.message);
       }
     }
 
@@ -237,7 +224,6 @@ router.patch('/:categoryName', async (req, res) => {
         const result = await Product.updateMany(filter, { $set: updateFields });
         modifiedCount += result.modifiedCount || 0;
       } catch (error) {
-        console.log('❌ Failed to update in Product model:', error.message);
       }
     }
 
@@ -256,7 +242,6 @@ router.patch('/:categoryName', async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('❌ Error updating category:', error);
     res.status(500).json({
       success: false,
       message: 'Error updating category',
@@ -286,7 +271,6 @@ router.delete('/:categoryName', async (req, res) => {
         deletedCount += await deleteManyProducts(coll, filter, 'products.productsList');
       }
     } catch (error) {
-      console.log('❌ Unable to access products.productsList for delete:', error.message);
     }
 
     if (deletedCount === 0) {
@@ -297,7 +281,6 @@ router.delete('/:categoryName', async (req, res) => {
           deletedCount += await deleteManyProducts(coll, filter, 'productsList');
         }
       } catch (error) {
-        console.log('❌ Unable to access productsList for delete:', error.message);
       }
     }
 
@@ -306,7 +289,6 @@ router.delete('/:categoryName', async (req, res) => {
         const result = await Product.deleteMany(filter);
         deletedCount += result.deletedCount || 0;
       } catch (error) {
-        console.log('❌ Failed to delete in Product model:', error.message);
       }
     }
 
@@ -325,7 +307,6 @@ router.delete('/:categoryName', async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('❌ Error deleting category:', error);
     res.status(500).json({
       success: false,
       message: 'Error deleting category',

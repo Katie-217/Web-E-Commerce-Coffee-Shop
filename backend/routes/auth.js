@@ -30,6 +30,10 @@ function toUserPayload(doc) {
     plain.fullName ||
     [plain.firstName, plain.lastName].filter(Boolean).join(" ");
 
+  // Tự động set role admin nếu email là admin@gmail.com (xử lý user cũ chưa có role)
+  const normalizedEmail = String(plain.email || "").toLowerCase().trim();
+  const userRole = plain.role || (normalizedEmail === "admin@gmail.com" ? "admin" : "customer");
+
   return {
     id: String(plain._id || plain.id),
     email: plain.email,
@@ -54,6 +58,7 @@ function toUserPayload(doc) {
     consents: plain.consents || null,
     tags: Array.isArray(plain.tags) ? plain.tags : [],
     status: plain.status || "active",
+    role: userRole,
     createdAt: plain.createdAt,
     updatedAt: plain.updatedAt,
   };
@@ -88,7 +93,6 @@ async function sendResetOtpEmail(to, otp) {
     html,
   });
 
-  console.log("📧 Reset OTP sent:", info.messageId, "=>", to);
 }
 
 /**
@@ -125,6 +129,11 @@ router.post("/register", async (req, res) => {
 
     const hash = await bcrypt.hash(password, 10);
 
+      fullName,
+      email: normalizedEmail,
+      role: normalizedEmail === "admin@gmail.com" ? "admin" : "customer",
+    });
+
     const customer = await Customer.create({
       firstName,
       lastName,
@@ -133,7 +142,9 @@ router.post("/register", async (req, res) => {
       password: hash,
       status: "active",
       provider: "local",
+      role: normalizedEmail === "admin@gmail.com" ? "admin" : "customer",
     });
+
 
     const token = jwt.sign({ sub: customer._id.toString() }, JWT_SECRET, {
       expiresIn: "7d",
@@ -144,7 +155,9 @@ router.post("/register", async (req, res) => {
       user: toUserPayload(customer),
     });
   } catch (err) {
-    console.error("[auth/register] error:", err);
+      name: err.name,
+      stack: err.stack,
+    });
     return res
       .status(500)
       .json({ message: "Register failed", error: err.message });
@@ -187,7 +200,6 @@ router.post("/login", async (req, res) => {
       user: toUserPayload(customer),
     });
   } catch (err) {
-    console.error("[auth/login] error:", err);
     return res
       .status(500)
       .json({ message: "Login failed", error: err.message });
@@ -238,7 +250,6 @@ router.get("/google/callback", async (req, res) => {
 
     const tokenJson = await tokenRes.json();
     if (!tokenRes.ok) {
-      console.error("[google/token] error:", tokenJson);
       return res.status(500).send("Google auth failed");
     }
 
@@ -282,6 +293,7 @@ router.get("/google/callback", async (req, res) => {
         avatarUrl: picture,
         status: "active",
         provider: "google",
+        role: email === "admin@gmail.com" ? "admin" : "customer",
       });
     } else {
       // update nhẹ thông tin nếu thiếu
@@ -310,7 +322,6 @@ router.get("/google/callback", async (req, res) => {
 
     return res.redirect(redirectUrl);
   } catch (err) {
-    console.error("[auth/google/callback] error:", err);
     return res.status(500).send("Google auth error");
   }
 });
@@ -328,7 +339,6 @@ router.post("/forgot-password/request", async (req, res) => {
 
     // Để tránh lộ email có tồn tại hay không, vẫn trả message chung chung
     if (!customer) {
-      console.log("[forgot/request] email không tồn tại:", normalizedEmail);
       return res.json({
         message:
           "Nếu email tồn tại trong hệ thống, chúng tôi đã gửi mã xác nhận.",
@@ -350,7 +360,6 @@ router.post("/forgot-password/request", async (req, res) => {
         "Đã gửi mã xác nhận. Vui lòng kiểm tra email của bạn.",
     });
   } catch (err) {
-    console.error("[auth/forgot-password/request] error:", err);
     return res.status(500).json({
       message: "Không thể gửi mã xác nhận",
       error: err.message,
@@ -403,7 +412,6 @@ router.post("/forgot-password/verify", async (req, res) => {
       message: "Đặt lại mật khẩu thành công. Hãy đăng nhập bằng mật khẩu mới.",
     });
   } catch (err) {
-    console.error("[auth/forgot-password/verify] error:", err);
     return res.status(500).json({
       message: "Reset password failed",
       error: err.message,
@@ -442,7 +450,6 @@ router.get("/me", authMiddleware, async (req, res) => {
     }
     return res.json(toUserPayload(customer));
   } catch (err) {
-    console.error("[auth/me] error:", err);
     return res
       .status(500)
       .json({ message: "Failed to load profile", error: err.message });
@@ -483,7 +490,6 @@ router.post("/change-password", authMiddleware, async (req, res) => {
 
     res.json({ message: "Password changed" });
   } catch (err) {
-    console.error("[auth/change-password] error:", err);
     res
       .status(500)
       .json({ message: "Change password failed", error: err.message });

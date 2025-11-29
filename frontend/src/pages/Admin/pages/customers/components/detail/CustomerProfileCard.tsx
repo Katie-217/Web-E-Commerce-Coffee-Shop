@@ -55,33 +55,33 @@ const CustomerProfileCard: React.FC<CustomerProfileCardProps> = ({
 
       {/* Details Section */}
       <div className="mb-6">
-        <h4 className="text-sm font-semibold text-text-primary mb-4">Details</h4>
+        <h4 className="text-base font-semibold text-text-primary mb-4">Details</h4>
         <div className="space-y-3 text-sm">
-          <div className="flex justify-between">
+          <div className="flex items-center gap-2">
             <span className="text-text-secondary">Username:</span>
             <span className="text-text-primary">{customer?.email?.split('@')[0] || '-'}</span>
           </div>
-          <div className="flex justify-between">
+          <div className="flex items-center gap-2">
             <span className="text-text-secondary">Email:</span>
             <span className="text-text-primary">{customer?.email || '-'}</span>
           </div>
-          <div className="flex justify-between items-center">
+          <div className="flex items-center gap-2">
             <span className="text-text-secondary">Status:</span>
             <Badge color={customer?.status === 'inactive' ? 'yellow' : customer?.status === 'banned' ? 'red' : 'green'}>
               {formatCustomerStatus(customer?.status)}
             </Badge>
           </div>
-          <div className="flex justify-between">
+          <div className="flex items-center gap-2">
             <span className="text-text-secondary">Contact:</span>
             <span className="text-text-primary">{customer?.phone || '-'}</span>
           </div>
-          <div className="flex justify-between">
+          <div className="flex items-center gap-2">
             <span className="text-text-secondary">Country:</span>
             <span className="text-text-primary">
               {getCustomerCountry(customer, undefined, normalizeCountry) || '-'}
             </span>
           </div>
-          <div className="flex justify-between">
+          <div className="flex items-center gap-2">
             <span className="text-text-secondary">Member since:</span>
             <span className="text-text-primary">
               {formatMemberSinceDate(customer?.createdAt || customer?.joinedAt)}
@@ -92,7 +92,25 @@ const CustomerProfileCard: React.FC<CustomerProfileCardProps> = ({
 
       <button
         onClick={onEditDetails}
-        className="w-full bg-primary text-white py-2 rounded-lg hover:bg-primary/90 transition-colors"
+        className="w-full bg-primary text-white py-2 rounded-lg"
+        style={{
+          transition: 'none !important',
+          boxShadow: 'none !important',
+          WebkitTransition: 'none !important',
+          MozTransition: 'none !important',
+          OTransition: 'none !important',
+          backgroundColor: '#7c3aed', // bg-primary
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transition = 'none';
+          e.currentTarget.style.boxShadow = 'none';
+          e.currentTarget.style.backgroundColor = '#7c3aed'; 
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transition = 'none';
+          e.currentTarget.style.boxShadow = 'none';
+          e.currentTarget.style.backgroundColor = '#7c3aed'; 
+        }}
       >
         Edit Details
       </button>

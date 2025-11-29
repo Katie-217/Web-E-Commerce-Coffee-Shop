@@ -92,16 +92,7 @@ const EditUserInformationModal: React.FC<EditUserInformationModalProps> = ({
         gender = gender.toLowerCase();
       }
 
-      console.log('📝 Filling form with customer data:', {
-        firstName,
-        lastName,
-        email: customer.email,
-        phone: customer.phone,
-        gender,
-        status: customer.status,
-        country,
-      });
-
+      // Fill form with customer data
       setFormData((prev) => ({
         firstName,
         lastName,
@@ -228,8 +219,26 @@ const EditUserInformationModal: React.FC<EditUserInformationModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="text-text-secondary hover:text-text-primary transition-colors"
+            className="text-text-secondary"
             aria-label="Close modal"
+            style={{
+              transition: 'none !important',
+              boxShadow: 'none !important',
+              WebkitTransition: 'none !important',
+              MozTransition: 'none !important',
+              OTransition: 'none !important',
+              backgroundColor: 'transparent',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transition = 'none';
+              e.currentTarget.style.boxShadow = 'none';
+              e.currentTarget.style.backgroundColor = 'transparent';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transition = 'none';
+              e.currentTarget.style.boxShadow = 'none';
+              e.currentTarget.style.backgroundColor = 'transparent';
+            }}
           >
             <X size={24} />
           </button>
@@ -258,8 +267,26 @@ const EditUserInformationModal: React.FC<EditUserInformationModalProps> = ({
               <button
                 type="button"
                 onClick={handleAvatarClick}
-                className="absolute bottom-0 right-0 p-2 bg-primary rounded-full border-2 border-background-light hover:bg-primary/90 transition-colors"
+                className="absolute bottom-0 right-0 p-2 bg-primary rounded-full border-2 border-background-light"
                 aria-label="Change avatar"
+                style={{
+                  transition: 'none !important',
+                  boxShadow: 'none !important',
+                  WebkitTransition: 'none !important',
+                  MozTransition: 'none !important',
+                  OTransition: 'none !important',
+                  backgroundColor: '#7c3aed', // bg-primary
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transition = 'none';
+                  e.currentTarget.style.boxShadow = 'none';
+                  e.currentTarget.style.backgroundColor = '#7c3aed'; // Giữ nguyên màu primary
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transition = 'none';
+                  e.currentTarget.style.boxShadow = 'none';
+                  e.currentTarget.style.backgroundColor = '#7c3aed'; // Giữ nguyên màu primary
+                }}
               >
                 <Camera size={16} className="text-white" />
               </button>
@@ -341,6 +368,21 @@ const EditUserInformationModal: React.FC<EditUserInformationModalProps> = ({
                   value={formData.gender}
                   onChange={(e) => handleChange('gender', e.target.value)}
                   className="w-full bg-background-dark border border-gray-600 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary text-text-primary h-10"
+                  style={{
+                    transition: 'none !important',
+                    boxShadow: 'none !important',
+                    WebkitTransition: 'none !important',
+                    MozTransition: 'none !important',
+                    OTransition: 'none !important',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transition = 'none';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transition = 'none';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
                 >
                   <option value="male">Male</option>
                   <option value="female">Female</option>
@@ -371,6 +413,21 @@ const EditUserInformationModal: React.FC<EditUserInformationModalProps> = ({
                   value={formData.status}
                   onChange={(e) => handleChange('status', e.target.value)}
                   className="w-full bg-background-dark border border-gray-600 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary text-text-primary h-10"
+                  style={{
+                    transition: 'none !important',
+                    boxShadow: 'none !important',
+                    WebkitTransition: 'none !important',
+                    MozTransition: 'none !important',
+                    OTransition: 'none !important',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transition = 'none';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transition = 'none';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
                 >
                   <option value="active">Active</option>
                   <option value="inactive">Inactive</option>
@@ -401,7 +458,25 @@ const EditUserInformationModal: React.FC<EditUserInformationModalProps> = ({
             <button
               type="submit"
               disabled={loading}
-              className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-2 bg-primary text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                transition: 'none !important',
+                boxShadow: 'none !important',
+                WebkitTransition: 'none !important',
+                MozTransition: 'none !important',
+                OTransition: 'none !important',
+                backgroundColor: '#7c3aed', // bg-primary
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transition = 'none';
+                e.currentTarget.style.boxShadow = 'none';
+                e.currentTarget.style.backgroundColor = '#7c3aed'; // Giữ nguyên màu primary
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transition = 'none';
+                e.currentTarget.style.boxShadow = 'none';
+                e.currentTarget.style.backgroundColor = '#7c3aed';
+              }}
             >
               {loading ? 'Saving...' : 'Submit'}
             </button>
@@ -409,7 +484,25 @@ const EditUserInformationModal: React.FC<EditUserInformationModalProps> = ({
               type="button"
               onClick={onClose}
               disabled={loading}
-              className="px-6 py-2 bg-background-dark text-text-secondary rounded-lg hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-2 bg-background-dark text-text-secondary rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                transition: 'none !important',
+                boxShadow: 'none !important',
+                WebkitTransition: 'none !important',
+                MozTransition: 'none !important',
+                OTransition: 'none !important',
+                backgroundColor: 'rgb(39, 39, 42)', // bg-background-dark
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transition = 'none';
+                e.currentTarget.style.boxShadow = 'none';
+                e.currentTarget.style.backgroundColor = 'rgb(39, 39, 42)'; // Giữ nguyên màu background-dark
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transition = 'none';
+                e.currentTarget.style.boxShadow = 'none';
+                e.currentTarget.style.backgroundColor = 'rgb(39, 39, 42)'; // Giữ nguyên màu background-dark
+              }}
             >
               Cancel
             </button>

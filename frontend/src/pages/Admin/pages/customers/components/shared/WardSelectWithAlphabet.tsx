@@ -84,7 +84,6 @@ const WardSelectWithAlphabet: React.FC<WardSelectWithAlphabetProps> = ({
         }
         setWardsInternal(wardsData);
       } catch (err: any) {
-        console.error('Error loading wards:', err);
       } finally {
         setLoadingWardsInternal(false);
         if (onLoadingChange) onLoadingChange(false);
@@ -457,13 +456,46 @@ const WardSelectWithAlphabet: React.FC<WardSelectWithAlphabetProps> = ({
         }}
         disabled={isDisabled}
         className="w-full bg-background-dark border border-gray-600 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary text-text-primary h-10 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-between"
+        style={{
+          transition: 'none !important',
+          boxShadow: 'none !important',
+          WebkitTransition: 'none !important',
+          MozTransition: 'none !important',
+          OTransition: 'none !important',
+          msTransition: 'none !important',
+          backgroundColor: 'rgb(23, 23, 23)', // bg-background-dark
+          borderColor: 'rgb(75, 85, 99)', // border-gray-600
+          color: (normalizedValue || editModeName) ? 'rgb(229, 231, 235)' : 'rgb(156, 163, 175)', // text-text-primary or text-text-secondary
+        }}
+        onMouseEnter={(e) => {
+          const currentColor = e.currentTarget.style.color || ((normalizedValue || editModeName) ? 'rgb(229, 231, 235)' : 'rgb(156, 163, 175)');
+          e.currentTarget.style.transition = 'none';
+          e.currentTarget.style.boxShadow = 'none';
+          e.currentTarget.style.backgroundColor = 'rgb(23, 23, 23)';
+          e.currentTarget.style.borderColor = 'rgb(75, 85, 99)';
+          e.currentTarget.style.color = currentColor;
+        }}
+        onMouseLeave={(e) => {
+          const currentColor = e.currentTarget.style.color || ((normalizedValue || editModeName) ? 'rgb(229, 231, 235)' : 'rgb(156, 163, 175)');
+          e.currentTarget.style.transition = 'none';
+          e.currentTarget.style.boxShadow = 'none';
+          e.currentTarget.style.backgroundColor = 'rgb(23, 23, 23)';
+          e.currentTarget.style.borderColor = 'rgb(75, 85, 99)';
+          e.currentTarget.style.color = currentColor;
+        }}
       >
         <span className={normalizedValue || editModeName ? 'text-text-primary' : 'text-text-secondary'}>
           {getDisplayName()}
         </span>
         <ChevronDown 
           size={16} 
-          className={`text-text-secondary transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} 
+          className={`text-text-secondary ${dropdownOpen ? 'rotate-180' : ''}`}
+          style={{
+            transition: 'none !important',
+            WebkitTransition: 'none !important',
+            MozTransition: 'none !important',
+            OTransition: 'none !important',
+          }}
         />
       </button>
       {dropdownOpen && cityCode && (!featuresAvailable.districts || (featuresAvailable.districts && districtCode)) && (
@@ -483,11 +515,43 @@ const WardSelectWithAlphabet: React.FC<WardSelectWithAlphabetProps> = ({
                     onChange(String(ward.code));
                     setDropdownOpen(false);
                   }}
-                  className={`w-full text-left px-3 py-2.5 text-sm transition-colors ${
+                  className={`w-full text-left px-3 py-2.5 text-sm ${
                     String(normalizedValue) === String(ward.code)
                       ? 'bg-primary/20 text-primary font-semibold'
-                      : 'text-text-primary hover:bg-background-light/50'
+                      : 'text-text-primary'
                   }`}
+                  style={{
+                    transition: 'none !important',
+                    boxShadow: 'none !important',
+                    WebkitTransition: 'none !important',
+                    MozTransition: 'none !important',
+                    OTransition: 'none !important',
+                    msTransition: 'none !important',
+                    backgroundColor: String(normalizedValue) === String(ward.code) ? 'rgba(124, 58, 237, 0.2)' : 'transparent',
+                    color: String(normalizedValue) === String(ward.code) ? '#7c3aed' : 'rgb(229, 231, 235)',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transition = 'none';
+                    e.currentTarget.style.boxShadow = 'none';
+                    if (String(normalizedValue) === String(ward.code)) {
+                      e.currentTarget.style.backgroundColor = 'rgba(124, 58, 237, 0.2)';
+                      e.currentTarget.style.color = '#7c3aed';
+                    } else {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                      e.currentTarget.style.color = 'rgb(229, 231, 235)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transition = 'none';
+                    e.currentTarget.style.boxShadow = 'none';
+                    if (String(normalizedValue) === String(ward.code)) {
+                      e.currentTarget.style.backgroundColor = 'rgba(124, 58, 237, 0.2)';
+                      e.currentTarget.style.color = '#7c3aed';
+                    } else {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                      e.currentTarget.style.color = 'rgb(229, 231, 235)';
+                    }
+                  }}
                   >
                     {removeWardPrefix(ward.name)}
                   </button>
@@ -500,7 +564,29 @@ const WardSelectWithAlphabet: React.FC<WardSelectWithAlphabetProps> = ({
                       onChange('');
                       setDropdownOpen(false);
                     }}
-                    className="w-full text-left px-3 py-2 text-sm text-text-primary hover:bg-background-light/50 border-t border-gray-600"
+                    className="w-full text-left px-3 py-2 text-sm text-text-primary border-t border-gray-600"
+                    style={{
+                      transition: 'none !important',
+                      boxShadow: 'none !important',
+                      WebkitTransition: 'none !important',
+                      MozTransition: 'none !important',
+                      OTransition: 'none !important',
+                      msTransition: 'none !important',
+                      backgroundColor: 'transparent',
+                      color: 'rgb(229, 231, 235)',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transition = 'none';
+                      e.currentTarget.style.boxShadow = 'none';
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                      e.currentTarget.style.color = 'rgb(229, 231, 235)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transition = 'none';
+                      e.currentTarget.style.boxShadow = 'none';
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                      e.currentTarget.style.color = 'rgb(229, 231, 235)';
+                    }}
                   >
                     Clear selection: {editModeName || value}
                   </button>
@@ -521,7 +607,29 @@ const WardSelectWithAlphabet: React.FC<WardSelectWithAlphabetProps> = ({
                           onChange('');
                           setDropdownOpen(false);
                         }}
-                        className="w-full text-left px-2 py-1 text-sm text-primary hover:bg-background-light/50 rounded"
+                        className="w-full text-left px-2 py-1 text-sm text-primary rounded"
+                        style={{
+                          transition: 'none !important',
+                          boxShadow: 'none !important',
+                          WebkitTransition: 'none !important',
+                          MozTransition: 'none !important',
+                          OTransition: 'none !important',
+                          msTransition: 'none !important',
+                          backgroundColor: 'transparent',
+                          color: '#7c3aed',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transition = 'none';
+                          e.currentTarget.style.boxShadow = 'none';
+                          e.currentTarget.style.backgroundColor = 'transparent';
+                          e.currentTarget.style.color = '#7c3aed';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transition = 'none';
+                          e.currentTarget.style.boxShadow = 'none';
+                          e.currentTarget.style.backgroundColor = 'transparent';
+                          e.currentTarget.style.color = '#7c3aed';
+                        }}
                       >
                         Clear current value
                       </button>
@@ -551,11 +659,41 @@ const WardSelectWithAlphabet: React.FC<WardSelectWithAlphabetProps> = ({
                     type="button"
                     data-letter={letter}
                     onClick={() => scrollToLetter(letter)}
-                    className={`text-[10px] leading-none transition-colors px-0.5 py-1.5 min-w-[16px] text-center flex items-center justify-center ${
+                    className={`text-[10px] leading-none px-0.5 py-1.5 min-w-[16px] text-center flex items-center justify-center ${
                       isSelected
                         ? 'text-primary font-bold'
-                        : 'text-text-secondary hover:text-primary'
+                        : 'text-text-secondary'
                     }`}
+                    style={{
+                      transition: 'none !important',
+                      boxShadow: 'none !important',
+                      WebkitTransition: 'none !important',
+                      MozTransition: 'none !important',
+                      OTransition: 'none !important',
+                      msTransition: 'none !important',
+                      backgroundColor: 'transparent',
+                      color: isSelected ? '#7c3aed' : 'rgb(156, 163, 175)',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transition = 'none';
+                      e.currentTarget.style.boxShadow = 'none';
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                      if (isSelected) {
+                        e.currentTarget.style.color = '#7c3aed';
+                      } else {
+                        e.currentTarget.style.color = 'rgb(156, 163, 175)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transition = 'none';
+                      e.currentTarget.style.boxShadow = 'none';
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                      if (isSelected) {
+                        e.currentTarget.style.color = '#7c3aed';
+                      } else {
+                        e.currentTarget.style.color = 'rgb(156, 163, 175)';
+                      }
+                    }}
                     title={`Scroll to wards starting with ${letter}`}
                   >
                     {letter}

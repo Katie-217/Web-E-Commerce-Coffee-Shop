@@ -234,7 +234,6 @@ export default function MenuCatalogSection({
         setRawProducts(list); // keep raw data
       } catch (err) {
         if (err.name !== "AbortError") {
-          console.error("Fetch products error:", err);
           setError(err.message || "Failed to load products");
         }
       } finally {
@@ -416,7 +415,6 @@ export default function MenuCatalogSection({
         updateUser?.(newUser);
       }
     } catch (err) {
-      console.error("Toggle wishlist error:", err);
       alert(
         err?.response?.data?.message ||
           err.message ||

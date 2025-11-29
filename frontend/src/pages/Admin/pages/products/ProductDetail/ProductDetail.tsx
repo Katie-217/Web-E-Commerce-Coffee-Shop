@@ -259,7 +259,6 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId, onBack, initia
         throw new Error('Upload failed: Invalid response from server');
       }
     } catch (error: any) {
-      console.error('Error uploading image:', error);
       alert(`Failed to upload image: ${error?.message || 'Please try again.'}`);
       if (imagePreview?.url?.startsWith('blob:')) {
         URL.revokeObjectURL(imagePreview.url);

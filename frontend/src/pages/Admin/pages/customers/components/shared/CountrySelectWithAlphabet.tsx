@@ -43,7 +43,6 @@ const CountrySelectWithAlphabet: React.FC<CountrySelectWithAlphabetProps> = ({
         }
         setCountries(countriesData);
       } catch (err: any) {
-        console.error('Error loading countries:', err);
       } finally {
         setLoadingCountries(false);
       }
@@ -296,9 +295,9 @@ const CountrySelectWithAlphabet: React.FC<CountrySelectWithAlphabetProps> = ({
     : 'Select Country';
 
   return (
-    <div className={`relative ${className}`} ref={countryDropdownRef}>
+    <div className={`relative min-w-0 ${className}`} ref={countryDropdownRef}>
       {label && (
-        <label className="block text-sm font-medium text-text-secondary mb-2">
+        <label className="block text-[11px] uppercase text-text-secondary mb-1.5">
           {label} {required && <span className="text-red-400">*</span>}
         </label>
       )}
@@ -306,17 +305,50 @@ const CountrySelectWithAlphabet: React.FC<CountrySelectWithAlphabetProps> = ({
         type="button"
         onClick={() => setDropdownOpen(!dropdownOpen)}
         disabled={disabled || loadingCountries}
-        className="w-full bg-background-dark border border-gray-600 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary text-text-primary h-10 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-between"
+        className="w-full bg-background-dark border border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary text-text-primary h-10 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-between min-w-0"
+        style={{
+          transition: 'none !important',
+          boxShadow: 'none !important',
+          WebkitTransition: 'none !important',
+          MozTransition: 'none !important',
+          OTransition: 'none !important',
+          msTransition: 'none !important',
+          backgroundColor: 'rgb(23, 23, 23)', // bg-background-dark - đồng bộ với input fields
+          borderColor: 'rgb(75, 85, 99)', // border-gray-600
+          color: normalizedValue ? 'rgb(229, 231, 235)' : 'rgb(156, 163, 175)', // text-text-primary or text-text-secondary
+        }}
+        onMouseEnter={(e) => {
+          const currentColor = e.currentTarget.style.color || (normalizedValue ? 'rgb(229, 231, 235)' : 'rgb(156, 163, 175)');
+          e.currentTarget.style.transition = 'none';
+          e.currentTarget.style.boxShadow = 'none';
+          e.currentTarget.style.backgroundColor = 'rgb(23, 23, 23)';
+          e.currentTarget.style.borderColor = 'rgb(75, 85, 99)';
+          e.currentTarget.style.color = currentColor;
+        }}
+        onMouseLeave={(e) => {
+          const currentColor = e.currentTarget.style.color || (normalizedValue ? 'rgb(229, 231, 235)' : 'rgb(156, 163, 175)');
+          e.currentTarget.style.transition = 'none';
+          e.currentTarget.style.boxShadow = 'none';
+          e.currentTarget.style.backgroundColor = 'rgb(23, 23, 23)';
+          e.currentTarget.style.borderColor = 'rgb(75, 85, 99)';
+          e.currentTarget.style.color = currentColor;
+        }}
       >
-        <span className={normalizedValue ? 'text-text-primary' : 'text-text-secondary'}>
+        <span className={`truncate text-xs md:text-sm ${normalizedValue ? 'text-text-primary' : 'text-text-secondary'}`}>
           {loadingCountries 
             ? 'Loading countries...' 
             : selectedCountryName
           }
         </span>
         <ChevronDown 
-          size={16} 
-          className={`text-text-secondary transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} 
+          size={14} 
+          className={`text-text-secondary flex-shrink-0 ml-1 md:ml-2 ${dropdownOpen ? 'rotate-180' : ''}`}
+          style={{
+            transition: 'none !important',
+            WebkitTransition: 'none !important',
+            MozTransition: 'none !important',
+            OTransition: 'none !important',
+          }} 
         />
       </button>
       {dropdownOpen && (
@@ -333,11 +365,43 @@ const CountrySelectWithAlphabet: React.FC<CountrySelectWithAlphabetProps> = ({
                     onChange(country.code);
                     setDropdownOpen(false);
                   }}
-                  className={`w-full text-left px-3 py-2.5 text-sm transition-colors ${
+                  className={`w-full text-left px-3 py-2.5 text-sm ${
                     normalizedValue === country.code
                       ? 'bg-primary/20 text-primary font-semibold'
-                      : 'text-text-primary hover:bg-background-light/50'
+                      : 'text-text-primary'
                   }`}
+                  style={{
+                    transition: 'none !important',
+                    boxShadow: 'none !important',
+                    WebkitTransition: 'none !important',
+                    MozTransition: 'none !important',
+                    OTransition: 'none !important',
+                    msTransition: 'none !important',
+                    backgroundColor: normalizedValue === country.code ? 'rgba(124, 58, 237, 0.2)' : 'transparent',
+                    color: normalizedValue === country.code ? '#7c3aed' : 'rgb(229, 231, 235)',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transition = 'none';
+                    e.currentTarget.style.boxShadow = 'none';
+                    if (normalizedValue === country.code) {
+                      e.currentTarget.style.backgroundColor = 'rgba(124, 58, 237, 0.2)';
+                      e.currentTarget.style.color = '#7c3aed';
+                    } else {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                      e.currentTarget.style.color = 'rgb(229, 231, 235)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transition = 'none';
+                    e.currentTarget.style.boxShadow = 'none';
+                    if (normalizedValue === country.code) {
+                      e.currentTarget.style.backgroundColor = 'rgba(124, 58, 237, 0.2)';
+                      e.currentTarget.style.color = '#7c3aed';
+                    } else {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                      e.currentTarget.style.color = 'rgb(229, 231, 235)';
+                    }
+                  }}
                 >
                   {country.name}
                 </button>
@@ -365,12 +429,42 @@ const CountrySelectWithAlphabet: React.FC<CountrySelectWithAlphabetProps> = ({
                     type="button"
                     data-letter={letter}
                     onClick={() => scrollToLetter(letter)}
-                    className={`text-[10px] leading-none transition-colors px-0.5 py-1.5 min-w-[16px] text-center flex items-center justify-center ${
+                    className={`text-[10px] leading-none px-0.5 py-1.5 min-w-[16px] text-center flex items-center justify-center ${
                       isSelected
                         ? 'text-primary font-bold'
-                        : 'text-text-secondary hover:text-primary'
+                        : 'text-text-secondary'
                     }`}
                     title={`Scroll to countries starting with ${letter}`}
+                    style={{
+                      transition: 'none !important',
+                      boxShadow: 'none !important',
+                      WebkitTransition: 'none !important',
+                      MozTransition: 'none !important',
+                      OTransition: 'none !important',
+                      msTransition: 'none !important',
+                      backgroundColor: 'transparent',
+                      color: isSelected ? '#7c3aed' : 'rgb(156, 163, 175)',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transition = 'none';
+                      e.currentTarget.style.boxShadow = 'none';
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                      if (isSelected) {
+                        e.currentTarget.style.color = '#7c3aed';
+                      } else {
+                        e.currentTarget.style.color = 'rgb(156, 163, 175)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transition = 'none';
+                      e.currentTarget.style.boxShadow = 'none';
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                      if (isSelected) {
+                        e.currentTarget.style.color = '#7c3aed';
+                      } else {
+                        e.currentTarget.style.color = 'rgb(156, 163, 175)';
+                      }
+                    }}
                   >
                     {letter}
                   </button>

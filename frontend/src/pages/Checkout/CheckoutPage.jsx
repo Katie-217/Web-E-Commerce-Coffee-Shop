@@ -50,13 +50,8 @@ const CheckoutPage = () => {
         return a?.isDefault ? -1 : 1; // isDefault = true goes first
       })
     : [];
-
-  const savedPayments = Array.isArray(user?.paymentMethods)
-    ? [...user.paymentMethods].sort((a, b) => {
-        if (!!a?.isDefault === !!b?.isDefault) return 0;
-        return a?.isDefault ? -1 : 1;
-      })
-    : [];
+  // 🔒 Chỉ cho phép thanh toán tiền mặt → không dùng danh sách paymentMethods đã lưu
+  const savedPayments = [];
 
   // mode: use saved address or new one
   const [addressMode, setAddressMode] = useState(
@@ -66,15 +61,15 @@ const CheckoutPage = () => {
   const [saveAddress, setSaveAddress] = useState(true);
 
   // mode: use saved payment method or choose another type
-  const [paymentMode, setPaymentMode] = useState(
-    savedPayments.length > 0 ? "saved" : "new"
-  );
+  // Chỉ dùng mode "new" vì luôn thanh toán tiền mặt
+  const [paymentMode, setPaymentMode] = useState("new");
   const [selectedPaymentId, setSelectedPaymentId] = useState(null);
   const [savePaymentMethod, setSavePaymentMethod] = useState(true);
 
   // Form: will be prefilled from user via useEffect below
   const [form, setForm] = useState({
     fullName: "",
+    email: "",
     phone: "",
     addressLine: "",
     ward: "",
@@ -97,6 +92,7 @@ const CheckoutPage = () => {
         user.fullName ||
         user.name ||
         `${user.firstName || ""} ${user.lastName || ""}`.trim(),
+      email: prev.email || user.email || "",
       phone: prev.phone || user.phone || "",
     }));
   }, [user]);
@@ -112,14 +108,10 @@ const CheckoutPage = () => {
   }, [savedAddresses, selectedAddressId]);
 
   // When payment methods are loaded and none is selected → pick default one (or first)
+  // savedPayments bị tắt nên không cần auto chọn payment method
   useEffect(() => {
-    if (savedPayments.length > 0 && !selectedPaymentId) {
-      setPaymentMode("saved");
-      const def =
-        savedPayments.find((p) => p.isDefault) || savedPayments[0];
-      setSelectedPaymentId(String(def._id || def.id || 0));
-    }
-  }, [savedPayments, selectedPaymentId]);
+    // no-op
+  }, []);
 
   // ❗ Nếu không có item nào để thanh toán
   if (!items || items.length === 0) {
@@ -140,36 +132,20 @@ const CheckoutPage = () => {
     );
   }
 
-  // ❗ Nếu chưa đăng nhập: không cho checkout, yêu cầu login
+  // ❗ Yêu cầu đăng nhập trước khi checkout
   if (!user) {
     return (
       <main className="checkout-page checkout-page--empty">
         <div className="checkout-empty-card">
-          <h1>Bạn cần đăng nhập để thanh toán</h1>
-          <p>
-            Vui lòng đăng nhập hoặc tạo tài khoản để lưu địa chỉ và theo dõi
-            đơn hàng của bạn.
-          </p>
-          <div className="checkout-empty-actions">
-            <button
-              type="button"
-              className="checkout-empty-btn checkout-empty-btn--primary"
-              onClick={() =>
-                navigate("/login", {
-                  state: { from: "/checkout" },
-                })
-              }
-            >
-              Đăng nhập
-            </button>
-            <button
-              type="button"
-              className="checkout-empty-btn"
-              onClick={() => navigate("/cart")}
-            >
-              Quay lại giỏ hàng
-            </button>
-          </div>
+          <h1>Please sign in</h1>
+          <p>You need to sign in to proceed with checkout.</p>
+          <button
+            type="button"
+            className="checkout-empty-btn"
+            onClick={() => navigate("/login", { state: { from: location } })}
+          >
+            Sign in
+          </button>
         </div>
       </main>
     );
@@ -183,13 +159,6 @@ const CheckoutPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-
-    // 🔒 Safety: nếu vì lý do gì user = null thì chặn luôn
-    if (!user) {
-      setError("Bạn cần đăng nhập để đặt hàng.");
-      navigate("/login", { state: { from: "/checkout" } });
-      return;
-    }
 
     // Validate address
     if (addressMode === "new") {
@@ -267,33 +236,13 @@ const CheckoutPage = () => {
       };
     }
 
-    // Prepare payment
-    let paymentMethod = form.paymentMethod || "cod";
-
-    if (
-      paymentMode === "saved" &&
-      savedPayments.length > 0 &&
-      selectedPaymentId
-    ) {
-      const pm = savedPayments.find(
-        (p, idx) =>
-          String(p._id || p.id || idx) === String(selectedPaymentId)
-      );
-      if (pm) {
-        paymentMethod =
-          pm.code ||
-          pm.type ||
-          pm.provider ||
-          pm.method ||
-          form.paymentMethod ||
-          "saved";
-      }
-    }
+    // Prepare payment – luôn là tiền mặt (COD)
+    const paymentMethod = "cod";
 
     // Payload sent to /api/orders – backend will get email & id from req.user
     const payload = {
       items: items.map((it) => ({
-        productId: it.productId,
+        productId: it.productId || it._id || it.id,
         name: it.name,
         quantity: it.qty,
         price: it.price,
@@ -303,7 +252,7 @@ const CheckoutPage = () => {
       })),
       customerName: form.fullName,
       customerPhone: form.phone,
-      customerEmail: user?.email,
+      customerEmail: user.email,
       shippingAddress,
       note: form.note,
       paymentMethod,
@@ -326,14 +275,12 @@ const CheckoutPage = () => {
 
       if (!res.ok) {
         const text = await res.text();
-        console.error("Checkout error response:", text);
         throw new Error("Unable to create order. Please try again.");
       }
 
       const contentType = res.headers.get("content-type") || "";
       if (!contentType.includes("application/json")) {
         const text = await res.text();
-        console.error("Checkout non-JSON response:", text);
         throw new Error("Server returned an invalid response.");
       }
 
@@ -349,7 +296,6 @@ const CheckoutPage = () => {
         navigate("/orders", { replace: true });
       }
     } catch (err) {
-      console.error(err);
       setError(err.message || "An error occurred while creating the order.");
     } finally {
       setSubmitting(false);
@@ -362,8 +308,18 @@ const CheckoutPage = () => {
         {/* LEFT: FORM */}
         <section className="checkout-main">
           <header className="checkout-header">
-            <h1>Checkout</h1>
-            <p>Select your address and payment method, then place your order.</p>
+            <button
+              type="button"
+              className="checkout-back-icon"
+              aria-label="Go back"
+              onClick={() => navigate(-1)}
+            >
+              ←
+            </button>
+            <div>
+              <h1>Checkout</h1>
+              <p>Select your address and payment method, then place your order.</p>
+            </div>
           </header>
 
           <form className="checkout-form" onSubmit={handleSubmit}>
@@ -487,6 +443,16 @@ const CheckoutPage = () => {
                       />
                     </div>
                   </div>
+                  <div className="checkout-field-group">
+                    <label>Email</label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={user?.email || form.email}
+                      readOnly
+                      disabled
+                    />
+                  </div>
 
                   <div className="checkout-field-group">
                     <label>
@@ -536,7 +502,7 @@ const CheckoutPage = () => {
                     </div>
                   </div>
 
-                  {savedAddresses.length > 0 && (
+                  {user && savedAddresses.length > 0 && (
                     <label className="checkout-save-checkbox">
                       <input
                         type="checkbox"
@@ -550,13 +516,6 @@ const CheckoutPage = () => {
               )}
             </section>
 
-            {/* CONTACT EMAIL – always taken from account, not editable */}
-            {user?.email && (
-              <div className="checkout-field-group">
-                <label>Email</label>
-                <input type="email" value={user.email} readOnly />
-              </div>
-            )}
 
             {/* NOTE & PAYMENT */}
             <section className="checkout-section">
@@ -684,33 +643,9 @@ const CheckoutPage = () => {
                           checked={form.paymentMethod === "cod"}
                           onChange={handleChange}
                         />
-                        <span>Cash on delivery (COD)</span>
-                      </label>
-                      <label className="payment-option">
-                        <input
-                          type="radio"
-                          name="paymentMethod"
-                          value="vnpay"
-                          checked={form.paymentMethod === "vnpay"}
-                          onChange={handleChange}
-                        />
-                        <span>VNPAY / Internet Banking</span>
+                        <span>Cash</span>
                       </label>
                     </div>
-
-                    {savedPayments.length > 0 &&
-                      form.paymentMethod !== "cod" && (
-                        <label className="checkout-save-checkbox">
-                          <input
-                            type="checkbox"
-                            checked={savePaymentMethod}
-                            onChange={(e) =>
-                              setSavePaymentMethod(e.target.checked)
-                            }
-                          />
-                          <span>Save this payment method for next time</span>
-                        </label>
-                      )}
                   </>
                 )}
               </div>

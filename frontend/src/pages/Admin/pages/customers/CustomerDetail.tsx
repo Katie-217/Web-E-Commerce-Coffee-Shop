@@ -6,6 +6,7 @@ import CustomerProfileCard from './components/detail/CustomerProfileCard';
 import CustomerTabs from './components/detail/CustomerTabs';
 import EditUserInformationModal from './components/detail/EditUserInformationModal';
 import { getOrderDisplayCode, getOrderDisplayCodeRaw } from '../../../../utils/orderDisplayCode';
+import { formatVND } from '../../../../utils/currency';
 
 // For customer ID display (not order)
 const getDisplayCode = (val: string | number | undefined | null) => {
@@ -19,7 +20,7 @@ const getDisplayCode = (val: string | number | undefined | null) => {
 type Props = {
   customerId: string | number | null;
   onBack: () => void;
-  onOrderClick?: (orderId: string) => void;
+  onOrderClick?: (orderId: string, orderData?: any) => void;
 };
 
 const CustomerDetail: React.FC<Props> = ({ customerId, onBack, onOrderClick }) => {
@@ -53,10 +54,16 @@ const CustomerDetail: React.FC<Props> = ({ customerId, onBack, onOrderClick }) =
     };
   }, [customer]);
 
-  // Calculate stats from orders
+  // Calculate stats from orders - chỉ tính các đơn hàng đã thanh toán
   const stats = useMemo(() => {
     const ordersCount = orders.length;
-    const totalSpent = orders.reduce((sum, o) => sum + (Number(o.total) || 0), 0);
+    // Chỉ tính các đơn hàng có paymentStatus = 'paid'
+    const totalSpent = orders
+      .filter((o) => {
+        const paymentStatus = String(o.paymentStatus || '').toLowerCase();
+        return paymentStatus === 'paid';
+      })
+      .reduce((sum, o) => sum + (Number(o.total) || 0), 0);
     return { ordersCount, totalSpent };
   }, [orders]);
 
@@ -65,7 +72,7 @@ const CustomerDetail: React.FC<Props> = ({ customerId, onBack, onOrderClick }) =
     return getOrderDisplayCodeRaw(order);
   };
 
-  // Filter and paginate orders - search by displayCode (same logic as OrderList)
+  // Filter and paginate orders - search by multiple fields (same logic as OrderList in admin panel)
   const filteredOrders = useMemo(() => {
     let filtered = orders;
     if (searchOrder) {
@@ -74,20 +81,38 @@ const CustomerDetail: React.FC<Props> = ({ customerId, onBack, onOrderClick }) =
       const cleanSearchTerm = searchTerm.replace(/^#+/, '');
       
       if (cleanSearchTerm) {
-        // Search by displayCode - match orders where displayCode starts with search term
-        // This matches the backend search logic: ^${escapedTerm}
+        // Search by multiple fields: displayCode, order ID, date, status, payment status, total
         filtered = orders.filter(o => {
-          const displayCode = getDisplayCodeForSearch(o);
-          return displayCode.startsWith(cleanSearchTerm);
+          const displayCode = getDisplayCodeForSearch(o).toLowerCase();
+          const orderId = String(o.id || o._id || '').toLowerCase();
+          const date = o.createdAt ? new Date(o.createdAt).toLocaleString().toLowerCase() : '';
+          const status = String(o.status || '').toLowerCase();
+          const paymentStatus = String(o.paymentStatus || o.status || '').toLowerCase();
+          const total = formatVND(Number(o.total) || 0).toLowerCase();
+          
+          // Check if search term matches any field
+          return displayCode.includes(cleanSearchTerm) ||
+                 orderId.includes(cleanSearchTerm) ||
+                 date.includes(cleanSearchTerm) ||
+                 status.includes(cleanSearchTerm) ||
+                 paymentStatus.includes(cleanSearchTerm) ||
+                 total.includes(cleanSearchTerm);
         });
         
-        // Sort by displayCode ascending (same as OrderList when searching)
+        // Sort by createdAt descending (newest first) when searching
         filtered.sort((a, b) => {
-          const codeA = getDisplayCodeForSearch(a);
-          const codeB = getDisplayCodeForSearch(b);
-          return codeA.localeCompare(codeB);
+          const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+          const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+          return dateB - dateA;
         });
       }
+    } else {
+      // When not searching, sort by createdAt descending (newest first)
+      filtered = [...orders].sort((a, b) => {
+        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return dateB - dateA;
+      });
     }
     return filtered;
   }, [orders, searchOrder]);
@@ -200,7 +225,6 @@ const CustomerDetail: React.FC<Props> = ({ customerId, onBack, onOrderClick }) =
     // Find order object to get displayCode
     const order = orders.find(o => String(o.id || o._id) === orderId);
     if (!order) {
-      console.error('Order not found:', orderId);
       return;
     }
     if (!window.confirm(`Are you sure you want to delete order ${getOrderDisplayCode(order)}?`)) {
@@ -331,9 +355,16 @@ const CustomerDetail: React.FC<Props> = ({ customerId, onBack, onOrderClick }) =
         </div>
         {!loading && customer && (
           <button 
-            className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+            className="px-4 py-2 rounded-lg bg-red-600 text-white shadow-none transition-none hover:opacity-100 hover:bg-red-600 disabled:opacity-60 disabled:cursor-not-allowed"
             onClick={handleDeleteCustomer}
             disabled={isDeleting}
+            style={{
+              transition: 'none !important',
+              boxShadow: 'none !important',
+              WebkitTransition: 'none !important',
+              MozTransition: 'none !important',
+              OTransition: 'none !important',
+            }}
           >
             {isDeleting ? 'Deleting...' : 'Delete Customer'}
           </button>
@@ -398,7 +429,14 @@ const CustomerDetail: React.FC<Props> = ({ customerId, onBack, onOrderClick }) =
             <p className="text-red-300 mb-4">{error}</p>
             <button
               onClick={onBack}
-              className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+              className="px-4 py-2 bg-primary text-white rounded-lg shadow-none transition-none hover:opacity-100 hover:bg-primary"
+              style={{
+                transition: 'none !important',
+                boxShadow: 'none !important',
+                WebkitTransition: 'none !important',
+                MozTransition: 'none !important',
+                OTransition: 'none !important',
+              }}
             >
               Back to Customers
             </button>
@@ -463,15 +501,29 @@ const CustomerDetail: React.FC<Props> = ({ customerId, onBack, onOrderClick }) =
             <div className="mt-6 flex justify-end gap-3">
               <button
                 onClick={handleCloseDeleteModal}
-                className="px-4 py-2 rounded-lg border border-gray-600 text-text-primary hover:bg-gray-700/40 transition-colors disabled:opacity-50"
+                className="px-4 py-2 rounded-lg border border-gray-600 text-text-primary shadow-none transition-none hover:opacity-100 hover:bg-transparent disabled:opacity-50"
                 disabled={isDeleting}
+                style={{
+                  transition: 'none !important',
+                  boxShadow: 'none !important',
+                  WebkitTransition: 'none !important',
+                  MozTransition: 'none !important',
+                  OTransition: 'none !important',
+                }}
               >
                 Cancel
               </button>
               <button
                 onClick={handleConfirmDelete}
-                className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 rounded-lg bg-red-600 text-white shadow-none transition-none hover:opacity-100 hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={isDeleting}
+                style={{
+                  transition: 'none !important',
+                  boxShadow: 'none !important',
+                  WebkitTransition: 'none !important',
+                  MozTransition: 'none !important',
+                  OTransition: 'none !important',
+                }}
               >
                 {isDeleting ? 'Deleting…' : 'Delete'}
               </button>

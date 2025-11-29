@@ -14,7 +14,7 @@ type CustomerTabsProps = {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
-  onOrderClick?: (orderId: string) => void;
+  onOrderClick?: (orderId: string, orderData?: any) => void;
   onDeleteOrder?: (orderId: string) => void;
   onUpdateOrderStatus?: (orderId: string, status: string) => void;
   customer?: any;
@@ -45,13 +45,60 @@ const CustomerTabs: React.FC<CustomerTabsProps> = ({
           <button
             key={tab}
             onClick={() => onTabChange(tab)}
-            className={`px-4 py-2 text-sm font-medium transition-colors ${
+            className={`px-4 py-2 text-sm font-medium ${
               activeTab === tab
                 ? 'text-primary border-b-2 border-primary'
-                : 'text-text-secondary hover:text-text-primary'
+                : 'text-text-secondary'
             }`}
+            style={{
+              transition: 'none !important',
+              boxShadow: 'none !important',
+              WebkitTransition: 'none !important',
+              MozTransition: 'none !important',
+              OTransition: 'none !important',
+              msTransition: 'none !important',
+              backgroundColor: 'transparent !important',
+              opacity: '1 !important',
+              transform: 'none !important',
+              WebkitTransform: 'none !important',
+              MozTransform: 'none !important',
+              OTransform: 'none !important',
+              msTransform: 'none !important',
+              color: activeTab === tab ? '#7c3aed' : 'rgb(156, 163, 175)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.setProperty('transition', 'none', 'important');
+              e.currentTarget.style.setProperty('box-shadow', 'none', 'important');
+              e.currentTarget.style.setProperty('background-color', 'transparent', 'important');
+              e.currentTarget.style.setProperty('opacity', '1', 'important');
+              e.currentTarget.style.setProperty('transform', 'none', 'important');
+              e.currentTarget.style.setProperty('color', activeTab === tab ? '#7c3aed' : 'rgb(156, 163, 175)', 'important');
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.setProperty('transition', 'none', 'important');
+              e.currentTarget.style.setProperty('box-shadow', 'none', 'important');
+              e.currentTarget.style.setProperty('background-color', 'transparent', 'important');
+              e.currentTarget.style.setProperty('opacity', '1', 'important');
+              e.currentTarget.style.setProperty('transform', 'none', 'important');
+              e.currentTarget.style.setProperty('color', activeTab === tab ? '#7c3aed' : 'rgb(156, 163, 175)', 'important');
+            }}
           >
-            <div className="flex items-center gap-2">
+            <div
+              className="flex items-center gap-2"
+              style={{
+                transition: 'none !important',
+                boxShadow: 'none !important',
+                WebkitTransition: 'none !important',
+                MozTransition: 'none !important',
+                OTransition: 'none !important',
+                msTransition: 'none !important',
+                transform: 'none !important',
+                WebkitTransform: 'none !important',
+                MozTransform: 'none !important',
+                OTransform: 'none !important',
+                msTransform: 'none !important',
+              }}
+            >
               {tab === 'Overview' && <User size={16} />}
               {tab === 'Address & Billing' && <MapPin size={16} />}
               {tab}
@@ -62,7 +109,7 @@ const CustomerTabs: React.FC<CustomerTabsProps> = ({
 
       {activeTab === 'Overview' && (
         <>
-          <OverviewCards customer={customer} orders={allOrders} />
+          <OverviewCards customer={customer} orders={allOrders} onOrderClick={onOrderClick} />
           <OrdersPlacedTable
             orders={orders}
             searchOrder={searchOrder}

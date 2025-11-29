@@ -38,7 +38,6 @@ app.use(express.urlencoded({ extended: true }));
 
 // Log all requests for debugging
 app.use((req, res, next) => {
-  console.log(`📥 ${req.method} ${req.originalUrl}`);
   next();
 });
 
@@ -66,6 +65,4 @@ app.get("/health", (req, res) => {
 
 // ================== START SERVER ==================
 app.listen(PORT, () => {
-  console.log(`🚀 Server is running at http://localhost:${PORT}`);
-  console.log(`📊 Environment: ${process.env.NODE_ENV || "development"}`);
 });

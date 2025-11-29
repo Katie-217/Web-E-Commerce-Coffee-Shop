@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import '../NavBar/navbar.css';
 import { useCart } from '../../contexts/CartContext';
 
@@ -24,6 +24,7 @@ const Navbar = () => {
 
   const { user, loading, logout } = useAuth();
   const { items } = useCart();
+  const location = useLocation();
 
   // tổng số lượng trong giỏ
   const cartCount = (items || []).reduce(
@@ -31,7 +32,8 @@ const Navbar = () => {
     0
   );
 
-
+  // Ẩn logo khi ở trang cart
+  const hideLogo = location.pathname.startsWith('/cart');
 
   const navigate = useNavigate();
   const accountRef = useRef(null);
@@ -81,7 +83,6 @@ useEffect(() => {
       setAllProducts(list);
     } catch (err) {
       if (err.name !== "AbortError") {
-        console.error("Navbar products error:", err);
       }
     }
   }
@@ -214,11 +215,13 @@ const avatarUrl = user?.avatar || user?.avatarUrl || null;
         </nav>
 
         {/* Logo center */}
-        <div className="logo">
-          <Link to="/">
-            <img src="/images/logo.png" alt="logo" />
-          </Link>
-        </div>
+        {!hideLogo && (
+          <div className="logo">
+            <Link to="/">
+              <img src="/images/logo.png" alt="logo" />
+            </Link>
+          </div>
+        )}
 
         {/* Nav right: Phone + Search + Notification + Cart + Account */}
         <nav className="nav nav-right">

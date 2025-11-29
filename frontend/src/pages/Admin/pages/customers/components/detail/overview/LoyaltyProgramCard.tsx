@@ -1,12 +1,13 @@
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
-import Badge from 'pages/Admin/components/Badge';
+import Badge from '../../../../../components/Badge';
 import { Gift, History, ChevronDown, ChevronUp } from 'lucide-react';
-import { getOrderDisplayCode } from 'utils/orderDisplayCode';
-import { fetchOrderById } from 'api/orders';
+import { getOrderDisplayCode } from '../../../../../../../utils/orderDisplayCode';
+import { fetchOrderById } from '../../../../../../../api/orders';
 
 type LoyaltyProgramCardProps = {
   loyalty?: any;
   orders?: any[];
+  onOrderClick?: (orderId: string, orderData?: any) => void;
 };
 
 const tierThresholds: Record<string, number> = {
@@ -28,12 +29,14 @@ const getTierDisplayName = (tier: string): string => {
   return tierLower.charAt(0).toUpperCase() + tierLower.slice(1) + ' member';
 };
 
-const LoyaltyProgramCard: React.FC<LoyaltyProgramCardProps> = ({ loyalty = {}, orders = [] }) => {
+const LoyaltyProgramCard: React.FC<LoyaltyProgramCardProps> = ({ loyalty = {}, orders = [], onOrderClick }) => {
   const [fetchedDisplayCodes, setFetchedDisplayCodes] = useState<Map<string, string>>(new Map());
+  const [fetchedOrderData, setFetchedOrderData] = useState<Map<string, any>>(new Map());
   const [isHistoryExpanded, setIsHistoryExpanded] = useState(false);
 
   const totalEarned = loyalty.totalEarned || 0;
   const currentPoints = loyalty.currentPoints || 0;
+  const pointsUsed = Math.max(0, totalEarned - currentPoints); // Điểm đã xài
   const tier = loyalty.tier || 'bronze';
   const history = loyalty.history || [];
 
@@ -102,6 +105,13 @@ const LoyaltyProgramCard: React.FC<LoyaltyProgramCardProps> = ({ loyalty = {}, o
                 newMap.set(orderId, displayCode);
                 newMap.set(orderId.toLowerCase(), displayCode);
               }
+              // Lưu order data để sử dụng khi click
+              setFetchedOrderData((prev) => {
+                const newDataMap = new Map(prev);
+                newDataMap.set(orderId, order);
+                newDataMap.set(orderId.toLowerCase(), order);
+                return newDataMap;
+              });
             }
           } catch (err) {
             // ignore missing order, fallback will handle
@@ -157,7 +167,7 @@ const LoyaltyProgramCard: React.FC<LoyaltyProgramCardProps> = ({ loyalty = {}, o
           <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
             <Gift className="w-5 h-5 text-green-400" />
           </div>
-          <h4 className="text-sm font-semibold text-text-primary">Loyalty Program</h4>
+          <h4 className="text-base font-semibold text-text-primary">Loyalty Program</h4>
         </div>
         <Badge color={tierColor as any}>{tierDisplayName}</Badge>
       </div>
@@ -171,23 +181,45 @@ const LoyaltyProgramCard: React.FC<LoyaltyProgramCardProps> = ({ loyalty = {}, o
 
       <div className="mb-2">
         <div className="flex items-center justify-between mb-1">
+          <span className="text-xs text-text-secondary">Points used:</span>
+          <span className="text-sm font-semibold text-orange-400">{pointsUsed.toLocaleString('vi-VN')}</span>
+        </div>
+      </div>
+
+      <div className="mb-2">
+        <div className="flex items-center justify-between mb-1">
           <span className="text-xs text-text-secondary">Current available points:</span>
           <span className="text-sm font-semibold text-green-400">{currentPoints.toLocaleString('vi-VN')}</span>
         </div>
       </div>
 
-      {pointsToNextTier !== null && (
-        <p className="text-xs text-text-secondary mt-2">{pointsToNextTier.toLocaleString('vi-VN')} points to next tier</p>
-      )}
-      {pointsToNextTier === null && tier?.toLowerCase() === 'platinum' && (
-        <p className="text-xs text-text-secondary mt-2">Maximum tier reached</p>
-      )}
-
       {history.length > 0 && (
         <div className="mt-4 pt-3 border-t border-gray-700">
           <button
             onClick={() => setIsHistoryExpanded((prev) => !prev)}
-            className="flex items-center justify-between w-full gap-2 mb-2 hover:opacity-80 transition-opacity"
+            className="flex items-center justify-between w-full gap-2 mb-2"
+            style={{
+              transition: 'none !important',
+              boxShadow: 'none !important',
+              WebkitTransition: 'none !important',
+              MozTransition: 'none !important',
+              OTransition: 'none !important',
+              msTransition: 'none !important',
+              backgroundColor: 'transparent',
+              cursor: 'pointer',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transition = 'none';
+              e.currentTarget.style.boxShadow = 'none';
+              e.currentTarget.style.backgroundColor = 'transparent';
+              e.currentTarget.style.opacity = '1';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transition = 'none';
+              e.currentTarget.style.boxShadow = 'none';
+              e.currentTarget.style.backgroundColor = 'transparent';
+              e.currentTarget.style.opacity = '1';
+            }}
           >
             <div className="flex items-center gap-2">
               <History className="w-4 h-4 text-text-secondary" />
@@ -200,19 +232,105 @@ const LoyaltyProgramCard: React.FC<LoyaltyProgramCardProps> = ({ loyalty = {}, o
             )}
           </button>
           {isHistoryExpanded && (
-            <div className="space-y-1 max-h-24 overflow-y-auto">
+            <div className="space-y-1 max-h-48 overflow-y-auto">
               {history
-                .slice(-3)
+                .slice()
                 .reverse()
-                .map((entry: any, idx: number) => (
-                  <div key={idx} className="text-xs text-text-secondary">
-                    <span className={entry.type === 'earned' ? 'text-green-400' : 'text-orange-400'}>
-                      {entry.type === 'earned' ? '+' : '-'}
-                      {entry.points}
-                    </span>{' '}
-                    points - {getDisplayCodeFromOrderId(entry.orderId)}
-                  </div>
-                ))}
+                .map((entry: any, idx: number) => {
+                  const displayCode = getDisplayCodeFromOrderId(entry.orderId);
+                  const orderId = String(entry.orderId || '').trim();
+                  const handleOrderClick = async (e: React.MouseEvent) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    if (onOrderClick && orderId) {
+                      // Tìm order data từ nhiều nguồn: orders list, fetchedOrderData
+                      let orderData = orders.find((o: any) => {
+                        const id = String(o.id || o._id || '').trim();
+                        const mongoId = String(o._id || '').trim();
+                        return id === orderId || mongoId === orderId || 
+                               id.toLowerCase() === orderId.toLowerCase() || 
+                               mongoId.toLowerCase() === orderId.toLowerCase();
+                      });
+                      
+                      // Nếu không tìm thấy trong orders list, thử lấy từ fetchedOrderData
+                      if (!orderData) {
+                        orderData = fetchedOrderData.get(orderId) || fetchedOrderData.get(orderId.toLowerCase());
+                      }
+                      
+                      // Nếu vẫn không có, thử fetch ngay (nhưng vẫn chuyển trang ngay lập tức)
+                      if (!orderData) {
+                        try {
+                          const response = await fetchOrderById(orderId);
+                          orderData = response?.data || response;
+                          // Lưu vào cache để lần sau dùng
+                          if (orderData) {
+                            setFetchedOrderData((prev) => {
+                              const newDataMap = new Map(prev);
+                              newDataMap.set(orderId, orderData);
+                              newDataMap.set(orderId.toLowerCase(), orderData);
+                              return newDataMap;
+                            });
+                          }
+                        } catch (err) {
+                          // Nếu fetch thất bại, vẫn chuyển trang với orderId
+                        }
+                      }
+                      
+                      // Chuyển trang ngay lập tức với orderData nếu có
+                      if (typeof onOrderClick === 'function') {
+                        if (orderData) {
+                          (onOrderClick as any)(orderId, orderData);
+                        } else {
+                          onOrderClick(orderId);
+                        }
+                      }
+                    }
+                  };
+                  return (
+                    <div key={idx} className="text-xs text-text-secondary">
+                      <span className={entry.type === 'earned' ? 'text-green-400' : 'text-orange-400'}>
+                        {entry.type === 'earned' ? '+' : '-'}
+                        {entry.points?.toLocaleString('vi-VN') || entry.points}
+                      </span>{' '}
+                      points -{' '}
+                      {onOrderClick && orderId ? (
+                        <button
+                          onClick={handleOrderClick}
+                          className="text-primary cursor-pointer"
+                          style={{
+                            transition: 'none !important',
+                            boxShadow: 'none !important',
+                            WebkitTransition: 'none !important',
+                            MozTransition: 'none !important',
+                            OTransition: 'none !important',
+                            msTransition: 'none !important',
+                            backgroundColor: 'transparent',
+                            textDecoration: 'none',
+                            color: '#7c3aed', // text-primary - giữ nguyên màu
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.transition = 'none';
+                            e.currentTarget.style.boxShadow = 'none';
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                            e.currentTarget.style.textDecoration = 'none';
+                            e.currentTarget.style.color = '#7c3aed'; // Giữ nguyên màu primary
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.transition = 'none';
+                            e.currentTarget.style.boxShadow = 'none';
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                            e.currentTarget.style.textDecoration = 'none';
+                            e.currentTarget.style.color = '#7c3aed'; // Giữ nguyên màu primary
+                          }}
+                        >
+                          {displayCode}
+                        </button>
+                      ) : (
+                        <span>{displayCode}</span>
+                      )}
+                    </div>
+                  );
+                })}
             </div>
           )}
         </div>

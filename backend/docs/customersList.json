@@ -1,5 +1,34 @@
 [
   {
+    "firstName": "Admin",
+    "lastName": "Admin",
+    "fullName": "Admin",
+    "email": "admin@gmail.com",
+    "password": "$2b$10$7Ivg32dkgBLo7WyhRqMS4OYMGY4.SRR44Qb6sBTdavOBjkmI.A1.G",
+    "gender": "other",
+    "avatarUrl": "https://i.pravatar.cc/150?img=12",
+    "status": "active",
+    "role": "admin",
+    "provider": "local",
+    "loyalty": {
+      "totalEarned": 0,
+      "currentPoints": 0,
+      "tier": "bronze",
+      "lastAccrualAt": null,
+      "history": []
+    },
+    "addresses": [],
+    "paymentMethods": [],
+    "wishlist": [],
+    "createdAt": {
+      "$date": "2025-11-29T06:31:18.246Z"
+    },
+    "updatedAt": {
+      "$date": "2025-11-29T06:31:18.252Z"
+    },
+    "__v": 0
+  },
+  {
     "_id": {
       "$oid": "691c9a11caaa275d2c7303f4"
     },
@@ -40,7 +69,7 @@
     "loyalty": {
       "totalEarned": 0,
       "currentPoints": 0,
-      "tier": "platinum",
+      "tier": "bronze",
       "lastAccrualAt": null,
       "history": []
     },
@@ -136,12 +165,6 @@
     ],
     "paymentMethods": [
       {
-        "type": "bank",
-        "provider": "Vietcombank",
-        "accountNumber": "9704367891234567",
-        "accountName": "Dao Do"
-      },
-      {
         "type": "cash",
         "isDefault": true
       }
@@ -155,7 +178,7 @@
     "loyalty": {
       "totalEarned": 0,
       "currentPoints": 0,
-      "tier": "gold",
+      "tier": "bronze",
       "lastAccrualAt": null,
       "history": []
     },
@@ -276,11 +299,6 @@
     ],
     "paymentMethods": [
       {
-        "type": "momo",
-        "wallet": "0123456789",
-        "isDefault": false
-      },
-      {
         "type": "cash",
         "isDefault": true
       }
@@ -292,25 +310,17 @@
       "newsletterSubscribed": true
     },
     "loyalty": {
-      "totalEarned": 319,
-      "currentPoints": 319,
+      "totalEarned": 118800,
+      "currentPoints": 118800,
       "tier": "platinum",
       "lastAccrualAt": "2025-10-21T11:13:17.892Z",
       "history": [
         {
-          "orderId": "ORD-2025-0084",
-          "orderDate": "2025-08-27T18:33:40.235Z",
-          "type": "earned",
-          "points": 201,
-          "description": "Earned 201 points from order ORD-2025-0084",
-          "createdAt": "2025-08-27T18:33:40.235Z"
-        },
-        {
           "orderId": "ORD-2025-0096",
           "orderDate": "2025-10-21T11:13:17.892Z",
           "type": "earned",
-          "points": 118,
-          "description": "Earned 118 points from order ORD-2025-0096",
+          "points": 118800,
+          "description": "Earned 118800 points from order ORD-2025-0096",
           "createdAt": "2025-10-21T11:13:17.892Z"
         }
       ]
@@ -417,14 +427,6 @@
     ],
     "paymentMethods": [
       {
-        "type": "card",
-        "brand": "VISA",
-        "holderName": "Chi Duong",
-        "last4": "2077",
-        "expMonth": 12,
-        "expYear": 2028
-      },
-      {
         "type": "cash",
         "isDefault": true
       }
@@ -438,7 +440,7 @@
     "loyalty": {
       "totalEarned": 0,
       "currentPoints": 0,
-      "tier": "platinum",
+      "tier": "bronze",
       "lastAccrualAt": null,
       "history": []
     },
@@ -504,18 +506,8 @@
     ],
     "paymentMethods": [
       {
-        "type": "bank",
-        "provider": "Vietcombank",
-        "accountNumber": "9704367891234567",
-        "accountName": "Vy Phan"
-      },
-      {
-        "type": "card",
-        "brand": "VISA",
-        "holderName": "Vy Phan",
-        "last4": "2077",
-        "expMonth": 12,
-        "expYear": 2028
+        "type": "cash",
+        "isDefault": true
       }
     ],
     "preferences": {
@@ -594,34 +586,26 @@
       "newsletterSubscribed": false
     },
     "loyalty": {
-      "totalEarned": 602,
-      "currentPoints": 602,
-      "tier": "gold",
-      "lastAccrualAt": "2025-09-13T16:53:05.597Z",
+      "totalEarned": 362145,
+      "currentPoints": 362145,
+      "tier": "platinum",
+      "lastAccrualAt": "2024-09-30T11:53:43.504Z",
       "history": [
         {
           "orderId": "ORD-2024-0024",
           "orderDate": "2024-06-16T12:51:53.508Z",
           "type": "earned",
-          "points": 67,
-          "description": "Earned 67 points from order ORD-2024-0024",
+          "points": 60345,
+          "description": "Earned 60345 points from order ORD-2024-0024",
           "createdAt": "2024-06-16T12:51:53.508Z"
         },
         {
           "orderId": "ORD-2024-0045",
           "orderDate": "2024-09-30T11:53:43.504Z",
           "type": "earned",
-          "points": 301,
-          "description": "Earned 301 points from order ORD-2024-0045",
+          "points": 301800,
+          "description": "Earned 301800 points from order ORD-2024-0045",
           "createdAt": "2024-09-30T11:53:43.504Z"
-        },
-        {
-          "orderId": "ORD-2025-0088",
-          "orderDate": "2025-09-13T16:53:05.597Z",
-          "type": "earned",
-          "points": 234,
-          "description": "Earned 234 points from order ORD-2025-0088",
-          "createdAt": "2025-09-13T16:53:05.597Z"
         }
       ]
     },
@@ -682,12 +666,6 @@
     ],
     "paymentMethods": [
       {
-        "type": "bank",
-        "provider": "Vietcombank",
-        "accountNumber": "9704367891234567",
-        "accountName": "Dao Vo"
-      },
-      {
         "type": "cash",
         "isDefault": true
       }
@@ -699,25 +677,17 @@
       "newsletterSubscribed": true
     },
     "loyalty": {
-      "totalEarned": 450,
-      "currentPoints": 450,
-      "tier": "silver",
+      "totalEarned": 268900,
+      "currentPoints": 268900,
+      "tier": "platinum",
       "lastAccrualAt": "2025-11-04T20:51:59.958Z",
       "history": [
-        {
-          "orderId": "ORD-2025-0089",
-          "orderDate": "2025-09-17T09:41:57.244Z",
-          "type": "earned",
-          "points": 182,
-          "description": "Earned 182 points from order ORD-2025-0089",
-          "createdAt": "2025-09-17T09:41:57.244Z"
-        },
         {
           "orderId": "ORD-2025-0100",
           "orderDate": "2025-11-04T20:51:59.958Z",
           "type": "earned",
-          "points": 268,
-          "description": "Earned 268 points from order ORD-2025-0100",
+          "points": 268900,
+          "description": "Earned 268900 points from order ORD-2025-0100",
           "createdAt": "2025-11-04T20:51:59.958Z"
         }
       ]
@@ -829,11 +799,6 @@
     ],
     "paymentMethods": [
       {
-        "type": "momo",
-        "wallet": "0123456789",
-        "isDefault": false
-      },
-      {
         "type": "cash",
         "isDefault": true
       }
@@ -845,20 +810,11 @@
       "newsletterSubscribed": false
     },
     "loyalty": {
-      "totalEarned": 319,
-      "currentPoints": 319,
-      "tier": "gold",
-      "lastAccrualAt": "2025-10-14T00:47:10.746Z",
-      "history": [
-        {
-          "orderId": "ORD-2025-0094",
-          "orderDate": "2025-10-14T00:47:10.746Z",
-          "type": "earned",
-          "points": 319,
-          "description": "Earned 319 points from order ORD-2025-0094",
-          "createdAt": "2025-10-14T00:47:10.746Z"
-        }
-      ]
+      "totalEarned": 0,
+      "currentPoints": 0,
+      "tier": "bronze",
+      "lastAccrualAt": null,
+      "history": []
     },
     "consents": {
       "termsAccepted": true,
@@ -967,14 +923,6 @@
     ],
     "paymentMethods": [
       {
-        "type": "card",
-        "brand": "VISA",
-        "holderName": "Dao Truong",
-        "last4": "2077",
-        "expMonth": 12,
-        "expYear": 2028
-      },
-      {
         "type": "cash",
         "isDefault": true
       }
@@ -988,7 +936,7 @@
     "loyalty": {
       "totalEarned": 0,
       "currentPoints": 0,
-      "tier": "gold",
+      "tier": "bronze",
       "lastAccrualAt": null,
       "history": []
     },
@@ -1094,18 +1042,8 @@
     ],
     "paymentMethods": [
       {
-        "type": "bank",
-        "provider": "Vietcombank",
-        "accountNumber": "9704367891234567",
-        "accountName": "Yen Do"
-      },
-      {
-        "type": "card",
-        "brand": "VISA",
-        "holderName": "Yen Do",
-        "last4": "2077",
-        "expMonth": 12,
-        "expYear": 2028
+        "type": "cash",
+        "isDefault": true
       }
     ],
     "preferences": {
@@ -1115,20 +1053,11 @@
       "newsletterSubscribed": false
     },
     "loyalty": {
-      "totalEarned": 255,
-      "currentPoints": 255,
-      "tier": "platinum",
-      "lastAccrualAt": "2025-08-31T10:30:09.961Z",
-      "history": [
-        {
-          "orderId": "ORD-2025-0085",
-          "orderDate": "2025-08-31T10:30:09.961Z",
-          "type": "earned",
-          "points": 255,
-          "description": "Earned 255 points from order ORD-2025-0085",
-          "createdAt": "2025-08-31T10:30:09.961Z"
-        }
-      ]
+      "totalEarned": 0,
+      "currentPoints": 0,
+      "tier": "bronze",
+      "lastAccrualAt": null,
+      "history": []
     },
     "consents": {
       "termsAccepted": true,
@@ -1208,20 +1137,11 @@
       "newsletterSubscribed": false
     },
     "loyalty": {
-      "totalEarned": 91,
-      "currentPoints": 91,
-      "tier": "gold",
-      "lastAccrualAt": "2024-09-22T10:44:12.070Z",
-      "history": [
-        {
-          "orderId": "ORD-2024-0043",
-          "orderDate": "2024-09-22T10:44:12.070Z",
-          "type": "earned",
-          "points": 91,
-          "description": "Earned 91 points from order ORD-2024-0043",
-          "createdAt": "2024-09-22T10:44:12.070Z"
-        }
-      ]
+      "totalEarned": 0,
+      "currentPoints": 0,
+      "tier": "bronze",
+      "lastAccrualAt": null,
+      "history": []
     },
     "consents": {
       "termsAccepted": true,
@@ -1270,12 +1190,6 @@
     ],
     "paymentMethods": [
       {
-        "type": "bank",
-        "provider": "Vietcombank",
-        "accountNumber": "9704367891234567",
-        "accountName": "Uyen Vu"
-      },
-      {
         "type": "cash",
         "isDefault": true
       }
@@ -1287,26 +1201,18 @@
       "newsletterSubscribed": true
     },
     "loyalty": {
-      "totalEarned": 27,
-      "currentPoints": 12,
-      "tier": "bronze",
+      "totalEarned": 27800,
+      "currentPoints": 27800,
+      "tier": "platinum",
       "lastAccrualAt": "2024-01-10T01:48:58.762Z",
       "history": [
         {
           "orderId": "ORD-2024-0001",
           "orderDate": "2024-01-10T01:48:58.762Z",
           "type": "earned",
-          "points": 27,
-          "description": "Earned 27 points from order ORD-2024-0001",
+          "points": 27800,
+          "description": "Earned 27800 points from order ORD-2024-0001",
           "createdAt": "2024-01-10T01:48:58.762Z"
-        },
-        {
-          "orderId": "ORD-2025-0054",
-          "orderDate": "2025-01-09T21:43:19.058Z",
-          "type": "used",
-          "points": 15,
-          "description": "Used 15 points for order ORD-2025-0054",
-          "createdAt": "2025-01-09T21:43:19.058Z"
         }
       ]
     },
@@ -1412,11 +1318,6 @@
     ],
     "paymentMethods": [
       {
-        "type": "momo",
-        "wallet": "0123456789",
-        "isDefault": false
-      },
-      {
         "type": "cash",
         "isDefault": true
       }
@@ -1428,42 +1329,26 @@
       "newsletterSubscribed": true
     },
     "loyalty": {
-      "totalEarned": 568,
-      "currentPoints": 563,
-      "tier": "gold",
+      "totalEarned": 129400,
+      "currentPoints": 129400,
+      "tier": "platinum",
       "lastAccrualAt": "2025-08-13T10:13:28.040Z",
       "history": [
-        {
-          "orderId": "ORD-2024-0019",
-          "orderDate": "2024-05-17T05:12:54.767Z",
-          "type": "earned",
-          "points": 440,
-          "description": "Earned 440 points from order ORD-2024-0019",
-          "createdAt": "2024-05-17T05:12:54.767Z"
-        },
         {
           "orderId": "ORD-2025-0058",
           "orderDate": "2025-01-23T17:50:05.122Z",
           "type": "earned",
-          "points": 108,
-          "description": "Earned 108 points from order ORD-2025-0058",
+          "points": 108500,
+          "description": "Earned 108500 points from order ORD-2025-0058",
           "createdAt": "2025-01-23T17:50:05.122Z"
         },
         {
           "orderId": "ORD-2025-0082",
           "orderDate": "2025-08-13T10:13:28.040Z",
           "type": "earned",
-          "points": 20,
-          "description": "Earned 20 points from order ORD-2025-0082",
+          "points": 20900,
+          "description": "Earned 20900 points from order ORD-2025-0082",
           "createdAt": "2025-08-13T10:13:28.040Z"
-        },
-        {
-          "orderId": "ORD-2025-0083",
-          "orderDate": "2025-08-24T12:47:52.343Z",
-          "type": "used",
-          "points": 5,
-          "description": "Used 5 points for order ORD-2025-0083",
-          "createdAt": "2025-08-24T12:47:52.343Z"
         }
       ]
     },
@@ -1579,14 +1464,6 @@
     ],
     "paymentMethods": [
       {
-        "type": "card",
-        "brand": "VISA",
-        "holderName": "Tam Dinh",
-        "last4": "2077",
-        "expMonth": 12,
-        "expYear": 2028
-      },
-      {
         "type": "cash",
         "isDefault": true
       }
@@ -1598,34 +1475,26 @@
       "newsletterSubscribed": true
     },
     "loyalty": {
-      "totalEarned": 355,
-      "currentPoints": 355,
-      "tier": "silver",
-      "lastAccrualAt": "2025-04-12T04:54:15.865Z",
+      "totalEarned": 319192,
+      "currentPoints": 319192,
+      "tier": "platinum",
+      "lastAccrualAt": "2024-08-18T05:54:37.371Z",
       "history": [
         {
           "orderId": "ORD-2024-0026",
           "orderDate": "2024-06-25T15:18:08.483Z",
           "type": "earned",
-          "points": 172,
-          "description": "Earned 172 points from order ORD-2024-0026",
+          "points": 170992,
+          "description": "Earned 170992 points from order ORD-2024-0026",
           "createdAt": "2024-06-25T15:18:08.483Z"
         },
         {
           "orderId": "ORD-2024-0034",
           "orderDate": "2024-08-18T05:54:37.371Z",
           "type": "earned",
-          "points": 148,
-          "description": "Earned 148 points from order ORD-2024-0034",
+          "points": 148200,
+          "description": "Earned 148200 points from order ORD-2024-0034",
           "createdAt": "2024-08-18T05:54:37.371Z"
-        },
-        {
-          "orderId": "ORD-2025-0066",
-          "orderDate": "2025-04-12T04:54:15.865Z",
-          "type": "earned",
-          "points": 35,
-          "description": "Earned 35 points from order ORD-2025-0066",
-          "createdAt": "2025-04-12T04:54:15.865Z"
         }
       ]
     },
@@ -1696,18 +1565,8 @@
     ],
     "paymentMethods": [
       {
-        "type": "bank",
-        "provider": "Vietcombank",
-        "accountNumber": "9704367891234567",
-        "accountName": "Yen Vo"
-      },
-      {
-        "type": "card",
-        "brand": "VISA",
-        "holderName": "Yen Vo",
-        "last4": "2077",
-        "expMonth": 12,
-        "expYear": 2028
+        "type": "cash",
+        "isDefault": true
       }
     ],
     "preferences": {
@@ -1717,20 +1576,11 @@
       "newsletterSubscribed": false
     },
     "loyalty": {
-      "totalEarned": 449,
-      "currentPoints": 449,
-      "tier": "silver",
-      "lastAccrualAt": "2024-09-03T05:07:01.262Z",
-      "history": [
-        {
-          "orderId": "ORD-2024-0037",
-          "orderDate": "2024-09-03T05:07:01.262Z",
-          "type": "earned",
-          "points": 449,
-          "description": "Earned 449 points from order ORD-2024-0037",
-          "createdAt": "2024-09-03T05:07:01.262Z"
-        }
-      ]
+      "totalEarned": 0,
+      "currentPoints": 0,
+      "tier": "bronze",
+      "lastAccrualAt": null,
+      "history": []
     },
     "consents": {
       "termsAccepted": true,
@@ -1908,12 +1758,6 @@
     ],
     "paymentMethods": [
       {
-        "type": "bank",
-        "provider": "Vietcombank",
-        "accountNumber": "9704367891234567",
-        "accountName": "Binh Nguyen"
-      },
-      {
         "type": "cash",
         "isDefault": true
       }
@@ -1925,20 +1769,11 @@
       "newsletterSubscribed": false
     },
     "loyalty": {
-      "totalEarned": 228,
-      "currentPoints": 228,
-      "tier": "gold",
-      "lastAccrualAt": "2024-04-21T11:16:20.125Z",
-      "history": [
-        {
-          "orderId": "ORD-2024-0015",
-          "orderDate": "2024-04-21T11:16:20.125Z",
-          "type": "earned",
-          "points": 228,
-          "description": "Earned 228 points from order ORD-2024-0015",
-          "createdAt": "2024-04-21T11:16:20.125Z"
-        }
-      ]
+      "totalEarned": 0,
+      "currentPoints": 0,
+      "tier": "bronze",
+      "lastAccrualAt": null,
+      "history": []
     },
     "consents": {
       "termsAccepted": true,
@@ -2072,11 +1907,6 @@
     ],
     "paymentMethods": [
       {
-        "type": "momo",
-        "wallet": "0123456789",
-        "isDefault": false
-      },
-      {
         "type": "cash",
         "isDefault": true
       }
@@ -2088,42 +1918,26 @@
       "newsletterSubscribed": true
     },
     "loyalty": {
-      "totalEarned": 184,
-      "currentPoints": 143,
+      "totalEarned": 138540,
+      "currentPoints": 138540,
       "tier": "platinum",
-      "lastAccrualAt": "2025-09-29T16:49:07.288Z",
+      "lastAccrualAt": "2024-10-03T21:20:28.999Z",
       "history": [
         {
           "orderId": "ORD-2024-0041",
           "orderDate": "2024-09-15T19:18:34.774Z",
           "type": "earned",
-          "points": 105,
-          "description": "Earned 105 points from order ORD-2024-0041",
+          "points": 105000,
+          "description": "Earned 105000 points from order ORD-2024-0041",
           "createdAt": "2024-09-15T19:18:34.774Z"
         },
         {
           "orderId": "ORD-2024-0046",
           "orderDate": "2024-10-03T21:20:28.999Z",
-          "type": "used",
-          "points": 41,
-          "description": "Used 41 points for order ORD-2024-0046",
-          "createdAt": "2024-10-03T21:20:28.999Z"
-        },
-        {
-          "orderId": "ORD-2024-0046",
-          "orderDate": "2024-10-03T21:20:28.999Z",
           "type": "earned",
-          "points": 37,
-          "description": "Earned 37 points from order ORD-2024-0046",
+          "points": 33540,
+          "description": "Earned 33540 points from order ORD-2024-0046",
           "createdAt": "2024-10-03T21:20:28.999Z"
-        },
-        {
-          "orderId": "ORD-2025-0090",
-          "orderDate": "2025-09-29T16:49:07.288Z",
-          "type": "earned",
-          "points": 42,
-          "description": "Earned 42 points from order ORD-2025-0090",
-          "createdAt": "2025-09-29T16:49:07.288Z"
         }
       ]
     },
@@ -2224,14 +2038,6 @@
     ],
     "paymentMethods": [
       {
-        "type": "card",
-        "brand": "VISA",
-        "holderName": "Huong Dang",
-        "last4": "2077",
-        "expMonth": 12,
-        "expYear": 2028
-      },
-      {
         "type": "cash",
         "isDefault": true
       }
@@ -2243,28 +2049,11 @@
       "newsletterSubscribed": false
     },
     "loyalty": {
-      "totalEarned": 221,
-      "currentPoints": 221,
-      "tier": "platinum",
-      "lastAccrualAt": "2025-09-30T01:55:05.706Z",
-      "history": [
-        {
-          "orderId": "ORD-2025-0070",
-          "orderDate": "2025-05-24T16:04:13.648Z",
-          "type": "earned",
-          "points": 182,
-          "description": "Earned 182 points from order ORD-2025-0070",
-          "createdAt": "2025-05-24T16:04:13.648Z"
-        },
-        {
-          "orderId": "ORD-2025-0091",
-          "orderDate": "2025-09-30T01:55:05.706Z",
-          "type": "earned",
-          "points": 39,
-          "description": "Earned 39 points from order ORD-2025-0091",
-          "createdAt": "2025-09-30T01:55:05.706Z"
-        }
-      ]
+      "totalEarned": 0,
+      "currentPoints": 0,
+      "tier": "bronze",
+      "lastAccrualAt": null,
+      "history": []
     },
     "consents": {
       "termsAccepted": true,
@@ -2378,18 +2167,8 @@
     ],
     "paymentMethods": [
       {
-        "type": "bank",
-        "provider": "Vietcombank",
-        "accountNumber": "9704367891234567",
-        "accountName": "An Truong"
-      },
-      {
-        "type": "card",
-        "brand": "VISA",
-        "holderName": "An Truong",
-        "last4": "2077",
-        "expMonth": 12,
-        "expYear": 2028
+        "type": "cash",
+        "isDefault": true
       }
     ],
     "preferences": {
@@ -2399,26 +2178,18 @@
       "newsletterSubscribed": false
     },
     "loyalty": {
-      "totalEarned": 135,
-      "currentPoints": 0,
-      "tier": "gold",
+      "totalEarned": 131946,
+      "currentPoints": 131946,
+      "tier": "platinum",
       "lastAccrualAt": "2024-04-15T15:30:16.049Z",
       "history": [
         {
           "orderId": "ORD-2024-0013",
           "orderDate": "2024-04-15T15:30:16.049Z",
           "type": "earned",
-          "points": 135,
-          "description": "Earned 135 points from order ORD-2024-0013",
+          "points": 131946,
+          "description": "Earned 131946 points from order ORD-2024-0013",
           "createdAt": "2024-04-15T15:30:16.049Z"
-        },
-        {
-          "orderId": "ORD-2024-0028",
-          "orderDate": "2024-07-02T20:12:01.328Z",
-          "type": "used",
-          "points": 135,
-          "description": "Used 135 points for order ORD-2024-0028",
-          "createdAt": "2024-07-02T20:12:01.328Z"
         }
       ]
     },
@@ -2540,42 +2311,18 @@
       "newsletterSubscribed": false
     },
     "loyalty": {
-      "totalEarned": 485,
-      "currentPoints": 382,
-      "tier": "bronze",
+      "totalEarned": 221300,
+      "currentPoints": 221300,
+      "tier": "platinum",
       "lastAccrualAt": "2024-08-05T05:22:55.212Z",
       "history": [
-        {
-          "orderId": "ORD-2024-0007",
-          "orderDate": "2024-03-05T02:42:08.109Z",
-          "type": "earned",
-          "points": 264,
-          "description": "Earned 264 points from order ORD-2024-0007",
-          "createdAt": "2024-03-05T02:42:08.109Z"
-        },
         {
           "orderId": "ORD-2024-0033",
           "orderDate": "2024-08-05T05:22:55.212Z",
           "type": "earned",
-          "points": 221,
-          "description": "Earned 221 points from order ORD-2024-0033",
+          "points": 221300,
+          "description": "Earned 221300 points from order ORD-2024-0033",
           "createdAt": "2024-08-05T05:22:55.212Z"
-        },
-        {
-          "orderId": "ORD-2024-0035",
-          "orderDate": "2024-08-22T15:28:36.331Z",
-          "type": "used",
-          "points": 98,
-          "description": "Used 98 points for order ORD-2024-0035",
-          "createdAt": "2024-08-22T15:28:36.331Z"
-        },
-        {
-          "orderId": "ORD-2025-0057",
-          "orderDate": "2025-01-15T03:26:47.755Z",
-          "type": "used",
-          "points": 5,
-          "description": "Used 5 points for order ORD-2025-0057",
-          "createdAt": "2025-01-15T03:26:47.755Z"
         }
       ]
     },
@@ -2666,12 +2413,6 @@
     ],
     "paymentMethods": [
       {
-        "type": "bank",
-        "provider": "Vietcombank",
-        "accountNumber": "9704367891234567",
-        "accountName": "Nam Do"
-      },
-      {
         "type": "cash",
         "isDefault": true
       }
@@ -2683,26 +2424,18 @@
       "newsletterSubscribed": true
     },
     "loyalty": {
-      "totalEarned": 68,
-      "currentPoints": 0,
-      "tier": "silver",
+      "totalEarned": 68800,
+      "currentPoints": 68800,
+      "tier": "platinum",
       "lastAccrualAt": "2025-03-18T09:10:52.562Z",
       "history": [
         {
           "orderId": "ORD-2025-0063",
           "orderDate": "2025-03-18T09:10:52.562Z",
           "type": "earned",
-          "points": 68,
-          "description": "Earned 68 points from order ORD-2025-0063",
+          "points": 68800,
+          "description": "Earned 68800 points from order ORD-2025-0063",
           "createdAt": "2025-03-18T09:10:52.562Z"
-        },
-        {
-          "orderId": "ORD-2025-0064",
-          "orderDate": "2025-03-22T04:16:45.072Z",
-          "type": "used",
-          "points": 68,
-          "description": "Used 68 points for order ORD-2025-0064",
-          "createdAt": "2025-03-22T04:16:45.072Z"
         }
       ]
     },
@@ -2803,11 +2536,6 @@
     ],
     "paymentMethods": [
       {
-        "type": "momo",
-        "wallet": "0123456789",
-        "isDefault": false
-      },
-      {
         "type": "cash",
         "isDefault": true
       }
@@ -2821,7 +2549,7 @@
     "loyalty": {
       "totalEarned": 0,
       "currentPoints": 0,
-      "tier": "gold",
+      "tier": "bronze",
       "lastAccrualAt": null,
       "history": []
     },
@@ -2907,14 +2635,6 @@
     ],
     "paymentMethods": [
       {
-        "type": "card",
-        "brand": "VISA",
-        "holderName": "Khanh Vo",
-        "last4": "2077",
-        "expMonth": 12,
-        "expYear": 2028
-      },
-      {
         "type": "cash",
         "isDefault": true
       }
@@ -2926,8 +2646,8 @@
       "newsletterSubscribed": false
     },
     "loyalty": {
-      "totalEarned": 415,
-      "currentPoints": 415,
+      "totalEarned": 415000,
+      "currentPoints": 415000,
       "tier": "platinum",
       "lastAccrualAt": "2024-07-01T08:37:52.864Z",
       "history": [
@@ -2935,8 +2655,8 @@
           "orderId": "ORD-2024-0027",
           "orderDate": "2024-07-01T08:37:52.864Z",
           "type": "earned",
-          "points": 415,
-          "description": "Earned 415 points from order ORD-2024-0027",
+          "points": 415000,
+          "description": "Earned 415000 points from order ORD-2024-0027",
           "createdAt": "2024-07-01T08:37:52.864Z"
         }
       ]
@@ -3063,18 +2783,8 @@
     ],
     "paymentMethods": [
       {
-        "type": "bank",
-        "provider": "Vietcombank",
-        "accountNumber": "9704367891234567",
-        "accountName": "Son Le"
-      },
-      {
-        "type": "card",
-        "brand": "VISA",
-        "holderName": "Son Le",
-        "last4": "2077",
-        "expMonth": 12,
-        "expYear": 2028
+        "type": "cash",
+        "isDefault": true
       }
     ],
     "preferences": {
@@ -3086,7 +2796,7 @@
     "loyalty": {
       "totalEarned": 0,
       "currentPoints": 0,
-      "tier": "platinum",
+      "tier": "bronze",
       "lastAccrualAt": null,
       "history": []
     },
@@ -3178,8 +2888,8 @@
       "newsletterSubscribed": true
     },
     "loyalty": {
-      "totalEarned": 625,
-      "currentPoints": 504,
+      "totalEarned": 455812,
+      "currentPoints": 455812,
       "tier": "platinum",
       "lastAccrualAt": "2025-01-11T08:45:57.465Z",
       "history": [
@@ -3187,41 +2897,17 @@
           "orderId": "ORD-2024-0011",
           "orderDate": "2024-04-09T20:26:41.484Z",
           "type": "earned",
-          "points": 457,
-          "description": "Earned 457 points from order ORD-2024-0011",
+          "points": 424694,
+          "description": "Earned 424694 points from order ORD-2024-0011",
           "createdAt": "2024-04-09T20:26:41.484Z"
         },
         {
-          "orderId": "ORD-2024-0018",
-          "orderDate": "2024-05-12T16:35:43.132Z",
-          "type": "earned",
-          "points": 135,
-          "description": "Earned 135 points from order ORD-2024-0018",
-          "createdAt": "2024-05-12T16:35:43.132Z"
-        },
-        {
-          "orderId": "ORD-2025-0055",
-          "orderDate": "2025-01-11T08:45:57.465Z",
-          "type": "used",
-          "points": 26,
-          "description": "Used 26 points for order ORD-2025-0055",
-          "createdAt": "2025-01-11T08:45:57.465Z"
-        },
-        {
           "orderId": "ORD-2025-0055",
           "orderDate": "2025-01-11T08:45:57.465Z",
           "type": "earned",
-          "points": 33,
-          "description": "Earned 33 points from order ORD-2025-0055",
+          "points": 31118,
+          "description": "Earned 31118 points from order ORD-2025-0055",
           "createdAt": "2025-01-11T08:45:57.465Z"
-        },
-        {
-          "orderId": "ORD-2025-0060",
-          "orderDate": "2025-02-27T15:35:50.900Z",
-          "type": "used",
-          "points": 95,
-          "description": "Used 95 points for order ORD-2025-0060",
-          "createdAt": "2025-02-27T15:35:50.900Z"
         }
       ]
     },
@@ -3272,12 +2958,6 @@
     ],
     "paymentMethods": [
       {
-        "type": "bank",
-        "provider": "Vietcombank",
-        "accountNumber": "9704367891234567",
-        "accountName": "Yen Phan"
-      },
-      {
         "type": "cash",
         "isDefault": true
       }
@@ -3289,20 +2969,11 @@
       "newsletterSubscribed": true
     },
     "loyalty": {
-      "totalEarned": 164,
-      "currentPoints": 164,
+      "totalEarned": 0,
+      "currentPoints": 0,
       "tier": "bronze",
-      "lastAccrualAt": "2025-03-13T17:20:56.181Z",
-      "history": [
-        {
-          "orderId": "ORD-2025-0062",
-          "orderDate": "2025-03-13T17:20:56.181Z",
-          "type": "earned",
-          "points": 164,
-          "description": "Earned 164 points from order ORD-2025-0062",
-          "createdAt": "2025-03-13T17:20:56.181Z"
-        }
-      ]
+      "lastAccrualAt": null,
+      "history": []
     },
     "consents": {
       "termsAccepted": true,
@@ -3436,11 +3107,6 @@
     ],
     "paymentMethods": [
       {
-        "type": "momo",
-        "wallet": "0123456789",
-        "isDefault": false
-      },
-      {
         "type": "cash",
         "isDefault": true
       }
@@ -3454,7 +3120,7 @@
     "loyalty": {
       "totalEarned": 0,
       "currentPoints": 0,
-      "tier": "silver",
+      "tier": "bronze",
       "lastAccrualAt": null,
       "history": []
     },
@@ -3540,14 +3206,6 @@
     ],
     "paymentMethods": [
       {
-        "type": "card",
-        "brand": "VISA",
-        "holderName": "Tu Pham",
-        "last4": "2077",
-        "expMonth": 12,
-        "expYear": 2028
-      },
-      {
         "type": "cash",
         "isDefault": true
       }
@@ -3559,25 +3217,25 @@
       "newsletterSubscribed": true
     },
     "loyalty": {
-      "totalEarned": 449,
-      "currentPoints": 449,
-      "tier": "silver",
+      "totalEarned": 448800,
+      "currentPoints": 448800,
+      "tier": "platinum",
       "lastAccrualAt": "2025-10-07T12:16:07.525Z",
       "history": [
         {
           "orderId": "ORD-2025-0073",
           "orderDate": "2025-06-06T00:14:32.974Z",
           "type": "earned",
-          "points": 68,
-          "description": "Earned 68 points from order ORD-2025-0073",
+          "points": 66900,
+          "description": "Earned 66900 points from order ORD-2025-0073",
           "createdAt": "2025-06-06T00:14:32.974Z"
         },
         {
           "orderId": "ORD-2025-0093",
           "orderDate": "2025-10-07T12:16:07.525Z",
           "type": "earned",
-          "points": 381,
-          "description": "Earned 381 points from order ORD-2025-0093",
+          "points": 381900,
+          "description": "Earned 381900 points from order ORD-2025-0093",
           "createdAt": "2025-10-07T12:16:07.525Z"
         }
       ]
@@ -3724,18 +3382,8 @@
     ],
     "paymentMethods": [
       {
-        "type": "bank",
-        "provider": "Vietcombank",
-        "accountNumber": "9704367891234567",
-        "accountName": "Huong Truong"
-      },
-      {
-        "type": "card",
-        "brand": "VISA",
-        "holderName": "Huong Truong",
-        "last4": "2077",
-        "expMonth": 12,
-        "expYear": 2028
+        "type": "cash",
+        "isDefault": true
       }
     ],
     "preferences": {
@@ -3747,7 +3395,7 @@
     "loyalty": {
       "totalEarned": 0,
       "currentPoints": 0,
-      "tier": "gold",
+      "tier": "bronze",
       "lastAccrualAt": null,
       "history": []
     },

@@ -23,7 +23,7 @@ const transporter = nodemailer.createTransport({
 // Chỉ để log xem kết nối SMTP ok không
 transporter
   .verify()
-  .then(() => console.log("📧 Mailer connected to SMTP server"))
-  .catch((err) => console.error("❌ Mailer verify failed:", err));
+  .then(() => {})
+  .catch((err) => {});
 
 module.exports = transporter;

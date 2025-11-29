@@ -6,7 +6,10 @@ type CardProps = {
 };
 
 const Card: React.FC<CardProps> = ({ children, className = '' }) => (
-  <div className={`bg-background-light p-6 rounded-lg shadow-lg ${className}`}>
+  <div
+    className={`bg-background-light rounded-lg shadow-lg 
+    p-3 md:p-4 lg:p-6 ${className}`}
+  >
     {children}
   </div>
 );

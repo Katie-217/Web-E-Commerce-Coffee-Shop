@@ -18,8 +18,8 @@ const Pagination: React.FC<PaginationProps> = ({
   const displayEnd = totalItems === 0 ? 0 : Math.min(currentPage * itemsPerPage, totalItems);
 
   return (
-    <div className="flex justify-between items-center mt-6 text-sm text-text-secondary">
-      <p>
+    <div className="flex flex-col sm:flex-row justify-between items-center mt-4 md:mt-6 gap-3 text-xs md:text-sm text-text-secondary w-full min-w-0">
+      <p className="text-center sm:text-left">
         Showing {displayStart} to {displayEnd} of {totalItems} entr{totalItems === 1 ? 'y' : 'ies'}
       </p>
       {totalItems > 0 && (
@@ -27,7 +27,29 @@ const Pagination: React.FC<PaginationProps> = ({
           <button
             onClick={() => onPageChange && onPageChange(Math.max(1, currentPage - 1))}
             disabled={currentPage === 1}
-            className="px-3 py-1 rounded-md hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-2 md:px-3 py-1 rounded-md disabled:opacity-50 disabled:cursor-not-allowed text-xs md:text-sm"
+            style={{
+              transition: 'none !important',
+              boxShadow: 'none !important',
+              WebkitTransition: 'none !important',
+              MozTransition: 'none !important',
+              OTransition: 'none !important',
+              backgroundColor: 'transparent',
+            }}
+            onMouseEnter={(e) => {
+              if (currentPage !== 1) {
+                e.currentTarget.style.transition = 'none';
+                e.currentTarget.style.boxShadow = 'none';
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (currentPage !== 1) {
+                e.currentTarget.style.transition = 'none';
+                e.currentTarget.style.boxShadow = 'none';
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }
+            }}
           >
             «
           </button>
@@ -42,15 +64,37 @@ const Pagination: React.FC<PaginationProps> = ({
             } else {
               pageNum = currentPage - 2 + i;
             }
+            const isActive = currentPage === pageNum;
             return (
               <button
                 key={pageNum}
                 onClick={() => onPageChange && onPageChange(pageNum)}
-                className={`px-3 py-1 rounded-md ${
-                  currentPage === pageNum
+                className={`px-2 md:px-3 py-1 rounded-md text-xs md:text-sm ${
+                  isActive
                     ? 'bg-primary text-white'
-                    : 'hover:bg-gray-700'
+                    : ''
                 }`}
+                style={{
+                  transition: 'none !important',
+                  boxShadow: 'none !important',
+                  WebkitTransition: 'none !important',
+                  MozTransition: 'none !important',
+                  OTransition: 'none !important',
+                  backgroundColor: isActive ? 'rgb(124, 58, 237)' : 'transparent',
+                  color: isActive ? 'rgb(255, 255, 255)' : 'rgb(156, 163, 175)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transition = 'none';
+                  e.currentTarget.style.boxShadow = 'none';
+                  e.currentTarget.style.backgroundColor = isActive ? 'rgb(124, 58, 237)' : 'transparent';
+                  e.currentTarget.style.color = isActive ? 'rgb(255, 255, 255)' : 'rgb(156, 163, 175)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transition = 'none';
+                  e.currentTarget.style.boxShadow = 'none';
+                  e.currentTarget.style.backgroundColor = isActive ? 'rgb(124, 58, 237)' : 'transparent';
+                  e.currentTarget.style.color = isActive ? 'rgb(255, 255, 255)' : 'rgb(156, 163, 175)';
+                }}
               >
                 {pageNum}
               </button>
@@ -59,7 +103,29 @@ const Pagination: React.FC<PaginationProps> = ({
           <button
             onClick={() => onPageChange && onPageChange(Math.min(totalPages, currentPage + 1))}
             disabled={currentPage === totalPages}
-            className="px-3 py-1 rounded-md hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-2 md:px-3 py-1 rounded-md disabled:opacity-50 disabled:cursor-not-allowed text-xs md:text-sm"
+            style={{
+              transition: 'none !important',
+              boxShadow: 'none !important',
+              WebkitTransition: 'none !important',
+              MozTransition: 'none !important',
+              OTransition: 'none !important',
+              backgroundColor: 'transparent',
+            }}
+            onMouseEnter={(e) => {
+              if (currentPage !== totalPages) {
+                e.currentTarget.style.transition = 'none';
+                e.currentTarget.style.boxShadow = 'none';
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (currentPage !== totalPages) {
+                e.currentTarget.style.transition = 'none';
+                e.currentTarget.style.boxShadow = 'none';
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }
+            }}
           >
             »
           </button>

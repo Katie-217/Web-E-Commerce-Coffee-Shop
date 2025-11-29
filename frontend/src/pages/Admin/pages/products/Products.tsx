@@ -383,7 +383,7 @@ type ProductsProps = {
       )}
 
       {!embedded && (
-        <div className="w-full flex flex-col gap-4 mb-2">
+        <div className="w-full flex flex-row gap-4 mb-2">
           <div className="flex items-center justify-between">
             <p className="text-sm text-text-secondary">Filter</p>
             <button
@@ -407,7 +407,7 @@ type ProductsProps = {
               </svg>
             </button>
           </div>
-          <div className="flex flex-col md:flex-row gap-3 w-full">
+          <div className="flex flex-row gap-3 w-full">
             <select 
               className={`bg-background-light border border-gray-700 rounded-lg px-3 py-2 flex-1 min-w-[120px] ${
                 statusFilter ? 'text-text-primary' : 'text-text-secondary'
@@ -456,7 +456,7 @@ type ProductsProps = {
       )}
       <div className="border-b border-gray-700 w-full mb-4 mt-2"></div>
       {!embedded && (
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+        <div className="flex flex-row items-center justify-between gap-3 mb-4">
           
             <div className="flex-1">
             <input
@@ -464,26 +464,23 @@ type ProductsProps = {
               placeholder="Search Product"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-background-light border border-gray-700 rounded-lg px-3 py-2 w-full max-w-xs"
+              className="bg-background-light border border-gray-700 rounded-lg px-3 py-2 w-full max-w-xs h-10"
             />
           </div>
           
-          <div className="flex flex-row items-center gap-2 flex-wrap justify-end">
-            <select className="bg-background-light border border-gray-700 rounded-lg px-2 py-2 text-text-secondary w-16">
-              <option>{ITEMS_PER_PAGE}</option>
-            </select>
+          <div className="flex flex-row items-center gap-2 justify-end">
             <ExportDropdown disabled={noneChecked} onExport={handleExport} />
-            <button className="bg-primary text-white font-semibold px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-primary/90 transition-colors"
+            <button className="bg-primary text-white font-semibold px-3 py-2 rounded-lg flex items-center gap-2 hover:bg-primary/90 transition-colors h-10"
               onClick={() => setActivePage('Add Product')}>
-              <Plus size={18}/>
+              <Plus size={16}/>
               Add Product
             </button>
           </div>
         </div>
       )}
       
-      <div className="w-full overflow-x-auto">
-        <table className="w-full text-left">
+      <div className="w-full overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <table className="w-full text-left min-w-[1000px]">
             <thead>
               <tr className="border-b border-gray-700 text-sm text-text-secondary">
                 <th className="p-3"><input type="checkbox" checked={allChecked} onChange={toggleAll} aria-label="Select all products"/></th>
@@ -587,14 +584,48 @@ type ProductsProps = {
                       </label>
                   </td>
                   <td className="p-3 text-text-secondary">{product.sku}</td>
-                  <td className="p-3 text-text-primary font-medium">{formatVND(product.price)}</td>
+                  <td className="p-3 text-text-primary font-medium whitespace-nowrap">{formatVND(product.price)}</td>
                   <td className="p-3 text-text-secondary">{product.quantity}</td>
                   <td className="p-3">
                     <Badge color={getStatusColor(product.status)}>{product.status}</Badge>
                   </td>
                   <td className="p-3 text-center" onClick={(e) => e.stopPropagation()}>
                       <div className="flex justify-center items-center gap-2">
-                          <button className="text-text-secondary hover:text-primary" onClick={() => onOpenEdit(product)}><Edit size={16}/></button>
+                          <button
+                            className="p-2 text-text-secondary"
+                            onClick={() => onOpenEdit(product)}
+                            aria-label="Edit product"
+                            style={{
+                              transition: 'none !important',
+                              boxShadow: 'none !important',
+                              WebkitTransition: 'none !important',
+                              MozTransition: 'none !important',
+                              OTransition: 'none !important',
+                              backgroundColor: 'transparent',
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.transition = 'none';
+                              e.currentTarget.style.boxShadow = 'none';
+                              e.currentTarget.style.backgroundColor = 'transparent';
+                              const icon = e.currentTarget.querySelector('svg');
+                              if (icon) {
+                                icon.style.color = '#7c3aed';
+                                icon.style.transition = 'none';
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.transition = 'none';
+                              e.currentTarget.style.boxShadow = 'none';
+                              e.currentTarget.style.backgroundColor = 'transparent';
+                              const icon = e.currentTarget.querySelector('svg');
+                              if (icon) {
+                                icon.style.color = 'rgb(156, 163, 175)';
+                                icon.style.transition = 'none';
+                              }
+                            }}
+                          >
+                            <Edit size={16} style={{ color: 'rgb(156, 163, 175)', transition: 'none' }} />
+                          </button>
                           {(() => {
                             const productKey = getPrimaryProductId(product);
                             const isDeleting =
@@ -604,14 +635,45 @@ type ProductsProps = {
                               String(deletingIdentifier) === String(productKey);
                             return (
                               <button
-                                className={`text-text-secondary hover:text-accent-red ${isDeleting ? 'opacity-60 cursor-not-allowed' : ''}`}
+                                className={`p-2 text-text-secondary ${isDeleting ? 'opacity-60 cursor-not-allowed' : ''}`}
                                 onClick={() => handleDeleteProduct(product)}
                                 disabled={isDeleting}
+                                aria-label="Delete product"
+                                style={{
+                                  transition: 'none !important',
+                                  boxShadow: 'none !important',
+                                  WebkitTransition: 'none !important',
+                                  MozTransition: 'none !important',
+                                  OTransition: 'none !important',
+                                  backgroundColor: 'transparent',
+                                }}
+                                onMouseEnter={(e) => {
+                                  if (!isDeleting) {
+                                    e.currentTarget.style.transition = 'none';
+                                    e.currentTarget.style.boxShadow = 'none';
+                                    e.currentTarget.style.backgroundColor = 'transparent';
+                                    const icon = e.currentTarget.querySelector('svg');
+                                    if (icon) {
+                                      icon.style.color = '#ef4444';
+                                      icon.style.transition = 'none';
+                                    }
+                                  }
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.transition = 'none';
+                                  e.currentTarget.style.boxShadow = 'none';
+                                  e.currentTarget.style.backgroundColor = 'transparent';
+                                  const icon = e.currentTarget.querySelector('svg');
+                                  if (icon) {
+                                    icon.style.color = 'rgb(156, 163, 175)';
+                                    icon.style.transition = 'none';
+                                  }
+                                }}
                               >
                                 {isDeleting ? (
                                   <span className="text-xs animate-pulse">...</span>
                                 ) : (
-                                  <Trash2 size={16}/>
+                                  <Trash2 size={16} style={{ color: 'rgb(156, 163, 175)', transition: 'none' }} />
                                 )}
                               </button>
                             );
@@ -630,27 +692,95 @@ type ProductsProps = {
                   type="button"
                   onClick={() => currentPage > 1 && setCurrentPage((prev) => Math.max(1, prev - 1))}
                   disabled={currentPage === 1}
-                  className={`px-3 py-1 rounded-md ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-700'}`}
+                  className={`px-3 py-1 rounded-md ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  style={{
+                    transition: 'none !important',
+                    boxShadow: 'none !important',
+                    WebkitTransition: 'none !important',
+                    MozTransition: 'none !important',
+                    OTransition: 'none !important',
+                    backgroundColor: 'transparent',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (currentPage !== 1) {
+                      e.currentTarget.style.transition = 'none';
+                      e.currentTarget.style.boxShadow = 'none';
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (currentPage !== 1) {
+                      e.currentTarget.style.transition = 'none';
+                      e.currentTarget.style.boxShadow = 'none';
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                    }
+                  }}
                 >
                   Previous
                 </button>
-                {Array.from({ length: totalPages }, (_, idx) => idx + 1).map((page) => (
-                  <button
-                    key={page}
-                    type="button"
-                    onClick={() => setCurrentPage(page)}
-                    className={`px-3 py-1 rounded-md ${
-                      page === currentPage ? 'bg-primary text-white' : 'hover:bg-gray-700'
-                    }`}
-                  >
-                    {page}
-                  </button>
-                ))}
+                {Array.from({ length: totalPages }, (_, idx) => idx + 1).map((page) => {
+                  const isActive = page === currentPage;
+                  return (
+                    <button
+                      key={page}
+                      type="button"
+                      onClick={() => setCurrentPage(page)}
+                      className={`px-3 py-1 rounded-md ${
+                        isActive ? 'bg-primary text-white' : ''
+                      }`}
+                      style={{
+                        transition: 'none !important',
+                        boxShadow: 'none !important',
+                        WebkitTransition: 'none !important',
+                        MozTransition: 'none !important',
+                        OTransition: 'none !important',
+                        backgroundColor: isActive ? 'rgb(124, 58, 237)' : 'transparent',
+                        color: isActive ? 'rgb(255, 255, 255)' : 'rgb(156, 163, 175)',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transition = 'none';
+                        e.currentTarget.style.boxShadow = 'none';
+                        e.currentTarget.style.backgroundColor = isActive ? 'rgb(124, 58, 237)' : 'transparent';
+                        e.currentTarget.style.color = isActive ? 'rgb(255, 255, 255)' : 'rgb(156, 163, 175)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transition = 'none';
+                        e.currentTarget.style.boxShadow = 'none';
+                        e.currentTarget.style.backgroundColor = isActive ? 'rgb(124, 58, 237)' : 'transparent';
+                        e.currentTarget.style.color = isActive ? 'rgb(255, 255, 255)' : 'rgb(156, 163, 175)';
+                      }}
+                    >
+                      {page}
+                    </button>
+                  );
+                })}
                 <button
                   type="button"
                   onClick={() => currentPage < totalPages && setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
                   disabled={currentPage === totalPages}
-                  className={`px-3 py-1 rounded-md ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-700'}`}
+                  className={`px-3 py-1 rounded-md ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  style={{
+                    transition: 'none !important',
+                    boxShadow: 'none !important',
+                    WebkitTransition: 'none !important',
+                    MozTransition: 'none !important',
+                    OTransition: 'none !important',
+                    backgroundColor: 'transparent',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (currentPage !== totalPages) {
+                      e.currentTarget.style.transition = 'none';
+                      e.currentTarget.style.boxShadow = 'none';
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (currentPage !== totalPages) {
+                      e.currentTarget.style.transition = 'none';
+                      e.currentTarget.style.boxShadow = 'none';
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                    }
+                  }}
                 >
                   Next
                 </button>

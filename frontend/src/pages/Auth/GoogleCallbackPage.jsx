@@ -22,7 +22,6 @@ export default function GoogleCallbackPage() {
         await loginWithToken(token);
         navigate(next, { replace: true });
       } catch (err) {
-        console.error(err);
         navigate("/auth?error=google", { replace: true });
       }
     })();

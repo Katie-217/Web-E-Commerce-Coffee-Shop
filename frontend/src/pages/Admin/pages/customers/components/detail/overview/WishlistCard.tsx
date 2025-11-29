@@ -83,7 +83,6 @@ const WishlistCard: React.FC<WishlistCardProps> = ({ customer }) => {
         setWishlistItems(itemsWithProducts);
       } catch (err) {
         if (!isCancelled) {
-          console.error('Error fetching wishlist products:', err);
           setWishlistItems(
             wishlist.map((item: WishlistItem) => ({ ...item, product: null }))
           );
@@ -118,12 +117,33 @@ const WishlistCard: React.FC<WishlistCardProps> = ({ customer }) => {
             <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify center">
               <Star className="w-5 h-5 text-orange-400" />
             </div>
-            <h4 className="text-sm font-semibold text-text-primary">Wishlist</h4>
+            <h4 className="text-base font-semibold text-text-primary">Wishlist</h4>
           </div>
           {wishlistCount > 0 && (
             <button
               onClick={() => setShowDetailsModal(true)}
-              className="text-xs text-orange-400 hover:text-orange-300 transition-colors flex items-center gap-1"
+              className="text-xs text-orange-400 flex items-center gap-1"
+              style={{
+                transition: 'none !important',
+                boxShadow: 'none !important',
+                WebkitTransition: 'none !important',
+                MozTransition: 'none !important',
+                OTransition: 'none !important',
+                backgroundColor: 'transparent',
+                color: 'rgb(251, 146, 60)', // text-orange-400
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transition = 'none';
+                e.currentTarget.style.boxShadow = 'none';
+                e.currentTarget.style.backgroundColor = 'transparent';
+                e.currentTarget.style.color = 'rgb(251, 146, 60)'; // Giữ nguyên màu orange-400
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transition = 'none';
+                e.currentTarget.style.boxShadow = 'none';
+                e.currentTarget.style.backgroundColor = 'transparent';
+                e.currentTarget.style.color = 'rgb(251, 146, 60)'; // Giữ nguyên màu orange-400
+              }}
             >
               <Eye className="w-3 h-3" />
               View
@@ -185,7 +205,25 @@ const WishlistDetailsModal: React.FC<WishlistDetailsModalProps> = ({ wishlistIte
           <h3 className="text-xl font-bold text-text-primary">Wishlist Items</h3>
           <button
             onClick={onClose}
-            className="text-text-secondary hover:text-text-primary transition-colors"
+            className="text-text-secondary"
+            style={{
+              transition: 'none !important',
+              boxShadow: 'none !important',
+              WebkitTransition: 'none !important',
+              MozTransition: 'none !important',
+              OTransition: 'none !important',
+              backgroundColor: 'transparent',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transition = 'none';
+              e.currentTarget.style.boxShadow = 'none';
+              e.currentTarget.style.backgroundColor = 'transparent';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transition = 'none';
+              e.currentTarget.style.boxShadow = 'none';
+              e.currentTarget.style.backgroundColor = 'transparent';
+            }}
           >
             ✕
           </button>

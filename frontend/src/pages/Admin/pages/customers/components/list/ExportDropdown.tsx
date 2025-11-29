@@ -36,19 +36,20 @@ const ExportDropdown: React.FC<ExportDropdownProps> = ({ disabled = false, onExp
     <div className="relative" ref={exportRef}>
       <button
         type="button"
-        disabled={disabled}
-        onClick={() => !disabled && setShowExport((v) => !v)}
-        className={`px-4 py-2 rounded-lg flex items-center gap-2 transition font-semibold
-          ${disabled 
-            ? 'bg-background-light border border-gray-700 text-text-secondary opacity-50 cursor-not-allowed' 
-            : 'bg-primary text-white border border-primary hover:bg-primary/90 cursor-pointer shadow-md'}
+        onClick={() => setShowExport((v) => !v)}
+        className={`px-2 sm:px-2.5 md:px-3 py-0.5 sm:py-1 md:py-1.5 rounded-md flex items-center gap-1 transition font-medium text-[10px] sm:text-[11px] md:text-xs
+          ${disabled
+            ? 'bg-background-dark border border-gray-700 text-text-secondary opacity-60 cursor-pointer'
+            : 'bg-background-dark border border-gray-700 text-text-secondary hover:bg-gray-800 hover:text-white cursor-pointer'}
         `}
       >
-        <span>Export</span>
-        <ChevronDown size={16} />
+        <span className="text-white px-2 sm:px-2.5">
+          Export
+        </span>
+        <ChevronDown size={14} />
       </button>
       {showExport && !disabled && (
-        <div className="absolute right-0 mt-2 w-44 bg-background-light border border-gray-700 rounded-lg shadow-xl z-10 p-2">
+        <div className="absolute right-0 mt-2 w-44 bg-background-light border border-gray-700 rounded-lg shadow-xl z-50 p-2">
           <button
             onClick={() => handleExport('csv')}
             className="w-full flex items-center gap-2 px-3 py-2 rounded-md hover:bg-background-dark text-text-primary"

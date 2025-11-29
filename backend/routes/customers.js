@@ -44,7 +44,6 @@ async function findCustomerWithLocation(id) {
       return { customer, location };
     }
   } catch (err) {
-    console.error('Error searching in customers database:', err);
   }
 
   // Try 2: Current database > 'customersList' collection
@@ -67,7 +66,6 @@ async function findCustomerWithLocation(id) {
       return { customer, location };
     }
   } catch (err) {
-    console.error('Error searching in current database customersList:', err);
   }
 
   // Try 3: Current database > 'customers.customersList' collection
@@ -90,7 +88,6 @@ async function findCustomerWithLocation(id) {
       return { customer, location };
     }
   } catch (err) {
-    console.error('Error searching in customers.customersList:', err);
   }
 
   // Try 4: Current database > 'customers' collection
@@ -113,7 +110,6 @@ async function findCustomerWithLocation(id) {
       return { customer, location };
     }
   } catch (err) {
-    console.error('Error searching in customers collection:', err);
   }
 
   // Fallback: Mongoose Customer model
@@ -129,7 +125,6 @@ async function findCustomerWithLocation(id) {
       return { customer, location };
     }
   } catch (err) {
-    console.error('Error searching in Customer model:', err);
   }
 
   return { customer: null, location: null };
@@ -138,11 +133,58 @@ async function findCustomerWithLocation(id) {
 // Diagnostics: quick connectivity check
 router.get('/ping', async (req, res) => {
   try {
-    const total = await Customer.countDocuments({});
-    const sample = await Customer.findOne({});
+    // Filter admin khỏi total count
+    const total = await Customer.countDocuments({ role: { $ne: 'admin' } });
+    const sample = await Customer.findOne({ role: { $ne: 'admin' } });
     return res.json({ ok: true, total, sample });
   } catch (err) {
     return res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// Get new users count (users created in the last 7 days, excluding admin)
+router.get('/stats/new-users', async (req, res) => {
+  try {
+    const days = parseInt(req.query.days, 10) || 7; // Default 7 days
+    
+    // Tính thời điểm bắt đầu (N ngày trước, set về 00:00:00 để chính xác)
+    const now = new Date();
+    const daysAgo = new Date(now);
+    daysAgo.setDate(daysAgo.getDate() - days);
+    daysAgo.setHours(0, 0, 0, 0); // Set về đầu ngày (00:00:00)
+    
+    // Filter: không phải admin (role !== 'admin' hoặc không có role field)
+    // Vì có thể có dữ liệu cũ không có role field
+    const filter = {
+      $or: [
+        { role: { $ne: 'admin' } },
+        { role: { $exists: false } } // Dữ liệu cũ không có role field
+      ],
+      createdAt: { $gte: daysAgo }
+    };
+    
+    // Count customers created in the last N days, excluding admin
+    const newUsersCount = await Customer.countDocuments(filter);
+    
+    // Debug: lấy một vài sample để kiểm tra
+    const sample = await Customer.find(filter)
+      .select('email createdAt role')
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .lean();
+    
+    return res.json({
+      success: true,
+      newUsers: newUsersCount,
+      days,
+      fromDate: daysAgo.toISOString(),
+      toDate: now.toISOString()
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      error: err.message
+    });
   }
 });
 
@@ -165,6 +207,9 @@ router.get('/', async (req, res) => {
     const { q } = req.query;
     const filters = {};
 
+    // Loại trừ admin khỏi customer list
+    filters.role = { $ne: 'admin' };
+
     if (q && typeof q === 'string') {
       filters.$or = [
         { fullName: { $regex: q, $options: 'i' } },
@@ -178,42 +223,22 @@ router.get('/', async (req, res) => {
     let items = [];
     let total = 0;
 
-    // Try 1: 'customers' database > 'customersList' collection
+    // Try 1: Current database (CoffeeDB) > 'customers' collection (ưu tiên cao nhất)
     try {
-      const customersDb = mongoose.connection.useDb('customers', {
-        useCache: true,
-      });
-      const coll = customersDb.collection('customersList');
-      const totalCount = await coll.countDocuments({});
-      if (totalCount > 0) {
-        [items, total] = await Promise.all([
-          coll
-            .find(filters)
-            .sort({ createdAt: -1 })
-            .skip(skip)
-            .limit(limit)
-            .toArray(),
-          coll.countDocuments(filters),
-        ]);
-
-        // Nếu filter không ra nhưng collection có data thì trả full list
-        if (total === 0 && totalCount > 0) {
-          [items, total] = await Promise.all([
-            coll
-              .find({})
-              .sort({ createdAt: -1 })
-              .skip(skip)
-              .limit(limit)
-              .toArray(),
-            coll.countDocuments({}),
-          ]);
-        }
+      [items, total] = await Promise.all([
+        Customer.find(filters)
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limit)
+          .lean(),
+        Customer.countDocuments(filters),
+      ]);
+      if (total > 0) {
       }
     } catch (err) {
-      console.log("[customers] useDb('customers').customersList error:", err.message);
     }
 
-    // Try 2: current DB > 'customersList'
+    // Try 2: current DB > 'customersList' (fallback)
     if (total === 0) {
       try {
         const coll = mongoose.connection.db.collection('customersList');
@@ -230,23 +255,27 @@ router.get('/', async (req, res) => {
           ]);
 
           if (total === 0 && totalCount > 0) {
+            // Fallback query vẫn phải filter admin
+            const fallbackFilter = { role: { $ne: 'admin' } };
             [items, total] = await Promise.all([
               coll
-                .find({})
+                .find(fallbackFilter)
                 .sort({ createdAt: -1 })
                 .skip(skip)
                 .limit(limit)
                 .toArray(),
-              coll.countDocuments({}),
+              coll.countDocuments(fallbackFilter),
             ]);
+          }
+          if (total > 0) {
+            console.log(`✅ Found ${total} customers in CoffeeDB.customersList collection`);
           }
         }
       } catch (err) {
-        console.log('[customers] fallback customersList error:', err.message);
       }
     }
 
-    // Try 3: current DB > 'customers.customersList'
+    // Try 3: current DB > 'customers.customersList' (fallback)
     if (total === 0) {
       try {
         const coll = mongoose.connection.db.collection(
@@ -265,29 +294,33 @@ router.get('/', async (req, res) => {
           ]);
 
           if (total === 0 && totalCount > 0) {
+            // Fallback query vẫn phải filter admin
+            const fallbackFilter = { role: { $ne: 'admin' } };
             [items, total] = await Promise.all([
               coll
-                .find({})
+                .find(fallbackFilter)
                 .sort({ createdAt: -1 })
                 .skip(skip)
                 .limit(limit)
                 .toArray(),
-              coll.countDocuments({}),
+              coll.countDocuments(fallbackFilter),
             ]);
+          }
+          if (total > 0) {
+            console.log(`✅ Found ${total} customers in CoffeeDB.customers.customersList collection`);
           }
         }
       } catch (err) {
-        console.log(
-          '[customers] fallback customers.customersList error:',
-          err.message
-        );
       }
     }
 
-    // Try 4: current DB > 'customers' collection
+    // Try 4: 'customers' database > 'customersList' collection (fallback)
     if (total === 0) {
       try {
-        const coll = mongoose.connection.db.collection('customers');
+        const customersDb = mongoose.connection.useDb('customers', {
+          useCache: true,
+        });
+        const coll = customersDb.collection('customersList');
         const totalCount = await coll.countDocuments({});
         if (totalCount > 0) {
           [items, total] = await Promise.all([
@@ -300,24 +333,28 @@ router.get('/', async (req, res) => {
             coll.countDocuments(filters),
           ]);
 
+          // Nếu filter không ra nhưng collection có data thì trả full list (vẫn filter admin)
           if (total === 0 && totalCount > 0) {
+            const fallbackFilter = { role: { $ne: 'admin' } };
             [items, total] = await Promise.all([
               coll
-                .find({})
+                .find(fallbackFilter)
                 .sort({ createdAt: -1 })
                 .skip(skip)
                 .limit(limit)
                 .toArray(),
-              coll.countDocuments({}),
+              coll.countDocuments(fallbackFilter),
             ]);
+          }
+          if (total > 0) {
+            console.log(`✅ Found ${total} customers in customers.customersList collection`);
           }
         }
       } catch (err) {
-        console.log('[customers] fallback customers error:', err.message);
       }
     }
 
-    // Fallback cuối: Customer model
+    // Fallback cuối: Customer model (đã được require ở đầu file)
     if (total === 0) {
       try {
         [items, total] = await Promise.all([
@@ -328,12 +365,14 @@ router.get('/', async (req, res) => {
             .lean(),
           Customer.countDocuments(filters),
         ]);
+        if (total > 0) {
+          console.log(`✅ Found ${total} customers in CoffeeDB.customers collection (fallback)`);
+        }
       } catch (err) {
-        console.log('[customers] model error:', err.message);
       }
     }
 
-        const transformed = items.map((item) => {
+    const transformed = items.map((item) => {
       const c = toPlain(item); // để xử lý cả doc Mongoose và plain object
 
       return {
@@ -399,7 +438,6 @@ router.get('/', async (req, res) => {
       },
     });
   } catch (err) {
-    console.error('Error in GET /api/customers:', err);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch customers',
@@ -565,7 +603,6 @@ router.get('/:id/orders', async (req, res) => {
         Order.countDocuments({ $or: filters }),
       ]);
     } catch (err) {
-      console.log('[customers/:id/orders] model Order error:', err.message);
     }
 
     // Try 2: 'orders' database > 'ordersList' collection
@@ -587,10 +624,6 @@ router.get('/:id/orders', async (req, res) => {
           total = fbTotal;
         }
       } catch (err) {
-        console.log(
-          "[customers/:id/orders] useDb('orders').ordersList error:",
-          err.message
-        );
       }
     }
 
@@ -610,7 +643,6 @@ router.get('/:id/orders', async (req, res) => {
           total = fbTotal;
         }
       } catch (err) {
-        console.log('[customers/:id/orders] ordersList error:', err.message);
       }
     }
 
@@ -630,8 +662,6 @@ router.get('/:id/orders', async (req, res) => {
           total = fbTotal;
         }
       } catch (err) {
-        console.log(
-          '[customers/:id/orders] orders.ordersList error:',
           err.message
         );
       }

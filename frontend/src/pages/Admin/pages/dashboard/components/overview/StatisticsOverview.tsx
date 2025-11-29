@@ -107,13 +107,41 @@ const StatisticsOverview: React.FC = () => {
     const run = async () => {
       try {
         setLoading(true);
-        const { fetchCustomers } = await import('../../../../../../api/customers');
+        const { fetchCustomers, fetchNewUsersCount } = await import('../../../../../../api/customers');
+        
+        // Fetch customers để tính total
         const cres = await fetchCustomers({ page: 1, limit: 20 });
         const totalCustomers =
           cres?.pagination?.total ??
           (Array.isArray(cres?.data) ? cres.data.length : 0) ??
           0;
-        const newUsers = 0;
+        
+        // Fetch new users count từ API (chính xác hơn, đếm từ database)
+        let newUsers = 0;
+        try {
+          const newUsersRes = await fetchNewUsersCount(7); // 7 ngày
+          newUsers = newUsersRes?.newUsers ?? newUsersRes?.data?.newUsers ?? 0;
+        } catch (err) {
+          // Fallback: tính từ customer records nếu API fail
+          const customerRecords = Array.isArray(cres?.data)
+            ? cres.data
+            : Array.isArray(cres?.items)
+              ? cres.items
+              : [];
+          const now = Date.now();
+          const sevenDaysAgo = now - (7 * 24 * 60 * 60 * 1000);
+          newUsers = customerRecords.filter((customer: any) => {
+            const createdAt = recordTimestamp(customer);
+            if (createdAt === null) return false;
+            return createdAt >= sevenDaysAgo;
+          }).length;
+        }
+        
+        const customerRecords = Array.isArray(cres?.data)
+          ? cres.data
+          : Array.isArray(cres?.items)
+            ? cres.items
+            : [];
 
         const orResFirst = await fetchOrders({ q: undefined, status: undefined, email: undefined, page: 1, limit: 1 });
         const totalOrders = orResFirst?.pagination?.total ?? 0;
@@ -126,11 +154,7 @@ const StatisticsOverview: React.FC = () => {
             : [];
         const revenue = orders.reduce((s, o) => s + (Number(o.total) || 0), 0);
 
-        const customerRecords = Array.isArray(cres?.data)
-          ? cres.data
-          : Array.isArray(cres?.items)
-            ? cres.items
-            : [];
+        // customerRecords đã được định nghĩa ở trên
         const latestCustomerActivity = findLatestTimestamp(customerRecords);
         const latestOrderActivity = findLatestTimestamp(orders);
         const derivedLastUpdated = latestCustomerActivity !== null || latestOrderActivity !== null
@@ -211,7 +235,7 @@ const StatisticsOverview: React.FC = () => {
               <stat.icon size={24} className={stat.color} />
             </div>
             <div>
-              <p className="text-xl font-bold text-text-primary">{loading ? '...' : stat.value}</p>
+              <p className="text-xl font-bold text-text-primary whitespace-nowrap">{loading ? '...' : stat.value}</p>
               <p className="text-sm text-text-secondary">{stat.label}</p>
             </div>
           </div>

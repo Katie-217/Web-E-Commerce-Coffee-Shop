@@ -82,7 +82,11 @@ const CustomerList: React.FC<CustomerListProps> = ({ onSelectCustomer, setActive
             if (!email) return acc;
             const entry = acc[email] || { totalOrders: 0, totalSpent: 0, firstOrder: undefined, country: undefined };
             entry.totalOrders += 1;
-            entry.totalSpent += Number(order.total) || 0;
+            // Chỉ tính totalSpent cho các đơn hàng đã thanh toán
+            const paymentStatus = String(order.paymentStatus || '').toLowerCase();
+            if (paymentStatus === 'paid') {
+              entry.totalSpent += Number(order.total) || 0;
+            }
             const createdAt = order.createdAt || order.created_at;
             if (createdAt && (!entry.firstOrder || createdAt < entry.firstOrder)) {
               entry.firstOrder = createdAt;
@@ -277,7 +281,7 @@ const CustomerList: React.FC<CustomerListProps> = ({ onSelectCustomer, setActive
   );
 
   return (
-    <div className="bg-background-light p-6 rounded-lg shadow-lg">
+    <div className="bg-background-light p-3 md:p-4 lg:p-6 rounded-lg shadow-lg w-full min-w-0 max-w-full overflow-x-hidden">
       <CustomerListHeader
         searchValue={q}
         onSearchChange={setQ}

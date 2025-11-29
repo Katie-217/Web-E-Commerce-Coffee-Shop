@@ -7,8 +7,6 @@ const Review = require('../models/Review');
 // GET /api/products - Lấy danh sách tất cả sản phẩm
 router.get('/', async (req, res) => {
   try {
-    console.log(' GET /api/products - Request received');
-    console.log(' Query params:', req.query);
 
     const {
       page = 1,
@@ -47,53 +45,30 @@ router.get('/', async (req, res) => {
     const limitNum = parseInt(limit, 10);
     const skip = (pageNum - 1) * limitNum;
 
-    console.log('🔍 Query:', JSON.stringify(query, null, 2));
-    console.log('📊 Pagination:', { page: pageNum, limit: limitNum, skip });
 
     let products = [];
     let total = 0;
 
-    // Try 1: 'products' database > 'productsList' collection
+    // Try 1: Current database (CoffeeDB) > 'products' collection (ưu tiên cao nhất)
     try {
-      const productsDb = mongoose.connection.useDb('products', { useCache: true });
-      const coll = productsDb.collection('productsList');
-      const totalCount = await coll.countDocuments({});
-      console.log(`📊 products.productsList collection has ${totalCount} documents`);
-
-      if (totalCount > 0) {
-        [products, total] = await Promise.all([
-          coll
-            .find(query)
-            .sort({ createdAt: -1 })
-            .skip(skip)
-            .limit(limitNum)
-            .toArray(),
-          coll.countDocuments(query),
-        ]);
-
-        // Nếu query không ra kết quả nhưng collection có dữ liệu → fallback lấy all
-        if (total === 0 && totalCount > 0) {
-          [products, total] = await Promise.all([
-            coll
-              .find({})
-              .sort({ createdAt: -1 })
-              .skip(skip)
-              .limit(limitNum)
-              .toArray(),
-            coll.countDocuments({}),
-          ]);
-        }
+      [products, total] = await Promise.all([
+        Product.find(query)
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limitNum)
+          .lean(),
+        Product.countDocuments(query),
+      ]);
+      if (total > 0) {
       }
     } catch (err) {
-      console.log('❌ Failed to query products.productsList:', err.message);
     }
 
-    // Try 2: Current database (CoffeeDB) > productsList collection
+    // Try 2: Current database (CoffeeDB) > productsList collection (fallback)
     if (total === 0) {
       try {
         const coll = mongoose.connection.db.collection('productsList');
         const totalCount = await coll.countDocuments({});
-        console.log(`📊 productsList collection has ${totalCount} documents`);
 
         if (totalCount > 0) {
           [products, total] = await Promise.all([
@@ -117,30 +92,50 @@ router.get('/', async (req, res) => {
               coll.countDocuments({}),
             ]);
           }
+          if (total > 0) {
+          }
         }
       } catch (err) {
-        console.log('❌ Failed to query productsList in current DB:', err.message);
       }
     }
 
-    // Fallback to default Product model collection
+    // Try 3: 'products' database > 'productsList' collection (fallback)
     if (total === 0) {
       try {
-        console.log('📊 Querying MongoDB collection via Product model');
-        [products, total] = await Promise.all([
-          Product.find(query)
-            .sort({ createdAt: -1 })
-            .skip(skip)
-            .limit(limitNum)
-            .lean(),
-          Product.countDocuments(query),
-        ]);
+        const productsDb = mongoose.connection.useDb('products', { useCache: true });
+        const coll = productsDb.collection('productsList');
+        const totalCount = await coll.countDocuments({});
+
+        if (totalCount > 0) {
+          [products, total] = await Promise.all([
+            coll
+              .find(query)
+              .sort({ createdAt: -1 })
+              .skip(skip)
+              .limit(limitNum)
+              .toArray(),
+            coll.countDocuments(query),
+          ]);
+
+          // Nếu query không ra kết quả nhưng collection có dữ liệu → fallback lấy all
+          if (total === 0 && totalCount > 0) {
+            [products, total] = await Promise.all([
+              coll
+                .find({})
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limitNum)
+                .toArray(),
+              coll.countDocuments({}),
+            ]);
+          }
+          if (total > 0) {
+          }
+        }
       } catch (err) {
-        console.log('❌ Failed to query Product model collection:', err.message);
       }
     }
 
-    console.log(`✅ Found ${products.length} products (total=${total})`);
 
     // Transform data to match frontend format
     const transformedProducts = products.map((product) => ({
@@ -168,8 +163,6 @@ router.get('/', async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('❌ Error fetching products:', error);
-    console.error('❌ Error stack:', error.stack);
     res.status(500).json({
       success: false,
       message: 'Error fetching products',
@@ -182,12 +175,6 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    console.log(
-      '🔍 GET /api/products/:id - Searching for product with ID:',
-      id,
-      'Type:',
-      typeof id,
-    );
     let product = null;
 
     const { Types } = mongoose;
@@ -208,7 +195,6 @@ router.get('/:id', async (req, res) => {
           const found = await coll.findOne(filter);
           if (found) {
             product = found;
-            console.log(`✅ Found in ${collectionName} with filter:`, filter);
             return true;
           }
         }
@@ -216,13 +202,8 @@ router.get('/:id', async (req, res) => {
         // Debug sample
         const sample = await coll.find({}).limit(3).toArray();
         if (sample.length > 0) {
-          console.log(
-            `📋 Sample IDs in ${collectionName}:`,
-            sample.map((p) => ({ id: p.id, _id: p._id, name: p.name })),
-          );
         }
       } catch (err) {
-        console.log(`❌ Error searching in ${collectionName}:`, err.message);
       }
       return false;
     };
@@ -246,7 +227,6 @@ router.get('/:id', async (req, res) => {
       try {
         const coll = mongoose.connection.db.collection('productsList');
         const totalCount = await coll.countDocuments({});
-        console.log(`📊 productsList collection has ${totalCount} documents`);
 
         if (totalCount > 0) {
           await tryFindInCollection(coll, 'productsList');
@@ -267,14 +247,12 @@ router.get('/:id', async (req, res) => {
           await tryFindInCollection(coll, 'products');
         }
       } catch (err) {
-        console.log('❌ Failed to access products:', err.message);
       }
     }
 
     // Fallback: default Product model collection (mongoose)
     if (!product) {
       try {
-        console.log('📊 Trying default Product model collection...');
         if (filters.length > 0) {
           product = await Product.findOne({ $or: filters }).lean();
           if (product) {

@@ -95,6 +95,16 @@ const customerSchema = new mongoose.Schema({
     enum: ['active', 'inactive', 'banned'],
     default: 'active'
   },
+  role: {
+    type: String,
+    enum: ['customer', 'admin'],
+    default: 'customer'
+  },
+  provider: {
+    type: String,
+    enum: ['local', 'google'],
+    default: 'local'
+  },
   loyalty: {
     totalEarned: {
       type: Number,
@@ -177,7 +187,8 @@ customerSchema.index({ phone: 1 });
 customerSchema.index({ status: 1 });
 customerSchema.index({ fullName: 1 });
 
-const Customer = mongoose.model('Customer', customerSchema);
+// Đảm bảo collection name là 'customers' trong database 'CoffeeDB'
+const Customer = mongoose.model('Customer', customerSchema, 'customers');
 
 module.exports = Customer;
 

@@ -144,7 +144,6 @@ const ProductDetail = () => {
         setQty(1);
       } catch (err) {
         if (err.name !== "AbortError") {
-          console.error("Product detail error:", err);
           setError(err.message || "Failed to load product details");
         }
       } finally {
@@ -173,7 +172,6 @@ const ProductDetail = () => {
 
         if (!res.ok) {
           const txt = await res.text();
-          console.warn("Fetch reviews fail:", txt);
           return;
         }
 
@@ -182,7 +180,6 @@ const ProductDetail = () => {
         setReviews(list);
       } catch (err) {
         if (err.name !== "AbortError") {
-          console.error("Reviews error:", err);
           setReviewsError("Failed to load reviews");
         }
       } finally {
@@ -363,7 +360,6 @@ const ProductDetail = () => {
 
       if (!res.ok) {
         const txt = await res.text();
-        console.error("Submit review fail:", txt);
         throw new Error(txt || "Failed to submit review");
       }
 
@@ -380,7 +376,6 @@ const ProductDetail = () => {
         setCustomerEmail(email);
       }
     } catch (err) {
-      console.error("Submit review error:", err);
       alert("Failed to submit your review. Please try again later.");
     }
   };
@@ -434,7 +429,6 @@ const ProductDetail = () => {
         updateUser?.(newUser);
       }
     } catch (err) {
-      console.error("Toggle wishlist error:", err);
       alert(
         err?.response?.data?.message ||
           err.message ||
@@ -506,15 +500,13 @@ const ProductDetail = () => {
                 alt={product.name}
                 className="pd-image"
               />
-              {/* Heart button on image */}
+              {/* Heart button on image – keep wishlist here only */}
               <button
                 type="button"
                 className={`pd-heart-btn ${liked ? "pd-heart-btn--active" : ""}`}
                 onClick={handleToggleWishlist}
                 disabled={savingWishlist}
-                title={
-                  liked ? "Remove from wishlist" : "Add to wishlist"
-                }
+                title={liked ? "Remove from wishlist" : "Add to wishlist"}
               >
                 {liked ? "♥" : "♡"}
               </button>
@@ -546,7 +538,7 @@ const ProductDetail = () => {
 
             <div className="pd-price-row">
               <span className="pd-price">
-                {formatPrice(priceNumber)}
+                {formatPrice(product.price)}
               </span>
               {product.oldPrice && (
                 <span className="pd-old-price">
@@ -568,60 +560,57 @@ const ProductDetail = () => {
             </div>
 
             <div className="pd-purchase-block">
-              {/* SIZE */}
-              <div className="pd-field">
+              {/* SIZE + QTY */}
+              <div className="pd-field pd-field--size-qty">
                 <div className="pd-field-label">
                   <span>Size / Option</span>
                 </div>
-                {sizeVar?.options?.length ? (
-                  <select
-                    className="pd-select"
-                    value={currentLabel}
-                    onChange={(e) => setSelectedSize(e.target.value)}
-                  >
-                    {sizeVar.options.map((op, i) => (
-                      <option key={i} value={op.label}>
-                        {op.label}
-                        {op.priceDelta
-                          ? ` (${
-                              op.priceDelta > 0 ? "+" : ""
-                            }${formatPrice(op.priceDelta)})`
-                          : ""}
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  <div className="pd-select disabled">Default</div>
+                <div className="pd-row pd-row--options">
+                  <div className="pd-select-wrapper">
+                    {sizeVar?.options?.length ? (
+                      <select
+                        className="pd-select"
+                        value={currentLabel}
+                        onChange={(e) => setSelectedSize(e.target.value)}
+                      >
+                        {sizeVar.options.map((op, i) => (
+                          <option key={i} value={op.label}>
+                            {op.label}
+                            {op.priceDelta
+                              ? ` (${
+                                  op.priceDelta > 0 ? "+" : ""
+                                }${formatPrice(op.priceDelta)})`
+                              : ""}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <div className="pd-select disabled">Default</div>
+                    )}
+                  </div>
+                  <div className="pd-qty-control">
+                    <button
+                      type="button"
+                      onClick={handleDecrease}
+                      disabled={qty <= 1}
+                    >
+                      -
+                    </button>
+                    <span>{qty}</span>
+                    <button
+                      type="button"
+                      onClick={handleIncrease}
+                      disabled={!!stock && qty >= stock}
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+                {stock > 0 && (
+                  <div className="pd-remaining">
+                    Remaining: <strong>{stock}</strong> items
+                  </div>
                 )}
-              </div>
-
-              {/* QTY */}
-              <div className="pd-field">
-                <div className="pd-field-label">
-                  <span>Quantity</span>
-                  {stock > 0 && (
-                    <small>
-                      Remaining: <strong>{stock}</strong> items
-                    </small>
-                  )}
-                </div>
-                <div className="pd-qty-control">
-                  <button
-                    type="button"
-                    onClick={handleDecrease}
-                    disabled={qty <= 1}
-                  >
-                    -
-                  </button>
-                  <span>{qty}</span>
-                  <button
-                    type="button"
-                    onClick={handleIncrease}
-                    disabled={!!stock && qty >= stock}
-                  >
-                    +
-                  </button>
-                </div>
               </div>
 
               {/* TOTAL */}
@@ -637,33 +626,19 @@ const ProductDetail = () => {
               {/* ACTIONS */}
               <div className="pd-actions">
                 <button
-                  className="pd-btn-primary"
-                  onClick={handleBuyNow}
-                  disabled={!inStock}
-                >
-                  BUY NOW
-                </button>
-                <button
                   className="pd-btn-outline"
                   onClick={handleAddToCart}
                   disabled={!inStock}
                 >
                   ADD TO CART
                 </button>
-
-                {/* Inline heart button next to main buttons */}
+                
                 <button
-                  type="button"
-                  className={`pd-btn-heart-inline ${
-                    liked ? "pd-btn-heart-inline--active" : ""
-                  }`}
-                  onClick={handleToggleWishlist}
-                  disabled={savingWishlist}
-                  title={
-                    liked ? "Remove from wishlist" : "Add to wishlist"
-                  }
+                  className="pd-btn-primary"
+                  onClick={handleBuyNow}
+                  disabled={!inStock}
                 >
-                  {liked ? "♥ Added to wishlist" : "♡ Add to wishlist"}
+                  BUY NOW
                 </button>
               </div>
             </div>

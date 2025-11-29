@@ -57,6 +57,16 @@ export function deleteCustomer(idOrEmail) {
   return apiClient.delete(`/customers/${encodeURIComponent(idOrEmail)}`);
 }
 
+/**
+ * Get new users count (users created in the last N days, excluding admin)
+ * @param {number} days - Number of days (default: 7)
+ */
+export function fetchNewUsersCount(days = 7) {
+  return apiClient.get('/customers/stats/new-users', {
+    params: { days },
+  });
+}
+
 export default {
   fetchCustomers,
   fetchCustomerById,
@@ -64,6 +74,7 @@ export default {
   createCustomer,
   updateCustomer,
   deleteCustomer,
+  fetchNewUsersCount,
 };
 
 

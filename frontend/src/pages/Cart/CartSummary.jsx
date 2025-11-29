@@ -107,14 +107,6 @@ export default function CartSummary({ cart = { items: [] }, onCheckout }) {
         onClick={() => {
           if (typeof onCheckout === "function") {
             onCheckout({ items: safeItems, subtotal, discount, total, voucher });
-          } else {
-            console.log("Checkout payload:", {
-              items: safeItems,
-              subtotal,
-              discount,
-              total,
-              voucher,
-            });
           }
         }}
       >

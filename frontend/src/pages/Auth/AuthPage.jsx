@@ -63,9 +63,15 @@ const AuthPage = ({ initialTab = 'login' }) => {
     try {
       setLoading(true);
       setMessage('');
-      await login(loginData.email, loginData.password);
-      // ✅ login xong quay lại trang cũ (hoặc '/')
-      navigate(from, { replace: true });
+      const userData = await login(loginData.email, loginData.password);
+      
+      // ✅ Kiểm tra role từ user data để xác định có phải admin không
+      if (userData && userData.role === 'admin') {
+        navigate('/admin', { replace: true });
+      } else {
+        // ✅ login xong quay lại trang cũ (hoặc '/')
+        navigate(from, { replace: true });
+      }
     } catch (err) {
       setMessage(err.message || 'Login failed.');
     } finally {
@@ -80,13 +86,13 @@ const AuthPage = ({ initialTab = 'login' }) => {
     try {
       setLoading(true);
       setMessage('');
-      await register({
+      const userData = await register({
         name: registerData.name,
         email: registerData.email,
         password: registerData.password,
       });
 
-      // ✅ Đăng ký xong: báo message + chuyển qua tab login
+      // ✅ Đăng ký xong: báo message + chuyển qua tab login (không redirect admin)
       setMessage('Account created! Please login.');
       setIsRegister(false);
       setLoginData((prev) => ({

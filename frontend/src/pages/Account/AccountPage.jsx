@@ -76,7 +76,6 @@ export default function AccountPage() {
 
   // ==== FETCH SẢN PHẨM YÊU THÍCH TỪ wishlist + getProducts ====
   useEffect(() => {
-    console.log("[Account] user.wishlist =", user?.wishlist);
     // chưa đăng nhập hoặc không có wishlist → clear luôn
     if (!user || !Array.isArray(user.wishlist) || user.wishlist.length === 0) {
       setFavoriteItems([]);
@@ -140,7 +139,6 @@ export default function AccountPage() {
         }
       } catch (err) {
         if (cancelled) return;
-        console.error("Fetch wishlist/favorites error:", err);
         setFavoritesError("Không tải được sản phẩm yêu thích.");
 
         // fallback: dùng trực tiếp user.wishlist
@@ -447,7 +445,6 @@ export default function AccountPage() {
       const updated = await updateProfile({ addresses: list });
       updateUser?.(updated);
     } catch (err) {
-      console.error("Xoá địa chỉ thất bại:", err);
       alert(
         err?.response?.data?.message ||
         err.message ||
@@ -525,7 +522,6 @@ export default function AccountPage() {
       const updated = await updateProfile({ paymentMethods: list });
       updateUser?.(updated);
     } catch (err) {
-      console.error("Xoá phương thức thanh toán thất bại:", err);
       alert(
         err?.response?.data?.message ||
         err.message ||
@@ -634,7 +630,6 @@ export default function AccountPage() {
         fileInputRef.current.value = "";
       }
     } catch (err) {
-      console.error(err);
       setError(err.message || "Không thể đổi ảnh đại diện.");
     } finally {
       setUploadingAvatar(false);

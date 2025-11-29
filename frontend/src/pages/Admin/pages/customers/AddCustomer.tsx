@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { X, Plus, Trash2, UploadCloud, ChevronDown } from 'lucide-react';
+import { X, Plus, Trash2, UploadCloud, ChevronDown, Banknote } from 'lucide-react';
 import { createCustomer } from '../../../../api/customers';
 import { COUNTRY_CODE_MAP } from './constants/countries';
 import CountrySelectWithAlphabet from './components/shared/CountrySelectWithAlphabet';
@@ -64,7 +64,8 @@ const AddCustomer: React.FC<AddCustomerProps> = ({ onBack, setActivePage }) => {
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<{ file: File; url: string } | null>(null);
   const [isDragActive, setIsDragActive] = useState(false);
-  const [paymentMethods, setPaymentMethods] = useState<Array<{
+  // Payment method mặc định là COD (cash)
+  const [paymentMethods] = useState<Array<{
     type: 'cash' | 'card' | 'bank';
     isDefault: boolean;
     provider?: string;
@@ -72,7 +73,7 @@ const AddCustomer: React.FC<AddCustomerProps> = ({ onBack, setActivePage }) => {
     accountName?: string;
     brand?: string;
     last4?: string;
-  }>>([]);
+  }>>([{ type: 'cash', isDefault: true }]);
 
   const [phoneCountryCode, setPhoneCountryCode] = useState('+84');
   const [phoneCodeMenuOpen, setPhoneCodeMenuOpen] = useState(false);
@@ -162,7 +163,6 @@ const AddCustomer: React.FC<AddCustomerProps> = ({ onBack, setActivePage }) => {
         }
         setCities(citiesData);
       } catch (err) {
-        console.error('Failed to load cities:', err);
         setCities([]);
       } finally {
         setLoadingOptions((prev) => ({ ...prev, cities: false }));
@@ -208,7 +208,6 @@ const AddCustomer: React.FC<AddCustomerProps> = ({ onBack, setActivePage }) => {
           wards: false
         }));
       } catch (err) {
-        console.error('Failed to load districts:', err);
         setDistricts([]);
         setFeaturesAvailable((prev) => ({ ...prev, districts: false, wards: false }));
       } finally {
@@ -261,7 +260,6 @@ const AddCustomer: React.FC<AddCustomerProps> = ({ onBack, setActivePage }) => {
           const hasWards = wardsData.length > 0;
           setFeaturesAvailable((prev) => ({ ...prev, wards: hasWards }));
         } catch (err) {
-          console.error('Failed to load wards:', err);
           setWards([]);
           setFeaturesAvailable((prev) => ({ ...prev, wards: false }));
         } finally {
@@ -282,7 +280,6 @@ const AddCustomer: React.FC<AddCustomerProps> = ({ onBack, setActivePage }) => {
           const hasWards = wardsData.length > 0;
           setFeaturesAvailable((prev) => ({ ...prev, wards: hasWards }));
         } catch (err) {
-          console.error('Failed to load wards:', err);
           setWards([]);
           setFeaturesAvailable((prev) => ({ ...prev, wards: false }));
         } finally {
@@ -356,43 +353,6 @@ const AddCustomer: React.FC<AddCustomerProps> = ({ onBack, setActivePage }) => {
     }
   };
 
-  const handleAddPaymentMethod = () => {
-    setPaymentMethods(prev => [...prev, {
-      type: 'cash',
-      isDefault: prev.length === 0,
-      provider: '',
-      accountNumber: '',
-      accountName: '',
-      brand: '',
-      last4: '',
-    }]);
-  };
-
-  const handleRemovePaymentMethod = (index: number) => {
-    setPaymentMethods(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const handlePaymentMethodChange = (index: number, field: string, value: any) => {
-    setPaymentMethods(prev => prev.map((pm, i) => {
-      if (i === index) {
-        const updated = { ...pm, [field]: value };
-        // If setting as default, unset others
-        if (field === 'isDefault' && value === true) {
-          return updated;
-        }
-        // Auto-extract last4 from accountNumber if it's a number
-        if (field === 'accountNumber' && value && /^\d+$/.test(value)) {
-          updated.last4 = value.slice(-4);
-        }
-        return updated;
-      }
-      // Unset other defaults if this one is being set as default
-      if (field === 'isDefault' && value === true) {
-        return { ...pm, isDefault: false };
-      }
-      return pm;
-    }));
-  };
 
   const handleSubmit = async () => {
     try {
@@ -581,8 +541,31 @@ const AddCustomer: React.FC<AddCustomerProps> = ({ onBack, setActivePage }) => {
         <h2 className="text-2xl font-bold text-text-primary">Add Customer</h2>
         <button
           onClick={handleDiscard}
-          className="p-2 rounded-lg hover:bg-background-dark text-text-secondary hover:text-white transition-colors"
+          className="p-0 text-text-secondary"
           aria-label="Close"
+          style={{
+            transition: 'none !important',
+            boxShadow: 'none !important',
+            WebkitTransition: 'none !important',
+            MozTransition: 'none !important',
+            OTransition: 'none !important',
+            msTransition: 'none !important',
+            backgroundColor: 'transparent',
+            border: 'none',
+            cursor: 'pointer',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transition = 'none';
+            e.currentTarget.style.boxShadow = 'none';
+            e.currentTarget.style.backgroundColor = 'transparent';
+            e.currentTarget.style.color = 'rgb(156, 163, 175)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transition = 'none';
+            e.currentTarget.style.boxShadow = 'none';
+            e.currentTarget.style.backgroundColor = 'transparent';
+            e.currentTarget.style.color = 'rgb(156, 163, 175)';
+          }}
         >
           <X size={24} />
         </button>
@@ -602,7 +585,7 @@ const AddCustomer: React.FC<AddCustomerProps> = ({ onBack, setActivePage }) => {
                 placeholder="First Name"
                 value={formData.firstName}
                 onChange={(e) => handleInputChange('firstName', e.target.value)}
-                className="w-full bg-background-dark border border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary text-text-primary"
+                className="w-full h-10 bg-background-dark border border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary text-text-primary"
                 required
               />
             </div>
@@ -616,7 +599,7 @@ const AddCustomer: React.FC<AddCustomerProps> = ({ onBack, setActivePage }) => {
                 placeholder="Last Name"
                 value={formData.lastName}
                 onChange={(e) => handleInputChange('lastName', e.target.value)}
-                className="w-full bg-background-dark border border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary text-text-primary"
+                className="w-full h-10 bg-background-dark border border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary text-text-primary"
                 required
               />
             </div>
@@ -630,7 +613,7 @@ const AddCustomer: React.FC<AddCustomerProps> = ({ onBack, setActivePage }) => {
                 placeholder="john.doe@example.com"
                 value={formData.email}
                 onChange={(e) => handleInputChange('email', e.target.value)}
-                className="w-full bg-background-dark border border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary text-text-primary"
+                className="w-full h-10 bg-background-dark border border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary text-text-primary"
                 required
               />
             </div>
@@ -644,7 +627,7 @@ const AddCustomer: React.FC<AddCustomerProps> = ({ onBack, setActivePage }) => {
                   <button
                     type="button"
                     onClick={() => setPhoneCodeMenuOpen((prev) => !prev)}
-                    className="bg-background-dark border border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary flex items-center gap-1 hover:bg-background-dark hover:transform-none hover:shadow-none min-w-[90px]"
+                    className="h-10 bg-background-dark border border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary flex items-center gap-1 hover:bg-background-dark hover:transform-none hover:shadow-none min-w-[90px]"
                   >
                     <span className="text-text-primary">{phoneCountryCode}</span>
                     <ChevronDown size={16} className="text-text-secondary" />
@@ -673,7 +656,7 @@ const AddCustomer: React.FC<AddCustomerProps> = ({ onBack, setActivePage }) => {
                   placeholder="1234567890"
                   value={formData.phone}
                   onChange={(e) => handleInputChange('phone', e.target.value)}
-                  className="flex-1 bg-background-dark border border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary text-text-primary"
+                  className="flex-1 h-10 bg-background-dark border border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary text-text-primary"
                 />
               </div>
             </div>
@@ -685,7 +668,7 @@ const AddCustomer: React.FC<AddCustomerProps> = ({ onBack, setActivePage }) => {
               <select
                 value={formData.gender}
                 onChange={(e) => handleInputChange('gender', e.target.value)}
-                className={`w-full bg-background-dark border border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary ${
+                className={`w-full h-10 bg-background-dark border border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary ${
                   formData.gender === '' ? 'text-text-secondary' : 'text-text-primary'
                 }`}
                 required
@@ -713,7 +696,7 @@ const AddCustomer: React.FC<AddCustomerProps> = ({ onBack, setActivePage }) => {
               <select
                 value={formData.status}
                 onChange={(e) => handleInputChange('status', e.target.value)}
-                className={`w-full bg-background-dark border border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary ${
+                className={`w-full h-10 bg-background-dark border border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary ${
                   formData.status === '' ? 'text-text-secondary' : 'text-text-primary'
                 }`}
                 required
@@ -861,175 +844,18 @@ const AddCustomer: React.FC<AddCustomerProps> = ({ onBack, setActivePage }) => {
 
         {/* Payment Methods */}
         <div className="bg-background-dark/40 border border-gray-700 rounded-lg p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-text-primary">Payment Methods</h3>
-            <button
-              type="button"
-              onClick={handleAddPaymentMethod}
-              className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2"
-            >
-              <Plus size={16} />
-              Add Payment Method
-            </button>
-          </div>
-
-          {paymentMethods.length === 0 ? (
-            <p className="text-sm text-text-secondary">No payment methods added. Click "Add Payment Method" to add one.</p>
-          ) : (
-            <div className="space-y-4">
-              {paymentMethods.map((pm, index) => (
-                <div key={index} className="bg-background-dark border border-gray-600 rounded-lg p-4 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-medium text-text-primary">Payment Method {index + 1}</h4>
-                    <div className="flex items-center gap-2">
-                      <label className="flex items-center gap-2 text-sm text-text-secondary">
-                        <input
-                          type="checkbox"
-                          checked={pm.isDefault}
-                          onChange={(e) => handlePaymentMethodChange(index, 'isDefault', e.target.checked)}
-                          className="rounded"
-                        />
-                        Default
-                      </label>
-                      <button
-                        type="button"
-                        onClick={() => handleRemovePaymentMethod(index)}
-                        className="p-1 text-red-400 hover:text-red-300"
-                        aria-label="Remove payment method"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-text-secondary mb-1">
-                        Type <span className="text-red-400">*</span>
-                      </label>
-                      <select
-                        value={pm.type}
-                        onChange={(e) => handlePaymentMethodChange(index, 'type', e.target.value)}
-                        className="w-full bg-background-dark border border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary text-text-primary"
-                      >
-                        <option value="cash">Cash</option>
-                        <option value="card">Card</option>
-                        <option value="bank">Bank</option>
-                      </select>
-                    </div>
-
-                    {pm.type === 'bank' && (
-                      <>
-                        <div>
-                          <label className="block text-sm font-medium text-text-secondary mb-1">
-                            Provider
-                          </label>
-                          <input
-                            type="text"
-                            placeholder="Vietcombank"
-                            value={pm.provider || ''}
-                            onChange={(e) => handlePaymentMethodChange(index, 'provider', e.target.value)}
-                            className="w-full bg-background-dark border border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary text-text-primary"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-text-secondary mb-1">
-                            Account Number
-                          </label>
-                          <input
-                            type="text"
-                            placeholder="1234567890"
-                            value={pm.accountNumber || ''}
-                            onChange={(e) => handlePaymentMethodChange(index, 'accountNumber', e.target.value)}
-                            className="w-full bg-background-dark border border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary text-text-primary"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-text-secondary mb-1">
-                            Account Name
-                          </label>
-                          <input
-                            type="text"
-                            placeholder="Account holder name"
-                            value={pm.accountName || ''}
-                            onChange={(e) => handlePaymentMethodChange(index, 'accountName', e.target.value)}
-                            className="w-full bg-background-dark border border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary text-text-primary"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-text-secondary mb-1">
-                            Last 4 Digits
-                          </label>
-                          <input
-                            type="text"
-                            placeholder="7890"
-                            maxLength={4}
-                            value={pm.last4 || ''}
-                            onChange={(e) => handlePaymentMethodChange(index, 'last4', e.target.value.replace(/\D/g, '').slice(0, 4))}
-                            className="w-full bg-background-dark border border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary text-text-primary"
-                          />
-                        </div>
-                      </>
-                    )}
-
-                    {pm.type === 'card' && (
-                      <>
-                        <div>
-                          <label className="block text-sm font-medium text-text-secondary mb-1">
-                            Brand
-                          </label>
-                          <input
-                            type="text"
-                            placeholder="VISA, Mastercard, etc."
-                            value={pm.brand || ''}
-                            onChange={(e) => handlePaymentMethodChange(index, 'brand', e.target.value)}
-                            className="w-full bg-background-dark border border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary text-text-primary"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-text-secondary mb-1">
-                            Card Number
-                          </label>
-                          <input
-                            type="text"
-                            placeholder="1234567890123456"
-                            value={pm.accountNumber || ''}
-                            onChange={(e) => handlePaymentMethodChange(index, 'accountNumber', e.target.value.replace(/\D/g, ''))}
-                            className="w-full bg-background-dark border border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary text-text-primary"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-text-secondary mb-1">
-                            Cardholder Name
-                          </label>
-                          <input
-                            type="text"
-                            placeholder="Cardholder name"
-                            value={pm.accountName || ''}
-                            onChange={(e) => handlePaymentMethodChange(index, 'accountName', e.target.value)}
-                            className="w-full bg-background-dark border border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary text-text-primary"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-text-secondary mb-1">
-                            Last 4 Digits
-                          </label>
-                          <input
-                            type="text"
-                            placeholder="3456"
-                            maxLength={4}
-                            value={pm.last4 || ''}
-                            onChange={(e) => handlePaymentMethodChange(index, 'last4', e.target.value.replace(/\D/g, '').slice(0, 4))}
-                            className="w-full bg-background-dark border border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary text-text-primary"
-                          />
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </div>
-              ))}
+          <h3 className="text-lg font-semibold text-text-primary mb-4">Payment Methods</h3>
+          <div className="bg-background-dark border border-gray-600 rounded-lg p-4">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/20">
+                <Banknote className="text-primary" size={20} />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-text-primary">Cash on Delivery (COD)</p>
+                <p className="text-xs text-text-secondary">Default payment method</p>
+              </div>
             </div>
-          )}
+          </div>
         </div>
 
         {/* Billing Address Option */}

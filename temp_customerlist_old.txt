@@ -1,0 +1,1 @@
+how feature/admin-panel:frontend/src/pages/Admin/pages/customers/CustomerList.tsx

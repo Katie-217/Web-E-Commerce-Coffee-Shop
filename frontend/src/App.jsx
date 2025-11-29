@@ -26,7 +26,11 @@ import GoogleCallbackPage from './pages/Auth/GoogleCallbackPage';
 
 function AppShell() {
   const location = useLocation();
-  const hideNavbar = location.pathname.startsWith('/admin');
+  const hideNavbar =
+    location.pathname.startsWith('/admin') ||
+    location.pathname.startsWith('/checkout') ||
+    location.pathname.startsWith('/products') ||
+    location.pathname.startsWith('/product/');
 
   return (
     <>

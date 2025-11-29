@@ -98,7 +98,7 @@ const PopularProducts: React.FC = () => {
               </div>
               <div className="text-right">
                 <p className="font-semibold">{product.qty.toLocaleString('vi-VN')} sold</p>
-                <p className="text-xs text-text-secondary">{formatVND(product.revenue)}</p>
+                <p className="text-xs text-text-secondary whitespace-nowrap">{formatVND(product.revenue)}</p>
               </div>
             </div>
           ))}

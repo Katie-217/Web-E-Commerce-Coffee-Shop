@@ -125,25 +125,22 @@ router.get('/', async (req, res) => {
       sortOrder = { displayCode: 1 }; // Sort by displayCode ascending (alphabetical order)
     }
     
-    // Try different databases: 'orders' database first, then 'CoffeeDB'
-    // When searching, try all databases to find matching orders
+    // Ưu tiên query từ CoffeeDB với collections đúng tên
     let items = [];
     let total = 0;
     
-    // Try 1: 'orders' database > 'ordersList' collection
+    // Try 1: Current database (CoffeeDB) > 'orders' collection (ưu tiên cao nhất)
     try {
-      const ordersDb = mongoose.connection.useDb('orders', { useCache: true });
-      const coll = ordersDb.collection('ordersList');
       [items, total] = await Promise.all([
-        coll.find(filters).sort(sortOrder).skip(skip).limit(limit).toArray(),
-        coll.countDocuments(filters)
+        Order.find(filters).sort(sortOrder).skip(skip).limit(limit).lean(),
+        Order.countDocuments(filters)
       ]);
+      if (total > 0) {
+      }
     } catch (err) {
-      console.error("Error querying 'orders' database:", err);
     }
     
-    // Try 2: Current database (CoffeeDB) > ordersList collection
-    // Always try next database if no results yet (even with search query)
+    // Try 2: Current database (CoffeeDB) > ordersList collection (fallback)
     if (total === 0) {
       try {
         const coll = mongoose.connection.db.collection('ordersList');
@@ -151,21 +148,24 @@ router.get('/', async (req, res) => {
           coll.find(filters).sort(sortOrder).skip(skip).limit(limit).toArray(),
           coll.countDocuments(filters)
         ]);
+        if (total > 0) {
+        }
       } catch (err) {
-        console.error("Error querying current database ordersList:", err);
       }
     }
-
-    // Fallback to default Order model collection
-    // Always try fallback if no results yet (even with search query)
+    
+    // Try 3: 'orders' database > 'ordersList' collection (fallback)
     if (total === 0) {
       try {
+        const ordersDb = mongoose.connection.useDb('orders', { useCache: true });
+        const coll = ordersDb.collection('ordersList');
         [items, total] = await Promise.all([
-          Order.find(filters).sort(sortOrder).skip(skip).limit(limit).lean(),
-          Order.countDocuments(filters)
+          coll.find(filters).sort(sortOrder).skip(skip).limit(limit).toArray(),
+          coll.countDocuments(filters)
         ]);
+        if (total > 0) {
+        }
       } catch (err) {
-        console.error("Error querying default Order model:", err);
       }
     }
 
@@ -254,7 +254,6 @@ router.post('/', async (req, res) => {
         if (m) seq = parseInt(m[1], 10) + 1;
       }
     } catch (e) {
-      console.error('Find last order error:', e);
     }
 
     const seqStr = String(seq).padStart(4, '0');
@@ -266,7 +265,7 @@ router.post('/', async (req, res) => {
       Math.random().toString(16).slice(2, 6).toLowerCase();
 
     // Lấy email từ body hoặc từ user đăng nhập
-    const customerEmail =
+    let customerEmail =
       body.customerEmail ||
       (req.user && (req.user.email || req.user.username)) ||
       null;
@@ -277,11 +276,28 @@ router.post('/', async (req, res) => {
         message: 'customerEmail is required',
       });
     }
+    customerEmail = String(customerEmail).toLowerCase().trim();
 
-    const customerId =
+    const shippingAddressForCustomer = body.shippingAddress || {};
+    const deriveName = (source) => {
+      const name = (source && source.trim()) || customerEmail.split('@')[0] || 'Guest';
+      const parts = name.trim().split(/\s+/);
+      if (parts.length === 1) {
+        return { fullName: name, firstName: name, lastName: name };
+      }
+      const lastName = parts.pop();
+      const firstName = parts.join(' ');
+      return { fullName: name, firstName, lastName };
+    };
+
+    // Lấy customerId từ user đăng nhập hoặc từ body
+    let resolvedCustomerId =
       body.customerId ||
       (req.user && (req.user.id || req.user._id)) ||
       undefined;
+
+    // Nếu có customerId từ user đăng nhập, dùng luôn
+    // Nếu không, sẽ tạo customer sau khi order thành công
 
     // Trạng thái order/payout theo schema
     const VALID_STATUS = [
@@ -307,7 +323,7 @@ router.post('/', async (req, res) => {
       displayCode,
       items,
       customerEmail,
-      customerId,
+      customerId: resolvedCustomerId,
       customerName: body.customerName,
       customerPhone: body.customerPhone,
       shippingAddress: body.shippingAddress,
@@ -329,12 +345,75 @@ router.post('/', async (req, res) => {
     // 👉 dùng model Order nên chắc chắn đúng DB + collection
     const order = await Order.create(orderDoc);
 
+    // Tạo customer sau khi order thành công (nếu chưa có)
+    if (!resolvedCustomerId) {
+      try {
+        let existingCustomer = await Customer.findOne({ email: customerEmail });
+        if (existingCustomer) {
+          resolvedCustomerId = existingCustomer._id || existingCustomer.id;
+          // Cập nhật customerId vào order
+          order.customerId = resolvedCustomerId;
+          await order.save();
+        } else {
+          // Tạo customer mới với thông tin từ order
+          const names = deriveName(body.customerName || shippingAddressForCustomer.fullName);
+          const addressLine =
+            shippingAddressForCustomer.addressLine1 ||
+            shippingAddressForCustomer.addressLine ||
+            '';
+
+          const newCustomer = await Customer.create({
+            firstName: names.firstName,
+            lastName: names.lastName,
+            fullName: names.fullName,
+            email: customerEmail,
+            phone: body.customerPhone || shippingAddressForCustomer.phone || '',
+            provider: 'local',
+            role: 'customer',
+            status: 'active',
+            addresses:
+              addressLine || shippingAddressForCustomer.city
+                ? [
+                    {
+                      type: 'shipping',
+                      isDefault: true,
+                      fullName: shippingAddressForCustomer.fullName || names.fullName,
+                      phone: shippingAddressForCustomer.phone || body.customerPhone || '',
+                      addressLine1: addressLine,
+                      ward: shippingAddressForCustomer.ward || '',
+                      district: shippingAddressForCustomer.district || '',
+                      city: shippingAddressForCustomer.city || '',
+                    },
+                  ]
+                : [],
+          });
+          resolvedCustomerId = newCustomer._id;
+          
+          // Cập nhật customerId vào order
+          order.customerId = resolvedCustomerId;
+          await order.save();
+          
+        }
+      } catch (err) {
+        // Không throw error, order đã được tạo thành công
+      }
+    }
+
+    // Reload order để lấy customerId mới nhất
+    if (resolvedCustomerId) {
+      await order.populate('customerId');
+      const reloadedOrder = await Order.findById(order._id);
+      if (reloadedOrder) {
+        order.customerId = reloadedOrder.customerId || resolvedCustomerId;
+      }
+    }
+
     const transformed = {
       _id: String(order._id),
       id: order.id,
       displayCode: order.displayCode || null,
       customerEmail: order.customerEmail,
-      customerId: order.customerId,
+      customerId: resolvedCustomerId || order.customerId,
       customerName: order.customerName,
       customerPhone: order.customerPhone,
       items: order.items,
@@ -356,7 +435,6 @@ router.post('/', async (req, res) => {
 
     return res.status(201).json({ success: true, data: transformed });
   } catch (err) {
-    console.error('Create order error:', err);
     return res.status(500).json({
       success: false,
       message: 'Failed to create order',
@@ -503,7 +581,6 @@ async function updateCustomerLoyaltyPoints(order) {
       const customersColl = customersDb.collection('customersList');
       customer = await customersColl.findOne({ email: customerEmail });
     } catch (err) {
-      console.error('Error finding customer in customers DB:', err);
     }
     
     // Try current database
@@ -512,7 +589,6 @@ async function updateCustomerLoyaltyPoints(order) {
         const customersColl = mongoose.connection.db.collection('customersList');
         customer = await customersColl.findOne({ email: customerEmail });
       } catch (err) {
-        console.error('Error finding customer in current DB:', err);
       }
     }
     
@@ -521,17 +597,15 @@ async function updateCustomerLoyaltyPoints(order) {
       try {
         customer = await Customer.findOne({ email: customerEmail }).lean();
       } catch (err) {
-        console.error('Error finding customer in Customer model:', err);
       }
     }
     
     if (!customer) {
-      console.warn(`Customer not found for email: ${customerEmail}`);
       return;
     }
     
-    // Calculate points earned (10% of orderTotal BEFORE discount)
-    const orderTotal = order.subtotal + (order.shippingFee || 0);
+    // Calculate points earned (10% of order total)
+    const orderTotal = Number(order.total) || 0;
     const pointsEarned = calculatePointsEarned(orderTotal);
     
     if (pointsEarned <= 0) return;
@@ -581,13 +655,11 @@ async function updateCustomerLoyaltyPoints(order) {
             $push: { 'loyalty.history': historyEntry }
           });
         } catch (err3) {
-          console.error('Error updating customer loyalty points:', err3);
         }
       }
     }
     
   } catch (err) {
-    console.error('Error in updateCustomerLoyaltyPoints:', err);
   }
 }
 
@@ -629,10 +701,27 @@ router.patch('/:id', async (req, res) => {
       }
     }
     
-    // Calculate points earned when order is delivered
+    // Calculate points earned when order is delivered (10% of order total)
     if (status === 'delivered' && currentOrder) {
-      const orderTotal = (currentOrder.subtotal || 0) + (currentOrder.shippingFee || 0);
+      const orderTotal = Number(currentOrder.total) || 0;
       updateData.pointsEarned = calculatePointsEarned(orderTotal);
+      
+      // Với COD: chỉ khi delivery thành công mới set paymentStatus = 'paid'
+      const paymentMethod = currentOrder.paymentMethod || 'cod';
+      if (paymentMethod === 'cod' || paymentMethod === 'cash') {
+        updateData.paymentStatus = 'paid';
+      }
+    } else if (status && currentOrder) {
+      // Với COD: các trạng thái khác 'delivered' không được set paymentStatus = 'paid'
+      const paymentMethod = currentOrder.paymentMethod || 'cod';
+      if ((paymentMethod === 'cod' || paymentMethod === 'cash') && status !== 'delivered') {
+        // Nếu đang cập nhật status sang trạng thái khác delivered, và paymentStatus hiện tại là 'paid'
+        // nhưng chưa delivered → giữ nguyên hoặc set về 'pending' nếu chưa thanh toán
+        if (currentOrder.paymentStatus === 'paid' && currentOrder.status !== 'delivered') {
+          // Chỉ set về pending nếu order chưa từng delivered
+          updateData.paymentStatus = 'pending';
+        }
+      }
     }
     
     updateData.updatedAt = new Date();
@@ -929,7 +1018,6 @@ router.patch('/:id', async (req, res) => {
             
           }
         } catch (err) {
-          console.error('Error deducting points from customer:', err);
         }
       }
     }

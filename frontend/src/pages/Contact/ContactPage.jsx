@@ -127,7 +127,7 @@ const ContactPage = () => {
                 <p>13 PM – 21 PM</p>
               </div>
             </div>
-            <button className="menu-button"><Link to = "/menu/takeaway">VIEW THE MENU</Link></button>
+            <button className="menu-button"><Link to = "/menu/roast-coffee">VIEW THE MENU</Link></button>
 
           </div>
 

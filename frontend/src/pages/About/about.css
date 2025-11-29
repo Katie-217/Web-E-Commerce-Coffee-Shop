@@ -210,3 +210,100 @@
     order: -1; /* đưa hình lên trước trên mobile */
   }
 }
+
+/* ========= ABOUT PAGE RESPONSIVE ========= */
+
+/* Tablet */
+@media (max-width: 1024px) {
+  .about-hero {
+    height: auto;                /* bỏ full-screen */
+    padding: 100px 20px 120px;   /* chừa khoảng cho box story */
+    margin-bottom: 40px;
+    text-align: center;
+  }
+
+  .about-hero h1 {
+    font-size: 2.6rem;
+  }
+
+  .about-hero p {
+    font-size: 1rem;
+    max-width: 90%;
+  }
+
+  /* story-box vẫn overlay nhưng gọn hơn */
+  .story-box {
+    bottom: -100px;
+    left: 50%;
+    max-width: 70%;
+    transform: translateX(-50%);
+  }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .about-hero {
+    height: auto;
+    padding: 80px 16px 40px;   /* không cần tràn xuống nhiều */
+    margin-bottom: 20px;
+    text-align: center;
+  }
+
+  .about-hero h1 {
+    font-size: 2rem;
+    line-height: 1.2;
+  }
+
+  .about-hero p {
+    font-size: 0.95rem;
+    max-width: 100%;
+  }
+
+  /* Story box: bỏ overlay, thành card bình thường bên dưới hero */
+  .story-box {
+    position: static;
+    max-width: 100%;
+    width: 100%;
+    transform: none;
+    bottom: auto;
+    left: auto;
+    margin: 24px auto 40px;
+    padding: 20px 16px;
+  }
+
+  /* Sections dưới: xếp 1 cột, hình full width, text dưới */
+  .section {
+    grid-template-columns: 1fr;
+    align-items: start;
+    text-align: left;
+    gap: 24px;
+  }
+
+  .section img {
+    width: 100%;
+    object-fit: cover;
+    order: -1;  /* hình lên trước */
+  }
+
+  /* bỏ đảo chiều ở section chẵn */
+  .sections-wrapper .section:nth-of-type(even) {
+    direction: ltr;
+  }
+  .sections-wrapper .section:nth-of-type(even) > * {
+    direction: ltr;
+  }
+
+  /* Quote box */
+  .highlight {
+    margin: 40px 16px 60px;
+  }
+
+  .container {
+    padding: 0 16px;
+  }
+}
+@media (max-width: 768px) {
+  .text-box {
+    padding: 16px 20px;
+  }
+}

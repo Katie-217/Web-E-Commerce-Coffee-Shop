@@ -48,7 +48,7 @@ const PAYMENT_STATUS_LABELS = {
 };
 
 const STATUS_STEPS = [
-  { key: "created", label: "Order placed" },
+  { key: "created", label: "Pending" },
   { key: "processing", label: "Processing" },
   { key: "shipping", label: "Shipping" },
   { key: "delivered", label: "Delivered" },
@@ -108,21 +108,28 @@ const OrderDetail = () => {
       });
 
       if (!res.ok) {
-        const text = await res.text();
+        const text = await res.text(); // vẫn log ra console cho dev xem
         console.error("OrderDetail ERROR response:", text);
-        throw new Error(
-          "Failed to fetch order details (status " + res.status + ")"
-        );
+
+        let message = "Unable to load order. Please try again later.";
+
+        if (res.status === 404) {
+          message = "Order not found.";
+        } else if (res.status === 401 || res.status === 403) {
+          message = "You need to sign in to view this order.";
+        }
+
+        throw new Error(message);
       }
+
 
       const contentType = res.headers.get("content-type") || "";
       if (!contentType.includes("application/json")) {
         const text = await res.text();
         console.error("OrderDetail – non-JSON response:", text);
-        throw new Error(
-          "Server returned non-JSON data (usually caused by calling the wrong API URL)."
-        );
+        throw new Error("Something went wrong on the server. Please try again later.");
       }
+
 
       const data = await res.json();
       // backend: { success:true, data:{...} }
@@ -214,6 +221,7 @@ const OrderDetail = () => {
               </button>
             </div>
           )}
+
 
           {!loading && !error && !order && (
             <div className="order-detail-state order-detail-error">

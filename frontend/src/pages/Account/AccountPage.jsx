@@ -6,8 +6,6 @@ import "./account-page.css";
 import { getProducts } from "../../services/products";
 import { useNavigate } from "react-router-dom";
 
-
-
 const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL || "http://localhost:3001";
 
@@ -30,7 +28,7 @@ function Modal({ title, onClose, children }) {
             type="button"
             className="account-modal-close"
             onClick={onClose}
-            aria-label="Đóng"
+            aria-label="Close"
           >
             ×
           </button>
@@ -42,18 +40,17 @@ function Modal({ title, onClose, children }) {
 }
 
 export default function AccountPage() {
-  const { user, logout, updateUser } = useAuth(); // updateUser: đã thêm ở AuthContext
+  const { user, logout, updateUser } = useAuth();
 
   const navigate = useNavigate();
 
   const handleLogout = () => {
     logout();
-    navigate("/"); // về home
+    navigate("/"); // back to home
   };
 
-
-  // ==== STATES CƠ BẢN ====
-  const [activeModal, setActiveModal] = useState(null); // 'profile' | 'address' | 'payment' | 'password'
+  // ==== BASIC STATES ====
+  const [activeModal, setActiveModal] = useState(null); // 'profile' | 'address' | 'payment' | 'password' | 'forgot'
   const [profileForm, setProfileForm] = useState(null);
   const [addressForm, setAddressForm] = useState(null);
   const [addressIndex, setAddressIndex] = useState(-1);
@@ -69,16 +66,27 @@ export default function AccountPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  // ==== STATES CHO YÊU THÍCH ====
+  // ==== FORGOT PASSWORD WITH OTP ====
+  const [forgotStep, setForgotStep] = useState("request"); // 'request' | 'verify'
+  const [forgotForm, setForgotForm] = useState({
+    email: "",
+    otp: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+  const [forgotInfo, setForgotInfo] = useState("");
+
+  // ==== FAVORITES STATES ====
   const [favoriteItems, setFavoriteItems] = useState([]); // [{ productId, dateAdded, isOnSale, product }]
   const [favoritesLoading, setFavoritesLoading] = useState(false);
   const [favoritesError, setFavoritesError] = useState("");
 
-  // ==== FETCH SẢN PHẨM YÊU THÍCH TỪ wishlist + getProducts ====
+  // ==== FETCH FAVORITE PRODUCTS FROM wishlist + getProducts ====
   useEffect(() => {
     console.log("[Account] user.wishlist =", user?.wishlist);
-    // chưa đăng nhập hoặc không có wishlist → clear luôn
-    if (!user || !Array.isArray(user.wishlist) || user.wishlist.length === 0) {
+
+    // not logged in or no wishlist → clear
+    if (!user || !Array.isArray(user?.wishlist) || user.wishlist.length === 0) {
       setFavoriteItems([]);
       setFavoritesError("");
       return;
@@ -91,8 +99,8 @@ export default function AccountPage() {
         setFavoritesLoading(true);
         setFavoritesError("");
 
-        // chuẩn hóa wishlist
-        const normalizedWishlist = user.wishlist
+        // 1) Normalize wishlist: always have productId as string
+        const normalizedWishlist = (user.wishlist || [])
           .filter(Boolean)
           .map((entry) => {
             const pid =
@@ -117,23 +125,110 @@ export default function AccountPage() {
           return;
         }
 
-        const products = await getProducts({ page: 1, limit: 1000 });
-        const list = Array.isArray(products) ? products : [];
+        // 2) GET PRODUCT LIST AS ARRAY
+        const result = await getProducts({ page: 1, limit: 1000 });
 
-        const productById = new Map(
-          list.map((p) => [String(p._id || p.id), p])
-        );
+        let list = [];
+        if (Array.isArray(result)) {
+          list = result;
+        } else if (Array.isArray(result?.data)) {
+          list = result.data;
+        } else if (Array.isArray(result?.items)) {
+          list = result.items;
+        } else if (Array.isArray(result?.products)) {
+          list = result.products;
+        }
 
-        const favorites = normalizedWishlist
-          .map((entry) => ({
-            ...entry,
-            product: productById.get(entry.productId) || entry.product || null,
-          }))
-          .sort((a, b) => {
-            const da = a.dateAdded ? new Date(a.dateAdded).getTime() : 0;
-            const db = b.dateAdded ? new Date(b.dateAdded).getTime() : 0;
-            return db - da;
+        console.log("[Account] products from API =", list);
+
+        // 3) Index products by multiple keys (_id, id, productId, sku, slug)
+        const productByKey = new Map();
+
+        list.forEach((p) => {
+          if (!p) return;
+          const keys = [p._id, p.id, p.productId, p.sku, p.slug]
+            .filter((k) => k !== undefined && k !== null)
+            .map((k) => String(k));
+
+          keys.forEach((k) => {
+            if (!productByKey.has(k)) {
+              productByKey.set(k, p);
+            }
           });
+        });
+
+        // 4) Merge wishlist + products
+        const favorites = [];
+
+        for (const entry of normalizedWishlist) {
+          let product = null;
+
+          // potential keys used to match product
+          const candidateKeys = [
+            entry.productId,
+            entry.id,
+            entry._id,
+            entry.sku,
+            entry.slug,
+            entry.product?._id,
+            entry.product?.id,
+            entry.product?.productId,
+          ]
+            .filter((k) => k !== undefined && k !== null)
+            .map((k) => String(k));
+
+          for (const key of candidateKeys) {
+            if (productByKey.has(key)) {
+              product = productByKey.get(key);
+              break;
+            }
+          }
+
+          // 5) If still not found → fetch /api/products/:id (legacy numeric ids)
+          if (!product && entry.productId) {
+            try {
+              const res = await fetch(
+                `${API_BASE_URL}/api/products/${encodeURIComponent(
+                  entry.productId
+                )}`
+              );
+              if (res.ok) {
+                const data = await res.json();
+                const p = data.data || data.product || data.item || data;
+
+                if (p) {
+                  product = p;
+                  // cache as well
+                  const keys = [
+                    p._id,
+                    p.id,
+                    p.productId,
+                    p.sku,
+                    p.slug,
+                    entry.productId,
+                  ]
+                    .filter(Boolean)
+                    .map(String);
+                  keys.forEach((k) => {
+                    if (!productByKey.has(k)) {
+                      productByKey.set(k, p);
+                    }
+                  });
+                }
+              }
+            } catch (errSingle) {
+              console.error(
+                "Fetch single product for wishlist failed:",
+                errSingle
+              );
+            }
+          }
+
+          favorites.push({
+            ...entry,
+            product: product || entry.product || null,
+          });
+        }
 
         if (!cancelled) {
           setFavoriteItems(favorites);
@@ -141,30 +236,29 @@ export default function AccountPage() {
       } catch (err) {
         if (cancelled) return;
         console.error("Fetch wishlist/favorites error:", err);
-        setFavoritesError("Không tải được sản phẩm yêu thích.");
+        setFavoritesError("Could not load favorite products.");
 
-        // fallback: dùng trực tiếp user.wishlist
-        const fallback =
-          (Array.isArray(user?.wishlist) ? user.wishlist : [])
-            .filter(Boolean)
-            .map((entry) => {
-              const pid =
-                entry.productId ??
-                entry.product ??
-                entry.id ??
-                entry._id ??
-                entry.product?._id ??
-                entry.product?.id;
+        // fallback: use user.wishlist directly
+        const fallback = (Array.isArray(user?.wishlist) ? user.wishlist : [])
+          .filter(Boolean)
+          .map((entry) => {
+            const pid =
+              entry.productId ??
+              entry.product ??
+              entry.id ??
+              entry._id ??
+              entry.product?._id ??
+              entry.product?.id;
 
-              if (!pid) return null;
+            if (!pid) return null;
 
-              return {
-                ...entry,
-                productId: String(pid),
-                product: entry.product || null,
-              };
-            })
-            .filter(Boolean);
+            return {
+              ...entry,
+              productId: String(pid),
+              product: entry.product || null,
+            };
+          })
+          .filter(Boolean);
 
         setFavoriteItems(fallback);
       } finally {
@@ -177,18 +271,18 @@ export default function AccountPage() {
     };
   }, [user]);
 
-  // === SAFETY: nếu không có user (trong lúc load) ===
+  // === SAFETY: no user (while loading) ===
   if (!user) {
     return (
       <main className="account-page">
         <section className="account-card">
-          <p className="account-empty">Đang tải tài khoản...</p>
+          <p className="account-empty">Loading account...</p>
         </section>
       </main>
     );
   }
 
-  // ==== DERIVED TỪ user ====
+  // ==== DERIVED FROM user ====
   const {
     _id,
     id,
@@ -209,44 +303,44 @@ export default function AccountPage() {
   const customerId = id || _id;
   const rawWishlist = Array.isArray(user?.wishlist) ? user.wishlist : [];
 
-  // fallback: nếu favoriteItems rỗng nhưng user.wishlist có dữ liệu
+  // fallback: if favoriteItems is empty but user.wishlist has data
   const displayFavorites =
     favoriteItems.length > 0
       ? favoriteItems
       : rawWishlist.map((entry, idx) => {
-        const pid =
-          entry.productId ??
-          entry.product ??
-          entry.id ??
-          entry._id ??
-          entry.product?._id ??
-          entry.product?.id ??
-          idx;
+          const pid =
+            entry.productId ??
+            entry.product ??
+            entry.id ??
+            entry._id ??
+            entry.product?._id ??
+            entry.product?.id ??
+            idx;
 
-        return {
-          ...entry,
-          productId: String(pid),
-          product: entry.product || null,
-        };
-      });
+          return {
+            ...entry,
+            productId: String(pid),
+            product: entry.product || null,
+          };
+        });
 
   const displayName =
     fullName ||
     `${firstName || ""} ${lastName || ""}`.trim() ||
     name ||
-    "Người dùng";
+    "Customer";
 
   const avatar = avatarUrl || user?.avatar || "/images/avatar-default.png";
 
   const genderLabel =
-    gender === "male" ? "Nam" : gender === "female" ? "Nữ" : gender || "—";
+    gender === "male" ? "Male" : gender === "female" ? "Female" : gender || "—";
 
   const loyaltyData = loyalty || {};
 
   let dobText = null;
   if (dateOfBirth) {
     const d = new Date(dateOfBirth);
-    dobText = isNaN(d.getTime()) ? null : d.toLocaleDateString("vi-VN");
+    dobText = isNaN(d.getTime()) ? null : d.toLocaleDateString("en-US");
   }
 
   const points =
@@ -260,15 +354,15 @@ export default function AccountPage() {
     tierKey === "platinum"
       ? "Platinum"
       : tierKey === "gold"
-        ? "Vàng"
-        : tierKey === "silver"
-          ? "Bạc"
-          : tierKey === "bronze"
-            ? "Đồng"
-            : loyaltyData.tier || "Thành viên";
+      ? "Gold"
+      : tierKey === "silver"
+      ? "Silver"
+      : tierKey === "bronze"
+      ? "Bronze"
+      : loyaltyData.tier || "Member";
 
   const lastAccrualText = loyaltyData.lastAccrualAt
-    ? new Date(loyaltyData.lastAccrualAt).toLocaleString("vi-VN")
+    ? new Date(loyaltyData.lastAccrualAt).toLocaleString("en-US")
     : null;
 
   const maskedCustomerId = customerId
@@ -294,16 +388,16 @@ export default function AccountPage() {
       index >= 0 && addresses[index]
         ? addresses[index]
         : {
-          label: "home",
-          type: "shipping",
-          isDefault: addresses.length === 0,
-          fullName: displayName || "",
-          phone: phone || "",
-          addressLine1: "",
-          ward: "",
-          district: "",
-          city: "",
-        };
+            label: "home",
+            type: "shipping",
+            isDefault: addresses.length === 0,
+            fullName: displayName || "",
+            phone: phone || "",
+            addressLine1: "",
+            ward: "",
+            district: "",
+            city: "",
+          };
     setAddressForm(base);
     setAddressIndex(index);
     setError("");
@@ -315,20 +409,33 @@ export default function AccountPage() {
       index >= 0 && paymentMethods[index]
         ? paymentMethods[index]
         : {
-          type: "cash",
-          provider: "",
-          brand: "",
-          holderName: displayName || "",
-          accountNumber: "",
-          last4: "",
-          expMonth: "",
-          expYear: "",
-          isDefault: paymentMethods.length === 0,
-        };
+            type: "cash",
+            provider: "",
+            brand: "",
+            holderName: displayName || "",
+            accountNumber: "",
+            last4: "",
+            expMonth: "",
+            expYear: "",
+            isDefault: paymentMethods.length === 0,
+          };
     setPaymentForm(base);
     setPaymentIndex(index);
     setError("");
     setActiveModal("payment");
+  };
+
+  const openForgotModal = () => {
+    setForgotStep("request");
+    setForgotForm({
+      email: email || "",
+      otp: "",
+      newPassword: "",
+      confirmPassword: "",
+    });
+    setForgotInfo("");
+    setError("");
+    setActiveModal("forgot");
   };
 
   const openPasswordModal = () => {
@@ -345,6 +452,16 @@ export default function AccountPage() {
     setActiveModal(null);
     setSaving(false);
     setError("");
+
+    // reset forgot password state
+    setForgotStep("request");
+    setForgotForm({
+      email: "",
+      otp: "",
+      newPassword: "",
+      confirmPassword: "",
+    });
+    setForgotInfo("");
   };
 
   // ===== SAVE HANDLERS =====
@@ -366,8 +483,8 @@ export default function AccountPage() {
     } catch (err) {
       setError(
         err?.response?.data?.message ||
-        err.message ||
-        "Lưu thông tin thất bại"
+          err.message ||
+          "Failed to save profile."
       );
     } finally {
       setSaving(false);
@@ -379,7 +496,7 @@ export default function AccountPage() {
     if (!addressForm) return;
 
     if (!addressForm.addressLine1 || !addressForm.city) {
-      setError("Vui lòng nhập tối thiểu Địa chỉ & Thành phố.");
+      setError("Please enter at least Address and City.");
       return;
     }
 
@@ -397,7 +514,7 @@ export default function AccountPage() {
         idx = list.length - 1;
       }
 
-      // ensure 1 default
+      // ensure exactly one default
       let defaultIndex = -1;
 
       if (addressForm.isDefault) {
@@ -419,8 +536,8 @@ export default function AccountPage() {
     } catch (err) {
       setError(
         err?.response?.data?.message ||
-        err.message ||
-        "Lưu địa chỉ thất bại"
+          err.message ||
+          "Failed to save address."
       );
     } finally {
       setSaving(false);
@@ -429,7 +546,7 @@ export default function AccountPage() {
 
   const handleDeleteAddress = async (idx) => {
     if (idx < 0 || idx >= addresses.length) return;
-    if (!window.confirm("Bạn chắc chắn muốn xoá địa chỉ này?")) return;
+    if (!window.confirm("Are you sure you want to delete this address?")) return;
 
     try {
       setSaving(true);
@@ -447,11 +564,11 @@ export default function AccountPage() {
       const updated = await updateProfile({ addresses: list });
       updateUser?.(updated);
     } catch (err) {
-      console.error("Xoá địa chỉ thất bại:", err);
+      console.error("Delete address failed:", err);
       alert(
         err?.response?.data?.message ||
-        err.message ||
-        "Xoá địa chỉ thất bại"
+          err.message ||
+          "Failed to delete address."
       );
     } finally {
       setSaving(false);
@@ -497,8 +614,8 @@ export default function AccountPage() {
     } catch (err) {
       setError(
         err?.response?.data?.message ||
-        err.message ||
-        "Lưu phương thức thanh toán thất bại"
+          err.message ||
+          "Failed to save payment method."
       );
     } finally {
       setSaving(false);
@@ -507,7 +624,7 @@ export default function AccountPage() {
 
   const handleDeletePayment = async (idx) => {
     if (idx < 0 || idx >= paymentMethods.length) return;
-    if (!window.confirm("Bạn chắc chắn muốn xoá phương thức này?")) return;
+    if (!window.confirm("Are you sure you want to delete this method?")) return;
 
     try {
       setSaving(true);
@@ -525,11 +642,11 @@ export default function AccountPage() {
       const updated = await updateProfile({ paymentMethods: list });
       updateUser?.(updated);
     } catch (err) {
-      console.error("Xoá phương thức thanh toán thất bại:", err);
+      console.error("Delete payment method failed:", err);
       alert(
         err?.response?.data?.message ||
-        err.message ||
-        "Xoá phương thức thanh toán thất bại"
+          err.message ||
+          "Failed to delete payment method."
       );
     } finally {
       setSaving(false);
@@ -539,11 +656,11 @@ export default function AccountPage() {
   const handleChangePassword = async (e) => {
     e.preventDefault();
     if (!passwordForm.newPassword || passwordForm.newPassword.length < 6) {
-      setError("Mật khẩu mới tối thiểu 6 ký tự.");
+      setError("New password must be at least 6 characters.");
       return;
     }
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      setError("Xác nhận mật khẩu không khớp.");
+      setError("Password confirmation does not match.");
       return;
     }
     try {
@@ -554,12 +671,121 @@ export default function AccountPage() {
         newPassword: passwordForm.newPassword,
       });
       closeModal();
-      alert("Đổi mật khẩu thành công.");
+      alert("Password changed successfully.");
     } catch (err) {
       setError(
         err?.response?.data?.message ||
-        err.message ||
-        "Đổi mật khẩu thất bại"
+          err.message ||
+          "Failed to change password."
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleForgotRequest = async (e) => {
+    e.preventDefault();
+
+    if (!forgotForm.email) {
+      setError("Please enter your email.");
+      return;
+    }
+
+    try {
+      setSaving(true);
+      setError("");
+      setForgotInfo("");
+
+      const res = await fetch(
+        `${API_BASE_URL}/api/auth/forgot-password/request`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: forgotForm.email }),
+        }
+      );
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(
+          data?.message ||
+            "Unable to send verification code. Please try again later."
+        );
+      }
+
+      setForgotInfo(
+        data?.message ||
+          "Verification code sent. Please check your email (including Spam)."
+      );
+      setForgotStep("verify");
+    } catch (err) {
+      console.error("Forgot password request error:", err);
+      setError(
+        err?.message ||
+          "Unable to send verification code. Please try again later."
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleForgotVerify = async (e) => {
+    e.preventDefault();
+
+    if (!forgotForm.otp || !forgotForm.newPassword) {
+      setError(
+        "Please enter both the verification code and the new password."
+      );
+      return;
+    }
+    if (forgotForm.newPassword.length < 6) {
+      setError("New password must be at least 6 characters.");
+      return;
+    }
+    if (forgotForm.newPassword !== forgotForm.confirmPassword) {
+      setError("Password confirmation does not match.");
+      return;
+    }
+
+    try {
+      setSaving(true);
+      setError("");
+      setForgotInfo("");
+
+      const res = await fetch(
+        `${API_BASE_URL}/api/auth/forgot-password/verify`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: forgotForm.email,
+            otp: forgotForm.otp,
+            newPassword: forgotForm.newPassword,
+          }),
+        }
+      );
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(
+          data?.message ||
+            "Failed to reset password. Please try again later."
+        );
+      }
+
+      // success
+      closeModal();
+      alert(
+        data?.message ||
+          "Password reset successfully. Please use your new password next time you log in."
+      );
+    } catch (err) {
+      console.error("Forgot password verify error:", err);
+      setError(
+        err?.message ||
+          "Failed to reset password. Please try again later."
       );
     } finally {
       setSaving(false);
@@ -571,29 +797,25 @@ export default function AccountPage() {
       fileInputRef.current.click();
     }
   };
+
   const goToFavoriteProduct = (fav) => {
     if (!fav) return;
 
     const p = fav.product || {};
-    const id =
-      p.id ||
-      p._id ||
-      fav.productId ||
-      p.slug;
+    const id = p.id || p._id || fav.productId || p.slug;
 
     if (!id) return;
 
-    // dùng path /products/:id giống cart
+    // use /products/:id path (same as cart)
     navigate(`/products/${id}`);
   };
-
 
   const handleAvatarFileChange = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      setError("Vui lòng chọn đúng file hình ảnh.");
+      setError("Please select a valid image file.");
       return;
     }
 
@@ -602,24 +824,40 @@ export default function AccountPage() {
       setUploadingAvatar(true);
 
       const formData = new FormData();
+      // field name must match backend upload handler (image/file/avatar...)
       formData.append("image", file);
 
-      const uploadRes = await fetch("/api/upload/image", {
-        method: "POST",
-        body: formData,
-      });
+      // use API_BASE_URL and include cookies
+      const uploadRes = await fetch(
+        `${API_BASE_URL}/api/upload/image`,
+        {
+          method: "POST",
+          body: formData,
+          credentials: "include",
+        }
+      );
 
       if (!uploadRes.ok) {
-        throw new Error("Upload ảnh thất bại, thử lại sau.");
+        const text = await uploadRes.text();
+        console.error("Upload avatar failed:", text);
+        throw new Error("Avatar upload failed. Please try again later.");
       }
 
       const uploadData = await uploadRes.json();
-      const uploadedUrl = uploadData.url || uploadData.secure_url;
+      console.log("Avatar upload response:", uploadData);
+
+      // support multiple response formats
+      const uploadedUrl =
+        uploadData.url ||
+        uploadData.secure_url ||
+        uploadData.data?.url ||
+        uploadData.data?.secure_url;
 
       if (!uploadedUrl) {
-        throw new Error("Không nhận được đường dẫn ảnh từ server.");
+        throw new Error("Did not receive image URL from server.");
       }
 
+      // Update profile with new avatar
       const result = await updateProfile({
         avatarUrl: uploadedUrl,
       });
@@ -630,12 +868,13 @@ export default function AccountPage() {
         updateUser?.(result);
       }
 
+      // reset input
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
     } catch (err) {
       console.error(err);
-      setError(err.message || "Không thể đổi ảnh đại diện.");
+      setError(err.message || "Could not update avatar.");
     } finally {
       setUploadingAvatar(false);
     }
@@ -647,7 +886,12 @@ export default function AccountPage() {
       <section className="account-card">
         {/* HEADER */}
         <header className="account-header">
-          <div className="account-avatar">
+          <div
+            className={
+              "account-avatar" +
+              (uploadingAvatar ? " account-avatar--loading" : "")
+            }
+          >
             <img src={avatar} alt={displayName} />
 
             <button
@@ -655,10 +899,15 @@ export default function AccountPage() {
               className="account-avatar-change"
               onClick={handleClickChangeAvatar}
               disabled={uploadingAvatar}
-              title="Đổi ảnh đại diện"
+              aria-label="Change avatar"
             >
-              <span className="material-symbols-outlined">
-                {uploadingAvatar ? "progress_activity" : "edit"}
+              <span
+                className={
+                  "material-symbols-outlined" +
+                  (uploadingAvatar ? " account-avatar-icon--spinning" : "")
+                }
+              >
+                edit
               </span>
             </button>
 
@@ -674,11 +923,11 @@ export default function AccountPage() {
           <div className="account-header-main">
             <div className="account-header-top">
               <div>
-                <span className="account-label">Trang tài khoản</span>
+                <span className="account-label">Account</span>
                 <h1 className="account-name">{displayName}</h1>
 
                 <div className="account-id-inline">
-                  <span className="account-id-label">Mã khách hàng</span>
+                  <span className="account-id-label">Customer ID</span>
                   <span className="account-id-value">{maskedCustomerId}</span>
                 </div>
 
@@ -689,35 +938,38 @@ export default function AccountPage() {
             <div className="account-header-bottom">
               <div className="account-loyalty-pill">
                 <span className="tier">{tierLabel}</span>
-                <span className="points">{points} điểm tích lũy</span>
+                <span className="points">{points} loyalty points</span>
               </div>
               {lastAccrualText && (
                 <span className="account-loyalty-note">
-                  Lần tích điểm gần nhất: {lastAccrualText}
+                  Last point accrual: {lastAccrualText}
                 </span>
               )}
             </div>
           </div>
 
           <div className="account-header-actions">
-            <button className="account-logout" type="button" onClick={handleLogout}>
-              Đăng xuất
+            <button
+              className="account-logout"
+              type="button"
+              onClick={handleLogout}
+            >
+              Log out
             </button>
-
           </div>
         </header>
 
-        {/* THÔNG TIN CÁ NHÂN */}
+        {/* PERSONAL INFO */}
         <section className="account-section">
           <div className="section-title-row">
-            <h2 className="section-title">Thông tin cá nhân</h2>
+            <h2 className="section-title">Personal information</h2>
           </div>
 
           <dl className="account-info">
-            <InfoRow label="Họ tên" value={displayName} />
-            <InfoRow label="Số điện thoại" value={phone} />
-            <InfoRow label="Giới tính" value={genderLabel} />
-            <InfoRow label="Ngày sinh" value={dobText} />
+            <InfoRow label="Full name" value={displayName} />
+            <InfoRow label="Phone number" value={phone} />
+            <InfoRow label="Gender" value={genderLabel} />
+            <InfoRow label="Date of birth" value={dobText} />
           </dl>
 
           <div className="account-primary-actions">
@@ -726,55 +978,62 @@ export default function AccountPage() {
               type="button"
               onClick={openProfileModal}
             >
-              Chỉnh sửa thông tin
+              Edit profile
             </button>
             <button
               className="account-edit-btn"
               type="button"
               onClick={openPasswordModal}
             >
-              Đổi mật khẩu
+              Change password
+            </button>
+            <button
+              className="account-edit-btn account-edit-btn--ghost"
+              type="button"
+              onClick={openForgotModal}
+            >
+              Forgot password / get OTP via email
             </button>
           </div>
         </section>
 
-        {/* ĐỊA CHỈ */}
+        {/* ADDRESSES */}
         <section className="account-section">
           <div className="section-title-row">
-            <h2 className="section-title">Địa chỉ nhận hàng</h2>
+            <h2 className="section-title">Shipping addresses</h2>
             <div className="section-actions">
               <button
                 className="section-ghost-btn"
                 type="button"
                 onClick={() => openAddressModal(-1)}
               >
-                Thêm địa chỉ
+                Add address
               </button>
             </div>
           </div>
 
           {addresses.length === 0 ? (
             <p className="account-empty">
-              Bạn chưa lưu địa chỉ nào. Hãy thêm địa chỉ để thanh toán nhanh
-              hơn.
+              You don&apos;t have any saved address yet. Add one to check out
+              faster.
             </p>
           ) : (
             <ul className="account-list">
               {addresses.map((addr, idx) => (
                 <li key={idx} className="account-list-item">
                   <div className="account-list-header">
-                    <strong>{addr.label || "Địa chỉ"}</strong>
+                    <strong>{addr.label || "Address"}</strong>
                     <div className="account-list-tags">
                       {addr.isDefault && (
-                        <span className="badge-default">Mặc định</span>
+                        <span className="badge-default">Default</span>
                       )}
                       {addr.type && (
                         <span className="badge-type">
                           {addr.type === "shipping"
-                            ? "Giao hàng"
+                            ? "Shipping"
                             : addr.type === "billing"
-                              ? "Thanh toán"
-                              : addr.type}
+                            ? "Billing"
+                            : addr.type}
                         </span>
                       )}
                       <button
@@ -783,7 +1042,7 @@ export default function AccountPage() {
                         onClick={() => openAddressModal(idx)}
                         disabled={saving}
                       >
-                        Sửa
+                        Edit
                       </button>
                       <button
                         type="button"
@@ -791,7 +1050,7 @@ export default function AccountPage() {
                         onClick={() => handleDeleteAddress(idx)}
                         disabled={saving}
                       >
-                        Xoá
+                        Delete
                       </button>
                     </div>
                   </div>
@@ -811,24 +1070,24 @@ export default function AccountPage() {
           )}
         </section>
 
-        {/* THANH TOÁN */}
+        {/* PAYMENT METHODS */}
         <section className="account-section">
           <div className="section-title-row">
-            <h2 className="section-title">Phương thức thanh toán</h2>
+            <h2 className="section-title">Payment methods</h2>
             <div className="section-actions">
               <button
                 className="section-ghost-btn"
                 type="button"
                 onClick={() => openPaymentModal(-1)}
               >
-                Thêm phương thức
+                Add method
               </button>
             </div>
           </div>
 
           {paymentMethods.length === 0 ? (
             <p className="account-empty">
-              Chưa lưu phương thức thanh toán nào.
+              You don&apos;t have any saved payment method.
             </p>
           ) : (
             <ul className="account-payments">
@@ -850,15 +1109,15 @@ export default function AccountPage() {
                         <span className="brand-text">
                           {brand ||
                             (type === "cash"
-                              ? "Tiền mặt"
+                              ? "Cash"
                               : type === "bank"
-                                ? "Tài khoản ngân hàng"
-                                : "Thanh toán")}
+                              ? "Bank account"
+                              : "Payment method")}
                         </span>
                       </div>
                       <div className="account-list-tags">
                         {pm.isDefault && (
-                          <span className="badge-default">Mặc định</span>
+                          <span className="badge-default">Default</span>
                         )}
                         <button
                           type="button"
@@ -866,7 +1125,7 @@ export default function AccountPage() {
                           onClick={() => openPaymentModal(idx)}
                           disabled={saving}
                         >
-                          Sửa
+                          Edit
                         </button>
                         <button
                           type="button"
@@ -874,7 +1133,7 @@ export default function AccountPage() {
                           onClick={() => handleDeletePayment(idx)}
                           disabled={saving}
                         >
-                          Xoá
+                          Delete
                         </button>
                       </div>
                     </div>
@@ -882,7 +1141,7 @@ export default function AccountPage() {
                     <div className="payment-card-number">
                       {type === "cash" ? (
                         <span className="cash-label">
-                          Thanh toán khi nhận hàng
+                          Pay on delivery (COD)
                         </span>
                       ) : last4 ? (
                         <>
@@ -896,7 +1155,7 @@ export default function AccountPage() {
                           {pm.accountNumber}
                         </span>
                       ) : (
-                        <span className="cash-label">Thanh toán</span>
+                        <span className="cash-label">Payment</span>
                       )}
                     </div>
 
@@ -916,20 +1175,20 @@ export default function AccountPage() {
           )}
         </section>
 
-        {/* YÊU THÍCH */}
+        {/* FAVORITES */}
         <section className="account-section">
           <div className="section-title-row">
-            <h2 className="section-title">Sản phẩm yêu thích</h2>
+            <h2 className="section-title">Favorite products</h2>
           </div>
 
           {favoritesLoading ? (
-            <p className="account-empty">Đang tải sản phẩm yêu thích...</p>
+            <p className="account-empty">Loading favorite products...</p>
           ) : favoritesError ? (
             <p className="account-empty">{favoritesError}</p>
           ) : displayFavorites.length === 0 ? (
             <p className="account-empty">
-              Bạn chưa có sản phẩm yêu thích nào. Hãy khám phá menu và nhấn vào
-              biểu tượng trái tim để lưu lại nhé.
+              You don&apos;t have any favorite products yet. Browse the menu and
+              tap the heart icon to save them.
             </p>
           ) : (
             <div className="favorites-grid">
@@ -953,31 +1212,33 @@ export default function AccountPage() {
                       {p && (p.imageUrl || p.image || (p.images && p.images[0])) ? (
                         <img
                           src={p.imageUrl || p.image || p.images[0]}
-                          alt={p.name || `Sản phẩm #${fav.productId}`}
+                          alt={p.name || `Product #${fav.productId}`}
                         />
                       ) : (
-                        <div className="favorite-thumb-placeholder">No image</div>
+                        <div className="favorite-thumb-placeholder">
+                          No image
+                        </div>
                       )}
                     </div>
                     <div className="favorite-body">
                       <h3 className="favorite-name">
-                        {p.name || `Sản phẩm #${fav.productId}`}
+                        {p.name || `Product #${fav.productId}`}
                       </h3>
                       {typeof p.price === "number" && (
                         <div className="favorite-price">
-                          {p.price.toLocaleString("vi-VN")}₫
+                          {p.price.toLocaleString("en-US")}₫
                         </div>
                       )}
                       <div className="favorite-meta-row">
                         {fav.isOnSale && (
-                          <span className="favorite-badge-sale">
-                            Đang khuyến mãi
-                          </span>
+                          <span className="favorite-badge-sale">On sale</span>
                         )}
                         {fav.dateAdded && (
                           <span className="favorite-meta">
-                            Đã thêm:{" "}
-                            {new Date(fav.dateAdded).toLocaleDateString("vi-VN")}
+                            Added:{" "}
+                            {new Date(fav.dateAdded).toLocaleDateString(
+                              "en-US"
+                            )}
                           </span>
                         )}
                       </div>
@@ -988,16 +1249,15 @@ export default function AccountPage() {
             </div>
           )}
         </section>
-
       </section>
 
-      {/* ===== MODALS (giữ nguyên) ===== */}
+      {/* ===== MODALS ===== */}
 
       {activeModal === "profile" && profileForm && (
-        <Modal title="Chỉnh sửa thông tin" onClose={closeModal}>
+        <Modal title="Edit profile" onClose={closeModal}>
           <form onSubmit={handleSaveProfile}>
             <div className="modal-row">
-              <label>Họ tên</label>
+              <label>Full name</label>
               <input
                 value={profileForm.fullName}
                 onChange={(e) =>
@@ -1006,7 +1266,7 @@ export default function AccountPage() {
               />
             </div>
             <div className="modal-row">
-              <label>Số điện thoại</label>
+              <label>Phone number</label>
               <input
                 value={profileForm.phone}
                 onChange={(e) =>
@@ -1016,20 +1276,20 @@ export default function AccountPage() {
             </div>
             <div className="modal-row-inline">
               <div className="modal-row">
-                <label>Giới tính</label>
+                <label>Gender</label>
                 <select
                   value={profileForm.gender}
                   onChange={(e) =>
                     setProfileForm((f) => ({ ...f, gender: e.target.value }))
                   }
                 >
-                  <option value="">Không chọn</option>
-                  <option value="male">Nam</option>
-                  <option value="female">Nữ</option>
+                  <option value="">Not specified</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
                 </select>
               </div>
               <div className="modal-row">
-                <label>Ngày sinh</label>
+                <label>Date of birth</label>
                 <input
                   type="date"
                   value={profileForm.dateOfBirth}
@@ -1051,10 +1311,10 @@ export default function AccountPage() {
                   className="btn-secondary"
                   onClick={closeModal}
                 >
-                  Hủy
+                  Cancel
                 </button>
                 <button type="submit" className="btn-primary" disabled={saving}>
-                  Lưu
+                  Save
                 </button>
               </div>
             </div>
@@ -1064,13 +1324,13 @@ export default function AccountPage() {
 
       {activeModal === "address" && addressForm && (
         <Modal
-          title={addressIndex >= 0 ? "Sửa địa chỉ" : "Thêm địa chỉ"}
+          title={addressIndex >= 0 ? "Edit address" : "Add address"}
           onClose={closeModal}
         >
           <form onSubmit={handleSaveAddress}>
             <div className="modal-row-inline">
               <div className="modal-row">
-                <label>Nhãn</label>
+                <label>Label</label>
                 <input
                   value={addressForm.label}
                   onChange={(e) =>
@@ -1079,21 +1339,21 @@ export default function AccountPage() {
                 />
               </div>
               <div className="modal-row">
-                <label>Loại</label>
+                <label>Type</label>
                 <select
                   value={addressForm.type}
                   onChange={(e) =>
                     setAddressForm((f) => ({ ...f, type: e.target.value }))
                   }
                 >
-                  <option value="shipping">Giao hàng</option>
-                  <option value="billing">Thanh toán</option>
+                  <option value="shipping">Shipping</option>
+                  <option value="billing">Billing</option>
                 </select>
               </div>
             </div>
 
             <div className="modal-row">
-              <label>Họ tên người nhận</label>
+              <label>Recipient name</label>
               <input
                 value={addressForm.fullName}
                 onChange={(e) =>
@@ -1105,7 +1365,7 @@ export default function AccountPage() {
               />
             </div>
             <div className="modal-row">
-              <label>Số điện thoại</label>
+              <label>Phone number</label>
               <input
                 value={addressForm.phone}
                 onChange={(e) =>
@@ -1114,7 +1374,7 @@ export default function AccountPage() {
               />
             </div>
             <div className="modal-row">
-              <label>Địa chỉ</label>
+              <label>Address</label>
               <input
                 value={addressForm.addressLine1}
                 onChange={(e) =>
@@ -1127,7 +1387,7 @@ export default function AccountPage() {
             </div>
             <div className="modal-row-inline">
               <div className="modal-row">
-                <label>Phường/Xã</label>
+                <label>Ward</label>
                 <input
                   value={addressForm.ward}
                   onChange={(e) =>
@@ -1136,7 +1396,7 @@ export default function AccountPage() {
                 />
               </div>
               <div className="modal-row">
-                <label>Quận/Huyện</label>
+                <label>District</label>
                 <input
                   value={addressForm.district}
                   onChange={(e) =>
@@ -1149,7 +1409,7 @@ export default function AccountPage() {
               </div>
             </div>
             <div className="modal-row">
-              <label>Thành phố</label>
+              <label>City</label>
               <input
                 value={addressForm.city}
                 onChange={(e) =>
@@ -1169,7 +1429,7 @@ export default function AccountPage() {
                     }))
                   }
                 />{" "}
-                Đặt làm địa chỉ mặc định
+                Set as default address
               </label>
             </div>
 
@@ -1181,10 +1441,10 @@ export default function AccountPage() {
                   className="btn-secondary"
                   onClick={closeModal}
                 >
-                  Hủy
+                  Cancel
                 </button>
                 <button type="submit" className="btn-primary" disabled={saving}>
-                  Lưu
+                  Save
                 </button>
               </div>
             </div>
@@ -1196,32 +1456,32 @@ export default function AccountPage() {
         <Modal
           title={
             paymentIndex >= 0
-              ? "Sửa phương thức thanh toán"
-              : "Thêm phương thức thanh toán"
+              ? "Edit payment method"
+              : "Add payment method"
           }
           onClose={closeModal}
         >
           <form onSubmit={handleSavePayment}>
             <div className="modal-row">
-              <label>Loại</label>
+              <label>Type</label>
               <select
                 value={paymentForm.type}
                 onChange={(e) =>
                   setPaymentForm((f) => ({ ...f, type: e.target.value }))
                 }
               >
-                <option value="cash">Tiền mặt (COD)</option>
-                <option value="card">Thẻ ngân hàng</option>
-                <option value="bank">Tài khoản ngân hàng</option>
-                <option value="momo">Ví MoMo</option>
-                <option value="zaloPay">Ví ZaloPay</option>
+                <option value="cash">Cash (COD)</option>
+                <option value="card">Bank card</option>
+                <option value="bank">Bank account</option>
+                <option value="momo">MoMo e-wallet</option>
+                <option value="zaloPay">ZaloPay e-wallet</option>
               </select>
             </div>
 
             {paymentForm.type !== "cash" && (
               <>
                 <div className="modal-row">
-                  <label>Ngân hàng / Thương hiệu</label>
+                  <label>Bank / Brand</label>
                   <input
                     value={paymentForm.provider || paymentForm.brand}
                     onChange={(e) =>
@@ -1234,7 +1494,7 @@ export default function AccountPage() {
                   />
                 </div>
                 <div className="modal-row">
-                  <label>Tên chủ thẻ / tài khoản</label>
+                  <label>Cardholder / account name</label>
                   <input
                     value={paymentForm.holderName}
                     onChange={(e) =>
@@ -1251,7 +1511,7 @@ export default function AccountPage() {
             {paymentForm.type === "card" && (
               <>
                 <div className="modal-row">
-                  <label>4 số cuối</label>
+                  <label>Last 4 digits</label>
                   <input
                     maxLength={4}
                     value={paymentForm.last4}
@@ -1265,7 +1525,7 @@ export default function AccountPage() {
                 </div>
                 <div className="modal-row-inline">
                   <div className="modal-row">
-                    <label>Tháng hết hạn</label>
+                    <label>Expiry month</label>
                     <input
                       maxLength={2}
                       value={paymentForm.expMonth}
@@ -1278,7 +1538,7 @@ export default function AccountPage() {
                     />
                   </div>
                   <div className="modal-row">
-                    <label>Năm hết hạn</label>
+                    <label>Expiry year</label>
                     <input
                       maxLength={4}
                       value={paymentForm.expYear}
@@ -1298,8 +1558,8 @@ export default function AccountPage() {
               <div className="modal-row">
                 <label>
                   {paymentForm.type === "bank"
-                    ? "Số tài khoản"
-                    : "Số ví / SĐT liên kết"}
+                    ? "Account number"
+                    : "Wallet / linked phone number"}
                 </label>
                 <input
                   value={paymentForm.accountNumber}
@@ -1325,7 +1585,7 @@ export default function AccountPage() {
                     }))
                   }
                 />{" "}
-                Đặt làm phương thức mặc định
+                Set as default payment method
               </label>
             </div>
 
@@ -1337,10 +1597,10 @@ export default function AccountPage() {
                   className="btn-secondary"
                   onClick={closeModal}
                 >
-                  Hủy
+                  Cancel
                 </button>
                 <button type="submit" className="btn-primary" disabled={saving}>
-                  Lưu
+                  Save
                 </button>
               </div>
             </div>
@@ -1349,10 +1609,10 @@ export default function AccountPage() {
       )}
 
       {activeModal === "password" && (
-        <Modal title="Đổi mật khẩu" onClose={closeModal}>
+        <Modal title="Change password" onClose={closeModal}>
           <form onSubmit={handleChangePassword}>
             <div className="modal-row">
-              <label>Mật khẩu hiện tại</label>
+              <label>Current password</label>
               <input
                 type="password"
                 value={passwordForm.currentPassword}
@@ -1365,7 +1625,7 @@ export default function AccountPage() {
               />
             </div>
             <div className="modal-row">
-              <label>Mật khẩu mới</label>
+              <label>New password</label>
               <input
                 type="password"
                 value={passwordForm.newPassword}
@@ -1378,7 +1638,7 @@ export default function AccountPage() {
               />
             </div>
             <div className="modal-row">
-              <label>Nhập lại mật khẩu mới</label>
+              <label>Confirm new password</label>
               <input
                 type="password"
                 value={passwordForm.confirmPassword}
@@ -1399,14 +1659,129 @@ export default function AccountPage() {
                   className="btn-secondary"
                   onClick={closeModal}
                 >
-                  Hủy
+                  Cancel
                 </button>
                 <button type="submit" className="btn-primary" disabled={saving}>
-                  Đổi mật khẩu
+                  Change password
                 </button>
               </div>
             </div>
           </form>
+        </Modal>
+      )}
+
+      {activeModal === "forgot" && (
+        <Modal title="Forgot password" onClose={closeModal}>
+          {forgotStep === "request" ? (
+            <form onSubmit={handleForgotRequest}>
+              <div className="modal-row">
+                <label>Login email</label>
+                <input
+                  type="email"
+                  value={forgotForm.email}
+                  onChange={(e) =>
+                    setForgotForm((f) => ({ ...f, email: e.target.value }))
+                  }
+                  readOnly={!!email} // on account page, email is usually fixed
+                />
+                <small className="modal-hint">
+                  We&apos;ll send a verification code (OTP) to this email.
+                </small>
+              </div>
+
+              <div className="account-modal-footer">
+                <div className="modal-messages">
+                  {error && <span className="modal-error">{error}</span>}
+                  {forgotInfo && (
+                    <span className="modal-info">{forgotInfo}</span>
+                  )}
+                </div>
+                <div className="modal-actions">
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={closeModal}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn-primary"
+                    disabled={saving}
+                  >
+                    Send code
+                  </button>
+                </div>
+              </div>
+            </form>
+          ) : (
+            <form onSubmit={handleForgotVerify}>
+              <div className="modal-row">
+                <label>Login email</label>
+                <input type="email" value={forgotForm.email} readOnly />
+              </div>
+              <div className="modal-row">
+                <label>Verification code (OTP)</label>
+                <input
+                  value={forgotForm.otp}
+                  onChange={(e) =>
+                    setForgotForm((f) => ({ ...f, otp: e.target.value }))
+                  }
+                />
+              </div>
+              <div className="modal-row">
+                <label>New password</label>
+                <input
+                  type="password"
+                  value={forgotForm.newPassword}
+                  onChange={(e) =>
+                    setForgotForm((f) => ({
+                      ...f,
+                      newPassword: e.target.value,
+                    }))
+                  }
+                />
+              </div>
+              <div className="modal-row">
+                <label>Confirm new password</label>
+                <input
+                  type="password"
+                  value={forgotForm.confirmPassword}
+                  onChange={(e) =>
+                    setForgotForm((f) => ({
+                      ...f,
+                      confirmPassword: e.target.value,
+                    }))
+                  }
+                />
+              </div>
+
+              <div className="account-modal-footer">
+                <div className="modal-messages">
+                  {error && <span className="modal-error">{error}</span>}
+                  {forgotInfo && (
+                    <span className="modal-info">{forgotInfo}</span>
+                  )}
+                </div>
+                <div className="modal-actions">
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={closeModal}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn-primary"
+                    disabled={saving}
+                  >
+                    Reset password
+                  </button>
+                </div>
+              </div>
+            </form>
+          )}
         </Modal>
       )}
     </main>

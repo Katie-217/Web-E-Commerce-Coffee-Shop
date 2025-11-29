@@ -131,23 +131,26 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const register = async ({ name, email, password }) => {
-    setLoading(true);
-    try {
-      const data = await authService.register({ name, email, password });
-      const token = data?.token;
-      const userData = data?.user;
+  const register = async (payload) => {
+  // payload có thể là { name, email, password, sendPasswordEmail, ... }
+  setLoading(true);
+  try {
+    const data = await authService.register(payload);
+    const token = data?.token;
+    const userData = data?.user;
 
-      if (token && !userData) {
-        await loginWithToken(token);
-        return;
-      }
-
-      return persistAuth(data, { name, email });
-    } finally {
-      setLoading(false);
+    if (token && !userData) {
+      await loginWithToken(token);
+      return;
     }
-  };
+
+    const { name, email } = payload || {};
+    return persistAuth(data, { name, email });
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const logout = () => {
     try {

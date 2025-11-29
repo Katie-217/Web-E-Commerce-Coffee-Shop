@@ -385,19 +385,6 @@ router.get('/', async (req, res) => {
       },
     });
 
-
-
-    res.json({
-      success: true,
-      data: transformed,
-      items: transformed, // backward compat
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
-    });
   } catch (err) {
     console.error('Error in GET /api/customers:', err);
     res.status(500).json({

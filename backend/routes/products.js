@@ -3,174 +3,146 @@ const mongoose = require('mongoose');
 const router = express.Router();
 const Product = require('../models/Product');
 const Review = require('../models/Review');
+const Order = require('../models/Order');
 
 // GET /api/products - Lấy danh sách tất cả sản phẩm
 router.get('/', async (req, res) => {
   try {
-    console.log(' GET /api/products - Request received');
-    console.log(' Query params:', req.query);
+    // ====== PAGINATION ======
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 12;
+    const skip = (page - 1) * limit;
 
+    // ====== FILTER CƠ BẢN ======
     const {
-      page = 1,
-      limit = 10,
-      status,
-      category,
-      stock,
       search,
+      category,
+      inStock,
+      status,
+      minPrice,
+      maxPrice,
+      sortBy,
     } = req.query;
 
-    // Build query
     const query = {};
 
-    if (status) {
-      query.status = status;
+    // Tìm theo tên / mô tả
+    if (search) {
+      const regex = new RegExp(search, 'i');
+      query.$or = [{ name: regex }, { description: regex }];
     }
 
     if (category) {
       query.category = category;
     }
 
-    if (stock !== undefined) {
-      query.stock = stock === 'true';
+    // filter trạng thái
+    if (status) {
+      query.status = status;
     }
 
-    if (search) {
+    // filter còn hàng / hết hàng
+    if (inStock === 'true') {
       query.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
-        { sku: { $regex: search, $options: 'i' } },
+        { inStock: true },
+        { stock: { $gt: 0 } },
+        { countInStock: { $gt: 0 } },
+      ];
+    } else if (inStock === 'false') {
+      query.$or = [
+        { inStock: false },
+        { stock: { $lte: 0 } },
+        { countInStock: { $lte: 0 } },
       ];
     }
 
-    // Calculate pagination
-    const pageNum = parseInt(page, 10);
-    const limitNum = parseInt(limit, 10);
-    const skip = (pageNum - 1) * limitNum;
-
-    console.log('🔍 Query:', JSON.stringify(query, null, 2));
-    console.log('📊 Pagination:', { page: pageNum, limit: limitNum, skip });
-
-    let products = [];
-    let total = 0;
-
-    // Try 1: 'products' database > 'productsList' collection
-    try {
-      const productsDb = mongoose.connection.useDb('products', { useCache: true });
-      const coll = productsDb.collection('productsList');
-      const totalCount = await coll.countDocuments({});
-      console.log(`📊 products.productsList collection has ${totalCount} documents`);
-
-      if (totalCount > 0) {
-        [products, total] = await Promise.all([
-          coll
-            .find(query)
-            .sort({ createdAt: -1 })
-            .skip(skip)
-            .limit(limitNum)
-            .toArray(),
-          coll.countDocuments(query),
-        ]);
-
-        // Nếu query không ra kết quả nhưng collection có dữ liệu → fallback lấy all
-        if (total === 0 && totalCount > 0) {
-          [products, total] = await Promise.all([
-            coll
-              .find({})
-              .sort({ createdAt: -1 })
-              .skip(skip)
-              .limit(limitNum)
-              .toArray(),
-            coll.countDocuments({}),
-          ]);
-        }
-      }
-    } catch (err) {
-      console.log('❌ Failed to query products.productsList:', err.message);
+    // filter giá
+    if (minPrice) {
+      query.price = { ...(query.price || {}), $gte: Number(minPrice) };
+    }
+    if (maxPrice) {
+      query.price = { ...(query.price || {}), $lte: Number(maxPrice) };
     }
 
-    // Try 2: Current database (CoffeeDB) > productsList collection
-    if (total === 0) {
-      try {
-        const coll = mongoose.connection.db.collection('productsList');
-        const totalCount = await coll.countDocuments({});
-        console.log(`📊 productsList collection has ${totalCount} documents`);
-
-        if (totalCount > 0) {
-          [products, total] = await Promise.all([
-            coll
-              .find(query)
-              .sort({ createdAt: -1 })
-              .skip(skip)
-              .limit(limitNum)
-              .toArray(),
-            coll.countDocuments(query),
-          ]);
-
-          if (total === 0 && totalCount > 0) {
-            [products, total] = await Promise.all([
-              coll
-                .find({})
-                .sort({ createdAt: -1 })
-                .skip(skip)
-                .limit(limitNum)
-                .toArray(),
-              coll.countDocuments({}),
-            ]);
-          }
-        }
-      } catch (err) {
-        console.log('❌ Failed to query productsList in current DB:', err.message);
-      }
+    // ====== SORT CƠ BẢN (GIÁ, MỚI NHẤT) ======
+    const sortOption = {};
+    switch (sortBy) {
+      case 'priceAsc':
+        sortOption.price = 1;
+        break;
+      case 'priceDesc':
+        sortOption.price = -1;
+        break;
+      case 'new':
+        sortOption.createdAt = -1;
+        break;
+      // 'best' sẽ sort ở FE theo soldCount, nên tạm giữ nguyên
+      default:
+        // sort mặc định theo createdAt mới nhất
+        sortOption.createdAt = -1;
+        break;
     }
 
-    // Fallback to default Product model collection
-    if (total === 0) {
-      try {
-        console.log('📊 Querying MongoDB collection via Product model');
-        [products, total] = await Promise.all([
-          Product.find(query)
-            .sort({ createdAt: -1 })
-            .skip(skip)
-            .limit(limitNum)
-            .lean(),
-          Product.countDocuments(query),
-        ]);
-      } catch (err) {
-        console.log('❌ Failed to query Product model collection:', err.message);
-      }
-    }
+    const [products, totalProducts, soldStats] = await Promise.all([
+      Product.find(query)
+        .sort(sortOption)
+        .skip(skip)
+        .limit(limit),
+      Product.countDocuments(query),
+      // TÍNH TỔNG ĐÃ BÁN TỪ ORDER
+        Order.aggregate([
+    { $unwind: '$items' },
+    {
+      $group: {
+        // Dùng productId đúng với schema Order
+        _id: '$items.productId',
+        // quantity là field chính, còn nếu dữ liệu cũ dùng qty thì fallback
+        soldCount: {
+          $sum: {
+            $ifNull: ['$items.quantity', '$items.qty'],
+          },
+        },
+      },
+    },
+  ]),
 
-    console.log(`✅ Found ${products.length} products (total=${total})`);
+    ]);
 
-    // Transform data to match frontend format
-    const transformedProducts = products.map((product) => ({
-      id: product.id || product._id,
-      name: product.name,
-      imageUrl: product.imageUrl,
-      description: product.description,
-      category: product.category,
-      stock: product.stock,
-      sku: product.sku,
-      price: product.price,
-      quantity: product.quantity,
-      status: product.status,
-      variants: product.variants || [],
-    }));
+    // soldStats = [{ _id: ObjectId, soldCount: Number }, ...]
+    // soldStats = [{ _id: productId, soldCount: Number }, ...]
+const soldMap = new Map(
+  soldStats.map((doc) => [String(doc._id), Number(doc.soldCount) || 0])
+);
 
-    res.json({
+const productsWithSold = products.map((p) => {
+  const obj = p.toObject();
+
+  // product có thể có cả id (số) lẫn _id (ObjectId)
+  const keyByNumericId = obj.id != null ? String(obj.id) : null;
+  const keyByObjectId = obj._id != null ? String(obj._id) : null;
+
+  obj.soldCount =
+    (keyByNumericId && soldMap.get(keyByNumericId)) ??
+    (keyByObjectId && soldMap.get(keyByObjectId)) ??
+    0;
+
+  return obj;
+});
+
+
+    return res.json({
       success: true,
-      data: transformedProducts,
+      data: productsWithSold,
       pagination: {
-        page: pageNum,
-        limit: limitNum,
-        total,
-        totalPages: Math.ceil(total / limitNum),
+        page,
+        limit,
+        total: totalProducts,
+        totalPages: Math.ceil(totalProducts / limit),
       },
     });
   } catch (error) {
     console.error('❌ Error fetching products:', error);
-    console.error('❌ Error stack:', error.stack);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Error fetching products',
       error: error.message,
@@ -375,7 +347,6 @@ router.post('/:id/reviews', async (req, res) => {
     const { id } = req.params;
     let productIdNum = Number(id);
 
-    // Nếu param không phải number -> tìm theo _id để lấy field id (kiểu number)
     if (Number.isNaN(productIdNum)) {
       const product = await Product.findById(id).select('id');
       if (!product) {
@@ -389,15 +360,16 @@ router.post('/:id/reviews', async (req, res) => {
 
     const { rating, comment, customerName, customerEmail, title } = req.body;
 
-    // Validate rating
-    if (!rating || rating < 1 || rating > 5) {
-      return res.status(400).json({
-        success: false,
-        message: 'Rating must be between 1 and 5',
-      });
+    // ⭐ chỉ check rating nếu FE gửi lên
+    if (rating != null) {
+      if (rating < 1 || rating > 5) {
+        return res.status(400).json({
+          success: false,
+          message: 'Rating must be between 1 and 5',
+        });
+      }
     }
 
-    // Validate comment
     if (!comment || !comment.trim()) {
       return res.status(400).json({
         success: false,
@@ -405,7 +377,6 @@ router.post('/:id/reviews', async (req, res) => {
       });
     }
 
-    // Validate tên + email
     if (
       !customerName ||
       !customerName.trim() ||
@@ -418,14 +389,20 @@ router.post('/:id/reviews', async (req, res) => {
       });
     }
 
-    const review = await Review.create({
+    // Gom data, chỉ gán rating nếu có
+    const reviewData = {
       productId: productIdNum,
-      rating,
       comment: comment.trim(),
       customerName: customerName.trim(),
       customerEmail: customerEmail.trim(),
       title: (title || '').trim(),
-    });
+    };
+
+    if (rating != null) {
+      reviewData.rating = rating;
+    }
+
+    const review = await Review.create(reviewData);
 
     return res.status(201).json({
       success: true,

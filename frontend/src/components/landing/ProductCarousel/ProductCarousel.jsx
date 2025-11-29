@@ -7,6 +7,23 @@ import { useCart } from "../../../contexts/CartContext";
 
 const AUTO_SCROLL_INTERVAL_MS = 3800;
 
+function getSold(p = {}) {
+  const candidates = [
+    p.soldCount,
+    p.sold,
+    p.totalSold,
+    p.sales,
+    p.orderCount,
+    p.orders,
+  ];
+
+  for (const value of candidates) {
+    const num = Number(value);
+    if (Number.isFinite(num) && num > 0) return num;
+  }
+  return 0;
+}
+
 function resolveImage(src) {
   const fallback = "/images/placeholder.png";
   if (!src) return fallback;
@@ -67,37 +84,32 @@ function getPriceWithSize(p, optIdx = 0) {
   return base + delta;
 }
 
-// NEW: helper tính tồn kho giống bên OrderModal
+// helper tính tồn kho giống OrderModal
 function getAvailableStock(p) {
   if (!p) return 0;
 
-  // 1) Ưu tiên quantity dạng số
   if (typeof p.quantity === "number") {
     return Math.max(p.quantity, 0);
   }
 
-  // 2) Một số schema khác có thể dùng inventory
   if (typeof p.inventory === "number") {
     return Math.max(p.inventory, 0);
   }
 
-  // 3) stock dạng boolean
   if (typeof p.stock === "boolean") {
     return p.stock ? 99 : 0;
   }
 
-  // 4) status Inactive → coi như hết hàng
   if (p.status && String(p.status).toLowerCase() === "inactive") {
     return 0;
   }
 
-  // 5) Không có info → coi như còn nhiều
   return 99;
 }
 
 const ProductCarousel = () => {
   const containerRef = useRef(null);
-  const [activeCategory, setActiveCategory] = useState("all");
+  const [activeCategory, setActiveCategory] = useState("new"); // default: New products
   const [selectedProduct, setSelectedProduct] = useState(null);
 
   const [products, setProducts] = useState([]);
@@ -175,7 +187,7 @@ const ProductCarousel = () => {
     return () => clearInterval(timer);
   }, []);
 
-  // Fetch khi đổi category
+  // Fetch products when activeCategory changes
   useEffect(() => {
     let mounted = true;
 
@@ -184,18 +196,37 @@ const ProductCarousel = () => {
         setLoading(true);
         setError("");
 
-        const apiCat = activeCategory === "all" ? undefined : activeCategory;
-
-        const items = await getProducts({
+        // Base query cho backend
+        const query = {
           page: 1,
-          limit: 12,
-          category: apiCat,
-        });
+          limit: 48, // lấy rộng hơn rồi FE chọn top 12
+        };
 
-        console.log("Carousel items:", items);
+        if (activeCategory === "new") {
+          // New products = newest by createdAt
+          query.sortBy = "newest";
+        } else if (activeCategory === "best") {
+          // Best sellers = FE sort theo soldCount, nên vẫn lấy newest mặc định
+          query.sortBy = "newest";
+        } else {
+          // Các tab category: dùng category thật trong DB
+          query.category = activeCategory;
+          query.sortBy = "newest";
+        }
+
+        const items = await getProducts(query);
 
         if (!mounted) return;
-        setProducts(Array.isArray(items) ? items : []);
+
+        let list = Array.isArray(items) ? [...items] : [];
+
+        // Tab "Best sellers" → sort theo soldCount giảm dần giống Catalog
+        if (activeCategory === "best") {
+          list.sort((a, b) => getSold(b) - getSold(a));
+        }
+
+        // Giới hạn tối đa 12 item trên carousel
+        setProducts(list.slice(0, 12));
       } catch (err) {
         if (!mounted) return;
         setError(
@@ -368,7 +399,7 @@ const ProductCarousel = () => {
                             variantIndex: optIdx,
                           });
 
-                          showToast(`Đã thêm "${p.name}" vào giỏ hàng`);
+                          showToast(`Added "${p.name}" to cart`);
                         }}
                         disabled={isOutOfStock}
                       >
@@ -511,7 +542,7 @@ const ProductCarousel = () => {
                           });
 
                           showToast(
-                            `Đã thêm "${selectedProduct.name}" vào giỏ hàng`
+                            `Added "${selectedProduct.name}" to cart`
                           );
                         }}
                         disabled={isOutOfStock}

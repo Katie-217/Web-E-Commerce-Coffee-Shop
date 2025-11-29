@@ -354,16 +354,20 @@
   }
 }
 
-@media (max-width: 768px) {
-  .coffee-origin {
-    padding: 40px 20px;
+@media (max-width: 1024px) {
+  .origin-layout {
+    grid-template-columns: 1fr;
+    gap: 40px;
   }
-  
-  .promo-column h2 {
-    font-size: 2rem;
+
+  /* Ẩn 2 đường kẻ dọc trên mobile / tablet */
+  .origin-layout::before,
+  .origin-layout::after {
+    content: none;
+    /* hoặc có thể dùng: display: none; */
   }
-  
-  .origin-item {
-    font-size: 1.2rem;
+
+  .origin-decoration {
+    display: none;
   }
 }

@@ -8,7 +8,7 @@
     "items": [
       {
         "productId": 27,
-        "name": "Phin Nhôm Highlands Coffee 150ml",
+        "name": "Highlands Coffee Aluminum Phin Filter 150ml",
         "sku": "MG-HC-027",
         "price": 129000,
         "qty": 2
@@ -76,28 +76,28 @@
     "items": [
       {
         "productId": 13,
-        "name": "Phúc Long Gift Set Heritage",
+        "name": "Coffee Starter Kit",
         "sku": "CS-PL-013",
         "price": 415000,
         "qty": 3
       },
       {
         "productId": 6,
-        "name": "Phúc Long Arabica Honey",
+        "name": "Phúc Long Arabica Culi",
         "sku": "RC-PL-006",
         "price": 175000,
         "qty": 3
       },
       {
         "productId": 21,
-        "name": "Ly Sứ Phúc Long Heritage 350ml",
+        "name": "Phúc Long Ceramic Mug 340ml",
         "sku": "CM-PL-021",
         "price": 175000,
         "qty": 4
       },
       {
         "productId": 17,
-        "name": "Ly Sứ Trung Nguyên Legend Signature 330ml",
+        "name": "Trung Nguyên Legend Ceramic Mug 330ml",
         "sku": "CM-TN-017",
         "price": 129000,
         "qty": 2
@@ -151,7 +151,7 @@
     "items": [
       {
         "productId": 10,
-        "name": "Trung Nguyên Chinh Phục 5",
+        "name": "Trung Nguyên Legend Gift Set",
         "sku": "CS-TN-010",
         "price": 499000,
         "qty": 3
@@ -165,7 +165,7 @@
       },
       {
         "productId": 7,
-        "name": "The Coffee House Signature Blend",
+        "name": "The Coffee House - Original Roasted Coffee",
         "sku": "RC-TCH-007",
         "price": 145000,
         "qty": 1
@@ -273,7 +273,7 @@
     "items": [
       {
         "productId": 18,
-        "name": "Ly Sứ Trung Nguyên Legend Heritage",
+        "name": "Trung Nguyên Legend Message Mug",
         "sku": "CM-TN-018",
         "price": 189000,
         "qty": 2
@@ -342,7 +342,7 @@
       },
       {
         "productId": 13,
-        "name": "Phúc Long Gift Set Heritage",
+        "name": "Coffee Starter Kit",
         "sku": "CS-PL-013",
         "price": 415000,
         "qty": 1
@@ -403,21 +403,21 @@
     "items": [
       {
         "productId": 13,
-        "name": "Phúc Long Gift Set Heritage",
+        "name": "Coffee Starter Kit",
         "sku": "CS-PL-013",
         "price": 415000,
         "qty": 1
       },
       {
         "productId": 30,
-        "name": "Máy Xay Cà Phê Cầm Tay The Coffee House",
+        "name": "Hand Coffee Grinder",
         "sku": "MG-TCH-030",
         "price": 895000,
         "qty": 2
       },
       {
         "productId": 7,
-        "name": "The Coffee House Signature Blend",
+        "name": "The Coffee House - Original Roasted Coffee",
         "sku": "RC-TCH-007",
         "price": 145000,
         "qty": 3
@@ -486,7 +486,7 @@
     "items": [
       {
         "productId": 19,
-        "name": "Ly Sứ Highlands Coffee 2025",
+        "name": "Highlands Coffee Ceramic Mugs 360ml (Set of 2)",
         "sku": "CM-HC-019",
         "price": 159000,
         "qty": 1
@@ -540,14 +540,14 @@
     "items": [
       {
         "productId": 29,
-        "name": "Bình French Press Phúc Long 600ml",
+        "name": "BODUM Brazil French Press - Black",
         "sku": "MG-PL-029",
         "price": 429000,
         "qty": 1
       },
       {
         "productId": 20,
-        "name": "Ly Thủy Tinh Highlands Cold Brew 500ml",
+        "name": "Highlands Tall Leaf-Pattern Tumbler",
         "sku": "CM-HC-020",
         "price": 185000,
         "qty": 3
@@ -594,28 +594,28 @@
     "items": [
       {
         "productId": 22,
-        "name": "Bình Giữ Nhiệt Phúc Long 600ml",
+        "name": "Phúc Long Insulated Bottle 600ml",
         "sku": "CM-PL-022",
         "price": 329000,
         "qty": 2
       },
       {
         "productId": 24,
-        "name": "Ly Sứ The Coffee House Moment 250ml",
+        "name": "The Coffee House Ceramic Travel Mug",
         "sku": "CM-TCH-024",
         "price": 149000,
         "qty": 4
       },
       {
         "productId": 14,
-        "name": "Phúc Long Cold Brew Starter",
+        "name": "Don Pablo Whiskey Infused Coffee Gift Set",
         "sku": "CS-PL-014",
         "price": 289000,
         "qty": 4
       },
       {
         "productId": 23,
-        "name": "Ly Giữ Nhiệt The Coffee House On-The-Go",
+        "name": "The Coffee House Go Green Insulated Tumbler 480ml",
         "sku": "CM-TCH-023",
         "price": 315000,
         "qty": 3
@@ -662,14 +662,14 @@
     "items": [
       {
         "productId": 15,
-        "name": "The Coffee House Home Barista",
+        "name": "The Coffee House Gift Box",
         "sku": "CS-TCH-015",
         "price": 475000,
         "qty": 4
       },
       {
         "productId": 29,
-        "name": "Bình French Press Phúc Long 600ml",
+        "name": "BODUM Brazil French Press - Black",
         "sku": "MG-PL-029",
         "price": 429000,
         "qty": 4
@@ -683,7 +683,7 @@
       },
       {
         "productId": 28,
-        "name": "Bộ Phin Sứ Cao Cấp Highlands",
+        "name": "Philips EP2221/40 Espresso Machine",
         "sku": "MG-HC-028",
         "price": 245000,
         "qty": 3
@@ -766,7 +766,7 @@
       },
       {
         "productId": 21,
-        "name": "Ly Sứ Phúc Long Heritage 350ml",
+        "name": "Phúc Long Ceramic Mug 340ml",
         "sku": "CM-PL-021",
         "price": 175000,
         "qty": 1
@@ -821,14 +821,14 @@
     "items": [
       {
         "productId": 20,
-        "name": "Ly Thủy Tinh Highlands Cold Brew 500ml",
+        "name": "Highlands Tall Leaf-Pattern Tumbler",
         "sku": "CM-HC-020",
         "price": 185000,
         "qty": 4
       },
       {
         "productId": 13,
-        "name": "Phúc Long Gift Set Heritage",
+        "name": "Coffee Starter Kit",
         "sku": "CS-PL-013",
         "price": 415000,
         "qty": 1
@@ -903,14 +903,14 @@
     "items": [
       {
         "productId": 18,
-        "name": "Ly Sứ Trung Nguyên Legend Heritage",
+        "name": "Trung Nguyên Legend Message Mug",
         "sku": "CM-TN-018",
         "price": 189000,
         "qty": 1
       },
       {
         "productId": 17,
-        "name": "Ly Sứ Trung Nguyên Legend Signature 330ml",
+        "name": "Trung Nguyên Legend Ceramic Mug 330ml",
         "sku": "CM-TN-017",
         "price": 129000,
         "qty": 2
@@ -972,28 +972,28 @@
     "items": [
       {
         "productId": 14,
-        "name": "Phúc Long Cold Brew Starter",
+        "name": "Don Pablo Whiskey Infused Coffee Gift Set",
         "sku": "CS-PL-014",
         "price": 289000,
         "qty": 4
       },
       {
         "productId": 20,
-        "name": "Ly Thủy Tinh Highlands Cold Brew 500ml",
+        "name": "Highlands Tall Leaf-Pattern Tumbler",
         "sku": "CM-HC-020",
         "price": 185000,
         "qty": 3
       },
       {
         "productId": 6,
-        "name": "Phúc Long Arabica Honey",
+        "name": "Phúc Long Arabica Culi",
         "sku": "RC-PL-006",
         "price": 175000,
         "qty": 1
       },
       {
         "productId": 17,
-        "name": "Ly Sứ Trung Nguyên Legend Signature 330ml",
+        "name": "Trung Nguyên Legend Ceramic Mug 330ml",
         "sku": "CM-TN-017",
         "price": 129000,
         "qty": 3
@@ -1054,14 +1054,14 @@
     "items": [
       {
         "productId": 18,
-        "name": "Ly Sứ Trung Nguyên Legend Heritage",
+        "name": "Trung Nguyên Legend Message Mug",
         "sku": "CM-TN-018",
         "price": 189000,
         "qty": 2
       },
       {
         "productId": 14,
-        "name": "Phúc Long Cold Brew Starter",
+        "name": "Don Pablo Whiskey Infused Coffee Gift Set",
         "sku": "CS-PL-014",
         "price": 289000,
         "qty": 4
@@ -1115,14 +1115,14 @@
     "items": [
       {
         "productId": 10,
-        "name": "Trung Nguyên Chinh Phục 5",
+        "name": "Trung Nguyên Legend Gift Set",
         "sku": "CS-TN-010",
         "price": 499000,
         "qty": 3
       },
       {
         "productId": 18,
-        "name": "Ly Sứ Trung Nguyên Legend Heritage",
+        "name": "Trung Nguyên Legend Message Mug",
         "sku": "CM-TN-018",
         "price": 189000,
         "qty": 3
@@ -1169,7 +1169,7 @@
     "items": [
       {
         "productId": 25,
-        "name": "Phin Inox Trung Nguyên Legend 170ml",
+        "name": "Trung Nguyên Legend Stainless Steel Phin Filter 170ml",
         "sku": "MG-TN-025",
         "price": 189000,
         "qty": 4
@@ -1237,7 +1237,7 @@
     "items": [
       {
         "productId": 18,
-        "name": "Ly Sứ Trung Nguyên Legend Heritage",
+        "name": "Trung Nguyên Legend Message Mug",
         "sku": "CM-TN-018",
         "price": 189000,
         "qty": 3
@@ -1251,14 +1251,14 @@
       },
       {
         "productId": 16,
-        "name": "The Coffee House Latte Art Kit",
+        "name": "Coffee Christmas Gifts Set",
         "sku": "CS-TCH-016",
         "price": 329000,
         "qty": 3
       },
       {
         "productId": 30,
-        "name": "Máy Xay Cà Phê Cầm Tay The Coffee House",
+        "name": "Hand Coffee Grinder",
         "sku": "MG-TCH-030",
         "price": 895000,
         "qty": 3
@@ -1380,21 +1380,21 @@
     "items": [
       {
         "productId": 19,
-        "name": "Ly Sứ Highlands Coffee 2025",
+        "name": "Highlands Coffee Ceramic Mugs 360ml (Set of 2)",
         "sku": "CM-HC-019",
         "price": 159000,
         "qty": 1
       },
       {
         "productId": 29,
-        "name": "Bình French Press Phúc Long 600ml",
+        "name": "BODUM Brazil French Press - Black",
         "sku": "MG-PL-029",
         "price": 429000,
         "qty": 1
       },
       {
         "productId": 10,
-        "name": "Trung Nguyên Chinh Phục 5",
+        "name": "Trung Nguyên Legend Gift Set",
         "sku": "CS-TN-010",
         "price": 499000,
         "qty": 4
@@ -1469,21 +1469,21 @@
     "items": [
       {
         "productId": 19,
-        "name": "Ly Sứ Highlands Coffee 2025",
+        "name": "Highlands Coffee Ceramic Mugs 360ml (Set of 2)",
         "sku": "CM-HC-019",
         "price": 159000,
         "qty": 3
       },
       {
         "productId": 15,
-        "name": "The Coffee House Home Barista",
+        "name": "The Coffee House Gift Box",
         "sku": "CS-TCH-015",
         "price": 475000,
         "qty": 2
       },
       {
         "productId": 29,
-        "name": "Bình French Press Phúc Long 600ml",
+        "name": "BODUM Brazil French Press - Black",
         "sku": "MG-PL-029",
         "price": 429000,
         "qty": 3
@@ -1551,21 +1551,21 @@
       },
       {
         "productId": 30,
-        "name": "Máy Xay Cà Phê Cầm Tay The Coffee House",
+        "name": "Hand Coffee Grinder",
         "sku": "MG-TCH-030",
         "price": 895000,
         "qty": 1
       },
       {
         "productId": 23,
-        "name": "Ly Giữ Nhiệt The Coffee House On-The-Go",
+        "name": "The Coffee House Go Green Insulated Tumbler 480ml",
         "sku": "CM-TCH-023",
         "price": 315000,
         "qty": 1
       },
       {
         "productId": 8,
-        "name": "The Coffee House Cold Brew Roast",
+        "name": "Guru 3 Blend Cold Brew - Strong Cold",
         "sku": "RC-TCH-008",
         "price": 125000,
         "qty": 3
@@ -1648,7 +1648,7 @@
     "items": [
       {
         "productId": 13,
-        "name": "Phúc Long Gift Set Heritage",
+        "name": "Coffee Starter Kit",
         "sku": "CS-PL-013",
         "price": 415000,
         "qty": 1
@@ -1731,14 +1731,14 @@
     "items": [
       {
         "productId": 19,
-        "name": "Ly Sứ Highlands Coffee 2025",
+        "name": "Highlands Coffee Ceramic Mugs 360ml (Set of 2)",
         "sku": "CM-HC-019",
         "price": 159000,
         "qty": 3
       },
       {
         "productId": 17,
-        "name": "Ly Sứ Trung Nguyên Legend Signature 330ml",
+        "name": "Trung Nguyên Legend Ceramic Mug 330ml",
         "sku": "CM-TN-017",
         "price": 129000,
         "qty": 1
@@ -1820,21 +1820,21 @@
     "items": [
       {
         "productId": 10,
-        "name": "Trung Nguyên Chinh Phục 5",
+        "name": "Trung Nguyên Legend Gift Set",
         "sku": "CS-TN-010",
         "price": 499000,
         "qty": 2
       },
       {
         "productId": 20,
-        "name": "Ly Thủy Tinh Highlands Cold Brew 500ml",
+        "name": "Highlands Tall Leaf-Pattern Tumbler",
         "sku": "CM-HC-020",
         "price": 185000,
         "qty": 1
       },
       {
         "productId": 27,
-        "name": "Phin Nhôm Highlands Coffee 150ml",
+        "name": "Highlands Coffee Aluminum Phin Filter 150ml",
         "sku": "MG-HC-027",
         "price": 129000,
         "qty": 4
@@ -1902,7 +1902,7 @@
     "items": [
       {
         "productId": 17,
-        "name": "Ly Sứ Trung Nguyên Legend Signature 330ml",
+        "name": "Trung Nguyên Legend Ceramic Mug 330ml",
         "sku": "CM-TN-017",
         "price": 129000,
         "qty": 2
@@ -1916,7 +1916,7 @@
       },
       {
         "productId": 30,
-        "name": "Máy Xay Cà Phê Cầm Tay The Coffee House",
+        "name": "Hand Coffee Grinder",
         "sku": "MG-TCH-030",
         "price": 895000,
         "qty": 4
@@ -1984,21 +1984,21 @@
     "items": [
       {
         "productId": 18,
-        "name": "Ly Sứ Trung Nguyên Legend Heritage",
+        "name": "Trung Nguyên Legend Message Mug",
         "sku": "CM-TN-018",
         "price": 189000,
         "qty": 2
       },
       {
         "productId": 17,
-        "name": "Ly Sứ Trung Nguyên Legend Signature 330ml",
+        "name": "Trung Nguyên Legend Ceramic Mug 330ml",
         "sku": "CM-TN-017",
         "price": 129000,
         "qty": 3
       },
       {
         "productId": 8,
-        "name": "The Coffee House Cold Brew Roast",
+        "name": "Guru 3 Blend Cold Brew - Strong Cold",
         "sku": "RC-TCH-008",
         "price": 125000,
         "qty": 3
@@ -2052,21 +2052,21 @@
     "items": [
       {
         "productId": 29,
-        "name": "Bình French Press Phúc Long 600ml",
+        "name": "BODUM Brazil French Press - Black",
         "sku": "MG-PL-029",
         "price": 429000,
         "qty": 4
       },
       {
         "productId": 13,
-        "name": "Phúc Long Gift Set Heritage",
+        "name": "Coffee Starter Kit",
         "sku": "CS-PL-013",
         "price": 415000,
         "qty": 3
       },
       {
         "productId": 28,
-        "name": "Bộ Phin Sứ Cao Cấp Highlands",
+        "name": "Philips EP2221/40 Espresso Machine",
         "sku": "MG-HC-028",
         "price": 245000,
         "qty": 3
@@ -2113,7 +2113,7 @@
     "items": [
       {
         "productId": 7,
-        "name": "The Coffee House Signature Blend",
+        "name": "The Coffee House - Original Roasted Coffee",
         "sku": "RC-TCH-007",
         "price": 145000,
         "qty": 4
@@ -2175,21 +2175,21 @@
     "items": [
       {
         "productId": 8,
-        "name": "The Coffee House Cold Brew Roast",
+        "name": "Guru 3 Blend Cold Brew - Strong Cold",
         "sku": "RC-TCH-008",
         "price": 125000,
         "qty": 2
       },
       {
         "productId": 6,
-        "name": "Phúc Long Arabica Honey",
+        "name": "Phúc Long Arabica Culi",
         "sku": "RC-PL-006",
         "price": 175000,
         "qty": 3
       },
       {
         "productId": 16,
-        "name": "The Coffee House Latte Art Kit",
+        "name": "Coffee Christmas Gifts Set",
         "sku": "CS-TCH-016",
         "price": 329000,
         "qty": 2
@@ -2250,7 +2250,7 @@
     "items": [
       {
         "productId": 17,
-        "name": "Ly Sứ Trung Nguyên Legend Signature 330ml",
+        "name": "Trung Nguyên Legend Ceramic Mug 330ml",
         "sku": "CM-TN-017",
         "price": 129000,
         "qty": 1
@@ -2319,28 +2319,28 @@
     "items": [
       {
         "productId": 16,
-        "name": "The Coffee House Latte Art Kit",
+        "name": "Coffee Christmas Gifts Set",
         "sku": "CS-TCH-016",
         "price": 329000,
         "qty": 1
       },
       {
         "productId": 17,
-        "name": "Ly Sứ Trung Nguyên Legend Signature 330ml",
+        "name": "Trung Nguyên Legend Ceramic Mug 330ml",
         "sku": "CM-TN-017",
         "price": 129000,
         "qty": 3
       },
       {
         "productId": 28,
-        "name": "Bộ Phin Sứ Cao Cấp Highlands",
+        "name": "Philips EP2221/40 Espresso Machine",
         "sku": "MG-HC-028",
         "price": 245000,
         "qty": 2
       },
       {
         "productId": 22,
-        "name": "Bình Giữ Nhiệt Phúc Long 600ml",
+        "name": "Phúc Long Insulated Bottle 600ml",
         "sku": "CM-PL-022",
         "price": 329000,
         "qty": 3
@@ -2408,21 +2408,21 @@
     "items": [
       {
         "productId": 25,
-        "name": "Phin Inox Trung Nguyên Legend 170ml",
+        "name": "Trung Nguyên Legend Stainless Steel Phin Filter 170ml",
         "sku": "MG-TN-025",
         "price": 189000,
         "qty": 2
       },
       {
         "productId": 19,
-        "name": "Ly Sứ Highlands Coffee 2025",
+        "name": "Highlands Coffee Ceramic Mugs 360ml (Set of 2)",
         "sku": "CM-HC-019",
         "price": 159000,
         "qty": 2
       },
       {
         "productId": 18,
-        "name": "Ly Sứ Trung Nguyên Legend Heritage",
+        "name": "Trung Nguyên Legend Message Mug",
         "sku": "CM-TN-018",
         "price": 189000,
         "qty": 4
@@ -2490,21 +2490,21 @@
     "items": [
       {
         "productId": 10,
-        "name": "Trung Nguyên Chinh Phục 5",
+        "name": "Trung Nguyên Legend Gift Set",
         "sku": "CS-TN-010",
         "price": 499000,
         "qty": 4
       },
       {
         "productId": 8,
-        "name": "The Coffee House Cold Brew Roast",
+        "name": "Guru 3 Blend Cold Brew - Strong Cold",
         "sku": "RC-TCH-008",
         "price": 125000,
         "qty": 2
       },
       {
         "productId": 22,
-        "name": "Bình Giữ Nhiệt Phúc Long 600ml",
+        "name": "Phúc Long Insulated Bottle 600ml",
         "sku": "CM-PL-022",
         "price": 329000,
         "qty": 2
@@ -2573,7 +2573,7 @@
     "items": [
       {
         "productId": 26,
-        "name": "Ống Lọc Cà Phê Giấy Trung Nguyên",
+        "name": "Paper Coffee Filters (100 pcs)",
         "sku": "MG-TN-026",
         "price": 59000,
         "qty": 1
@@ -2635,14 +2635,14 @@
     "items": [
       {
         "productId": 15,
-        "name": "The Coffee House Home Barista",
+        "name": "The Coffee House Gift Box",
         "sku": "CS-TCH-015",
         "price": 475000,
         "qty": 4
       },
       {
         "productId": 29,
-        "name": "Bình French Press Phúc Long 600ml",
+        "name": "BODUM Brazil French Press - Black",
         "sku": "MG-PL-029",
         "price": 429000,
         "qty": 4
@@ -2656,7 +2656,7 @@
       },
       {
         "productId": 8,
-        "name": "The Coffee House Cold Brew Roast",
+        "name": "Guru 3 Blend Cold Brew - Strong Cold",
         "sku": "RC-TCH-008",
         "price": 125000,
         "qty": 3
@@ -2717,21 +2717,21 @@
     "items": [
       {
         "productId": 17,
-        "name": "Ly Sứ Trung Nguyên Legend Signature 330ml",
+        "name": "Trung Nguyên Legend Ceramic Mug 330ml",
         "sku": "CM-TN-017",
         "price": 129000,
         "qty": 4
       },
       {
         "productId": 21,
-        "name": "Ly Sứ Phúc Long Heritage 350ml",
+        "name": "Phúc Long Ceramic Mug 340ml",
         "sku": "CM-PL-021",
         "price": 175000,
         "qty": 1
       },
       {
         "productId": 30,
-        "name": "Máy Xay Cà Phê Cầm Tay The Coffee House",
+        "name": "Hand Coffee Grinder",
         "sku": "MG-TCH-030",
         "price": 895000,
         "qty": 3
@@ -2814,14 +2814,14 @@
     "items": [
       {
         "productId": 28,
-        "name": "Bộ Phin Sứ Cao Cấp Highlands",
+        "name": "Philips EP2221/40 Espresso Machine",
         "sku": "MG-HC-028",
         "price": 245000,
         "qty": 2
       },
       {
         "productId": 26,
-        "name": "Ống Lọc Cà Phê Giấy Trung Nguyên",
+        "name": "Paper Coffee Filters (100 pcs)",
         "sku": "MG-TN-026",
         "price": 59000,
         "qty": 4
@@ -2875,7 +2875,7 @@
     "items": [
       {
         "productId": 29,
-        "name": "Bình French Press Phúc Long 600ml",
+        "name": "BODUM Brazil French Press - Black",
         "sku": "MG-PL-029",
         "price": 429000,
         "qty": 1
@@ -2986,7 +2986,7 @@
       },
       {
         "productId": 6,
-        "name": "Phúc Long Arabica Honey",
+        "name": "Phúc Long Arabica Culi",
         "sku": "RC-PL-006",
         "price": 175000,
         "qty": 1
@@ -3108,21 +3108,21 @@
     "items": [
       {
         "productId": 29,
-        "name": "Bình French Press Phúc Long 600ml",
+        "name": "BODUM Brazil French Press - Black",
         "sku": "MG-PL-029",
         "price": 429000,
         "qty": 1
       },
       {
         "productId": 21,
-        "name": "Ly Sứ Phúc Long Heritage 350ml",
+        "name": "Phúc Long Ceramic Mug 340ml",
         "sku": "CM-PL-021",
         "price": 175000,
         "qty": 1
       },
       {
         "productId": 23,
-        "name": "Ly Giữ Nhiệt The Coffee House On-The-Go",
+        "name": "The Coffee House Go Green Insulated Tumbler 480ml",
         "sku": "CM-TCH-023",
         "price": 315000,
         "qty": 1
@@ -3183,7 +3183,7 @@
     "items": [
       {
         "productId": 15,
-        "name": "The Coffee House Home Barista",
+        "name": "The Coffee House Gift Box",
         "sku": "CS-TCH-015",
         "price": 475000,
         "qty": 4
@@ -3265,7 +3265,7 @@
     "items": [
       {
         "productId": 10,
-        "name": "Trung Nguyên Chinh Phục 5",
+        "name": "Trung Nguyên Legend Gift Set",
         "sku": "CS-TN-010",
         "price": 499000,
         "qty": 4
@@ -3279,7 +3279,7 @@
       },
       {
         "productId": 26,
-        "name": "Ống Lọc Cà Phê Giấy Trung Nguyên",
+        "name": "Paper Coffee Filters (100 pcs)",
         "sku": "MG-TN-026",
         "price": 59000,
         "qty": 4
@@ -3415,7 +3415,7 @@
     "items": [
       {
         "productId": 28,
-        "name": "Bộ Phin Sứ Cao Cấp Highlands",
+        "name": "Philips EP2221/40 Espresso Machine",
         "sku": "MG-HC-028",
         "price": 245000,
         "qty": 4
@@ -3484,7 +3484,7 @@
     "items": [
       {
         "productId": 21,
-        "name": "Ly Sứ Phúc Long Heritage 350ml",
+        "name": "Phúc Long Ceramic Mug 340ml",
         "sku": "CM-PL-021",
         "price": 175000,
         "qty": 1
@@ -3545,14 +3545,14 @@
       },
       {
         "productId": 20,
-        "name": "Ly Thủy Tinh Highlands Cold Brew 500ml",
+        "name": "Highlands Tall Leaf-Pattern Tumbler",
         "sku": "CM-HC-020",
         "price": 185000,
         "qty": 3
       },
       {
         "productId": 28,
-        "name": "Bộ Phin Sứ Cao Cấp Highlands",
+        "name": "Philips EP2221/40 Espresso Machine",
         "sku": "MG-HC-028",
         "price": 245000,
         "qty": 4
@@ -3613,7 +3613,7 @@
     "items": [
       {
         "productId": 22,
-        "name": "Bình Giữ Nhiệt Phúc Long 600ml",
+        "name": "Phúc Long Insulated Bottle 600ml",
         "sku": "CM-PL-022",
         "price": 329000,
         "qty": 3
@@ -3660,14 +3660,14 @@
     "items": [
       {
         "productId": 20,
-        "name": "Ly Thủy Tinh Highlands Cold Brew 500ml",
+        "name": "Highlands Tall Leaf-Pattern Tumbler",
         "sku": "CM-HC-020",
         "price": 185000,
         "qty": 1
       },
       {
         "productId": 6,
-        "name": "Phúc Long Arabica Honey",
+        "name": "Phúc Long Arabica Culi",
         "sku": "RC-PL-006",
         "price": 175000,
         "qty": 4
@@ -3796,28 +3796,28 @@
     "items": [
       {
         "productId": 3,
-        "name": "Highlands Coffee Premium Blend",
+        "name": "Highlands Coffee Culi Blend",
         "sku": "RC-HC-003",
         "price": 135000,
         "qty": 4
       },
       {
         "productId": 10,
-        "name": "Trung Nguyên Chinh Phục 5",
+        "name": "Trung Nguyên Legend Gift Set",
         "sku": "CS-TN-010",
         "price": 499000,
         "qty": 1
       },
       {
         "productId": 29,
-        "name": "Bình French Press Phúc Long 600ml",
+        "name": "BODUM Brazil French Press - Black",
         "sku": "MG-PL-029",
         "price": 429000,
         "qty": 2
       },
       {
         "productId": 19,
-        "name": "Ly Sứ Highlands Coffee 2025",
+        "name": "Highlands Coffee Ceramic Mugs 360ml (Set of 2)",
         "sku": "CM-HC-019",
         "price": 159000,
         "qty": 4
@@ -3878,7 +3878,7 @@
       },
       {
         "productId": 7,
-        "name": "The Coffee House Signature Blend",
+        "name": "The Coffee House - Original Roasted Coffee",
         "sku": "RC-TCH-007",
         "price": 145000,
         "qty": 2
@@ -3961,7 +3961,7 @@
     "items": [
       {
         "productId": 19,
-        "name": "Ly Sứ Highlands Coffee 2025",
+        "name": "Highlands Coffee Ceramic Mugs 360ml (Set of 2)",
         "sku": "CM-HC-019",
         "price": 159000,
         "qty": 2
@@ -4029,7 +4029,7 @@
     "items": [
       {
         "productId": 25,
-        "name": "Phin Inox Trung Nguyên Legend 170ml",
+        "name": "Trung Nguyên Legend Stainless Steel Phin Filter 170ml",
         "sku": "MG-TN-025",
         "price": 189000,
         "qty": 1
@@ -4076,7 +4076,7 @@
     "items": [
       {
         "productId": 26,
-        "name": "Ống Lọc Cà Phê Giấy Trung Nguyên",
+        "name": "Paper Coffee Filters (100 pcs)",
         "sku": "MG-TN-026",
         "price": 59000,
         "qty": 1
@@ -4151,7 +4151,7 @@
     "items": [
       {
         "productId": 20,
-        "name": "Ly Thủy Tinh Highlands Cold Brew 500ml",
+        "name": "Highlands Tall Leaf-Pattern Tumbler",
         "sku": "CM-HC-020",
         "price": 185000,
         "qty": 2
@@ -4165,7 +4165,7 @@
       },
       {
         "productId": 13,
-        "name": "Phúc Long Gift Set Heritage",
+        "name": "Coffee Starter Kit",
         "sku": "CS-PL-013",
         "price": 415000,
         "qty": 1
@@ -4233,7 +4233,7 @@
     "items": [
       {
         "productId": 24,
-        "name": "Ly Sứ The Coffee House Moment 250ml",
+        "name": "The Coffee House Ceramic Travel Mug",
         "sku": "CM-TCH-024",
         "price": 149000,
         "qty": 1
@@ -4247,14 +4247,14 @@
       },
       {
         "productId": 18,
-        "name": "Ly Sứ Trung Nguyên Legend Heritage",
+        "name": "Trung Nguyên Legend Message Mug",
         "sku": "CM-TN-018",
         "price": 189000,
         "qty": 2
       },
       {
         "productId": 8,
-        "name": "The Coffee House Cold Brew Roast",
+        "name": "Guru 3 Blend Cold Brew - Strong Cold",
         "sku": "RC-TCH-008",
         "price": 125000,
         "qty": 2
@@ -4316,14 +4316,14 @@
     "items": [
       {
         "productId": 14,
-        "name": "Phúc Long Cold Brew Starter",
+        "name": "Don Pablo Whiskey Infused Coffee Gift Set",
         "sku": "CS-PL-014",
         "price": 289000,
         "qty": 2
       },
       {
         "productId": 18,
-        "name": "Ly Sứ Trung Nguyên Legend Heritage",
+        "name": "Trung Nguyên Legend Message Mug",
         "sku": "CM-TN-018",
         "price": 189000,
         "qty": 4
@@ -4384,21 +4384,21 @@
     "items": [
       {
         "productId": 14,
-        "name": "Phúc Long Cold Brew Starter",
+        "name": "Don Pablo Whiskey Infused Coffee Gift Set",
         "sku": "CS-PL-014",
         "price": 289000,
         "qty": 3
       },
       {
         "productId": 29,
-        "name": "Bình French Press Phúc Long 600ml",
+        "name": "BODUM Brazil French Press - Black",
         "sku": "MG-PL-029",
         "price": 429000,
         "qty": 4
       },
       {
         "productId": 15,
-        "name": "The Coffee House Home Barista",
+        "name": "The Coffee House Gift Box",
         "sku": "CS-TCH-015",
         "price": 475000,
         "qty": 3
@@ -4460,7 +4460,7 @@
     "items": [
       {
         "productId": 13,
-        "name": "Phúc Long Gift Set Heritage",
+        "name": "Coffee Starter Kit",
         "sku": "CS-PL-013",
         "price": 415000,
         "qty": 3
@@ -4536,14 +4536,14 @@
     "items": [
       {
         "productId": 13,
-        "name": "Phúc Long Gift Set Heritage",
+        "name": "Coffee Starter Kit",
         "sku": "CS-PL-013",
         "price": 415000,
         "qty": 1
       },
       {
         "productId": 17,
-        "name": "Ly Sứ Trung Nguyên Legend Signature 330ml",
+        "name": "Trung Nguyên Legend Ceramic Mug 330ml",
         "sku": "CM-TN-017",
         "price": 129000,
         "qty": 2
@@ -4619,14 +4619,14 @@
     "items": [
       {
         "productId": 6,
-        "name": "Phúc Long Arabica Honey",
+        "name": "Phúc Long Arabica Culi",
         "sku": "RC-PL-006",
         "price": 175000,
         "qty": 4
       },
       {
         "productId": 16,
-        "name": "The Coffee House Latte Art Kit",
+        "name": "Coffee Christmas Gifts Set",
         "sku": "CS-TCH-016",
         "price": 329000,
         "qty": 4
@@ -4640,7 +4640,7 @@
       },
       {
         "productId": 7,
-        "name": "The Coffee House Signature Blend",
+        "name": "The Coffee House - Original Roasted Coffee",
         "sku": "RC-TCH-007",
         "price": 145000,
         "qty": 1
@@ -4687,7 +4687,7 @@
     "items": [
       {
         "productId": 24,
-        "name": "Ly Sứ The Coffee House Moment 250ml",
+        "name": "The Coffee House Ceramic Travel Mug",
         "sku": "CM-TCH-024",
         "price": 149000,
         "qty": 3
@@ -4830,28 +4830,28 @@
     "items": [
       {
         "productId": 8,
-        "name": "The Coffee House Cold Brew Roast",
+        "name": "Guru 3 Blend Cold Brew - Strong Cold",
         "sku": "RC-TCH-008",
         "price": 125000,
         "qty": 1
       },
       {
         "productId": 18,
-        "name": "Ly Sứ Trung Nguyên Legend Heritage",
+        "name": "Trung Nguyên Legend Message Mug",
         "sku": "CM-TN-018",
         "price": 189000,
         "qty": 1
       },
       {
         "productId": 30,
-        "name": "Máy Xay Cà Phê Cầm Tay The Coffee House",
+        "name": "Hand Coffee Grinder",
         "sku": "MG-TCH-030",
         "price": 895000,
         "qty": 2
       },
       {
         "productId": 25,
-        "name": "Phin Inox Trung Nguyên Legend 170ml",
+        "name": "Trung Nguyên Legend Stainless Steel Phin Filter 170ml",
         "sku": "MG-TN-025",
         "price": 189000,
         "qty": 3
@@ -4926,14 +4926,14 @@
     "items": [
       {
         "productId": 18,
-        "name": "Ly Sứ Trung Nguyên Legend Heritage",
+        "name": "Trung Nguyên Legend Message Mug",
         "sku": "CM-TN-018",
         "price": 189000,
         "qty": 2
       },
       {
         "productId": 10,
-        "name": "Trung Nguyên Chinh Phục 5",
+        "name": "Trung Nguyên Legend Gift Set",
         "sku": "CS-TN-010",
         "price": 499000,
         "qty": 2
@@ -5070,21 +5070,21 @@
     "items": [
       {
         "productId": 6,
-        "name": "Phúc Long Arabica Honey",
+        "name": "Phúc Long Arabica Culi",
         "sku": "RC-PL-006",
         "price": 175000,
         "qty": 1
       },
       {
         "productId": 23,
-        "name": "Ly Giữ Nhiệt The Coffee House On-The-Go",
+        "name": "The Coffee House Go Green Insulated Tumbler 480ml",
         "sku": "CM-TCH-023",
         "price": 315000,
         "qty": 2
       },
       {
         "productId": 22,
-        "name": "Bình Giữ Nhiệt Phúc Long 600ml",
+        "name": "Phúc Long Insulated Bottle 600ml",
         "sku": "CM-PL-022",
         "price": 329000,
         "qty": 3
@@ -5145,7 +5145,7 @@
     "items": [
       {
         "productId": 20,
-        "name": "Ly Thủy Tinh Highlands Cold Brew 500ml",
+        "name": "Highlands Tall Leaf-Pattern Tumbler",
         "sku": "CM-HC-020",
         "price": 185000,
         "qty": 1
@@ -5214,7 +5214,7 @@
     "items": [
       {
         "productId": 17,
-        "name": "Ly Sứ Trung Nguyên Legend Signature 330ml",
+        "name": "Trung Nguyên Legend Ceramic Mug 330ml",
         "sku": "CM-TN-017",
         "price": 129000,
         "qty": 1
@@ -5426,14 +5426,14 @@
       },
       {
         "productId": 7,
-        "name": "The Coffee House Signature Blend",
+        "name": "The Coffee House - Original Roasted Coffee",
         "sku": "RC-TCH-007",
         "price": 145000,
         "qty": 4
       },
       {
         "productId": 8,
-        "name": "The Coffee House Cold Brew Roast",
+        "name": "Guru 3 Blend Cold Brew - Strong Cold",
         "sku": "RC-TCH-008",
         "price": 125000,
         "qty": 1
@@ -5487,14 +5487,14 @@
     "items": [
       {
         "productId": 16,
-        "name": "The Coffee House Latte Art Kit",
+        "name": "Coffee Christmas Gifts Set",
         "sku": "CS-TCH-016",
         "price": 329000,
         "qty": 3
       },
       {
         "productId": 20,
-        "name": "Ly Thủy Tinh Highlands Cold Brew 500ml",
+        "name": "Highlands Tall Leaf-Pattern Tumbler",
         "sku": "CM-HC-020",
         "price": 185000,
         "qty": 1
@@ -5577,7 +5577,7 @@
     "items": [
       {
         "productId": 13,
-        "name": "Phúc Long Gift Set Heritage",
+        "name": "Coffee Starter Kit",
         "sku": "CS-PL-013",
         "price": 415000,
         "qty": 4
@@ -5591,7 +5591,7 @@
       },
       {
         "productId": 28,
-        "name": "Bộ Phin Sứ Cao Cấp Highlands",
+        "name": "Philips EP2221/40 Espresso Machine",
         "sku": "MG-HC-028",
         "price": 245000,
         "qty": 1
@@ -5660,28 +5660,28 @@
     "items": [
       {
         "productId": 25,
-        "name": "Phin Inox Trung Nguyên Legend 170ml",
+        "name": "Trung Nguyên Legend Stainless Steel Phin Filter 170ml",
         "sku": "MG-TN-025",
         "price": 189000,
         "qty": 3
       },
       {
         "productId": 15,
-        "name": "The Coffee House Home Barista",
+        "name": "The Coffee House Gift Box",
         "sku": "CS-TCH-015",
         "price": 475000,
         "qty": 4
       },
       {
         "productId": 13,
-        "name": "Phúc Long Gift Set Heritage",
+        "name": "Coffee Starter Kit",
         "sku": "CS-PL-013",
         "price": 415000,
         "qty": 1
       },
       {
         "productId": 28,
-        "name": "Bộ Phin Sứ Cao Cấp Highlands",
+        "name": "Philips EP2221/40 Espresso Machine",
         "sku": "MG-HC-028",
         "price": 245000,
         "qty": 1
@@ -5764,14 +5764,14 @@
     "items": [
       {
         "productId": 7,
-        "name": "The Coffee House Signature Blend",
+        "name": "The Coffee House - Original Roasted Coffee",
         "sku": "RC-TCH-007",
         "price": 145000,
         "qty": 1
       },
       {
         "productId": 8,
-        "name": "The Coffee House Cold Brew Roast",
+        "name": "Guru 3 Blend Cold Brew - Strong Cold",
         "sku": "RC-TCH-008",
         "price": 125000,
         "qty": 1
@@ -5825,7 +5825,7 @@
     "items": [
       {
         "productId": 22,
-        "name": "Bình Giữ Nhiệt Phúc Long 600ml",
+        "name": "Phúc Long Insulated Bottle 600ml",
         "sku": "CM-PL-022",
         "price": 329000,
         "qty": 3
@@ -5839,14 +5839,14 @@
       },
       {
         "productId": 10,
-        "name": "Trung Nguyên Chinh Phục 5",
+        "name": "Trung Nguyên Legend Gift Set",
         "sku": "CS-TN-010",
         "price": 499000,
         "qty": 1
       },
       {
         "productId": 24,
-        "name": "Ly Sứ The Coffee House Moment 250ml",
+        "name": "The Coffee House Ceramic Travel Mug",
         "sku": "CM-TCH-024",
         "price": 149000,
         "qty": 4
@@ -5893,7 +5893,7 @@
     "items": [
       {
         "productId": 21,
-        "name": "Ly Sứ Phúc Long Heritage 350ml",
+        "name": "Phúc Long Ceramic Mug 340ml",
         "sku": "CM-PL-021",
         "price": 175000,
         "qty": 1
@@ -5907,7 +5907,7 @@
       },
       {
         "productId": 19,
-        "name": "Ly Sứ Highlands Coffee 2025",
+        "name": "Highlands Coffee Ceramic Mugs 360ml (Set of 2)",
         "sku": "CM-HC-019",
         "price": 159000,
         "qty": 2
@@ -5961,7 +5961,7 @@
     "items": [
       {
         "productId": 25,
-        "name": "Phin Inox Trung Nguyên Legend 170ml",
+        "name": "Trung Nguyên Legend Stainless Steel Phin Filter 170ml",
         "sku": "MG-TN-025",
         "price": 189000,
         "qty": 1
@@ -6084,21 +6084,21 @@
     "items": [
       {
         "productId": 18,
-        "name": "Ly Sứ Trung Nguyên Legend Heritage",
+        "name": "Trung Nguyên Legend Message Mug",
         "sku": "CM-TN-018",
         "price": 189000,
         "qty": 4
       },
       {
         "productId": 16,
-        "name": "The Coffee House Latte Art Kit",
+        "name": "Coffee Christmas Gifts Set",
         "sku": "CS-TCH-016",
         "price": 329000,
         "qty": 2
       },
       {
         "productId": 14,
-        "name": "Phúc Long Cold Brew Starter",
+        "name": "Don Pablo Whiskey Infused Coffee Gift Set",
         "sku": "CS-PL-014",
         "price": 289000,
         "qty": 2
@@ -6235,21 +6235,21 @@
     "items": [
       {
         "productId": 30,
-        "name": "Máy Xay Cà Phê Cầm Tay The Coffee House",
+        "name": "Hand Coffee Grinder",
         "sku": "MG-TCH-030",
         "price": 895000,
         "qty": 1
       },
       {
         "productId": 6,
-        "name": "Phúc Long Arabica Honey",
+        "name": "Phúc Long Arabica Culi",
         "sku": "RC-PL-006",
         "price": 175000,
         "qty": 2
       },
       {
         "productId": 15,
-        "name": "The Coffee House Home Barista",
+        "name": "The Coffee House Gift Box",
         "sku": "CS-TCH-015",
         "price": 475000,
         "qty": 1
@@ -6331,7 +6331,7 @@
     "items": [
       {
         "productId": 18,
-        "name": "Ly Sứ Trung Nguyên Legend Heritage",
+        "name": "Trung Nguyên Legend Message Mug",
         "sku": "CM-TN-018",
         "price": 189000,
         "qty": 4
@@ -6420,21 +6420,21 @@
       },
       {
         "productId": 7,
-        "name": "The Coffee House Signature Blend",
+        "name": "The Coffee House - Original Roasted Coffee",
         "sku": "RC-TCH-007",
         "price": 145000,
         "qty": 3
       },
       {
         "productId": 13,
-        "name": "Phúc Long Gift Set Heritage",
+        "name": "Coffee Starter Kit",
         "sku": "CS-PL-013",
         "price": 415000,
         "qty": 1
       },
       {
         "productId": 6,
-        "name": "Phúc Long Arabica Honey",
+        "name": "Phúc Long Arabica Culi",
         "sku": "RC-PL-006",
         "price": 175000,
         "qty": 1
@@ -6495,28 +6495,28 @@
     "items": [
       {
         "productId": 19,
-        "name": "Ly Sứ Highlands Coffee 2025",
+        "name": "Highlands Coffee Ceramic Mugs 360ml (Set of 2)",
         "sku": "CM-HC-019",
         "price": 159000,
         "qty": 2
       },
       {
         "productId": 28,
-        "name": "Bộ Phin Sứ Cao Cấp Highlands",
+        "name": "Philips EP2221/40 Espresso Machine",
         "sku": "MG-HC-028",
         "price": 245000,
         "qty": 4
       },
       {
         "productId": 26,
-        "name": "Ống Lọc Cà Phê Giấy Trung Nguyên",
+        "name": "Paper Coffee Filters (100 pcs)",
         "sku": "MG-TN-026",
         "price": 59000,
         "qty": 4
       },
       {
         "productId": 17,
-        "name": "Ly Sứ Trung Nguyên Legend Signature 330ml",
+        "name": "Trung Nguyên Legend Ceramic Mug 330ml",
         "sku": "CM-TN-017",
         "price": 129000,
         "qty": 2
@@ -6585,14 +6585,14 @@
     "items": [
       {
         "productId": 21,
-        "name": "Ly Sứ Phúc Long Heritage 350ml",
+        "name": "Phúc Long Ceramic Mug 340ml",
         "sku": "CM-PL-021",
         "price": 175000,
         "qty": 1
       },
       {
         "productId": 8,
-        "name": "The Coffee House Cold Brew Roast",
+        "name": "Guru 3 Blend Cold Brew - Strong Cold",
         "sku": "RC-TCH-008",
         "price": 125000,
         "qty": 2
@@ -6722,7 +6722,7 @@
     "items": [
       {
         "productId": 25,
-        "name": "Phin Inox Trung Nguyên Legend 170ml",
+        "name": "Trung Nguyên Legend Stainless Steel Phin Filter 170ml",
         "sku": "MG-TN-025",
         "price": 189000,
         "qty": 3
@@ -6769,7 +6769,7 @@
     "items": [
       {
         "productId": 30,
-        "name": "Máy Xay Cà Phê Cầm Tay The Coffee House",
+        "name": "Hand Coffee Grinder",
         "sku": "MG-TCH-030",
         "price": 895000,
         "qty": 3
@@ -6790,7 +6790,7 @@
       },
       {
         "productId": 21,
-        "name": "Ly Sứ Phúc Long Heritage 350ml",
+        "name": "Phúc Long Ceramic Mug 340ml",
         "sku": "CM-PL-021",
         "price": 175000,
         "qty": 3
@@ -6858,7 +6858,7 @@
     "items": [
       {
         "productId": 22,
-        "name": "Bình Giữ Nhiệt Phúc Long 600ml",
+        "name": "Phúc Long Insulated Bottle 600ml",
         "sku": "CM-PL-022",
         "price": 329000,
         "qty": 3
@@ -6872,7 +6872,7 @@
       },
       {
         "productId": 16,
-        "name": "The Coffee House Latte Art Kit",
+        "name": "Coffee Christmas Gifts Set",
         "sku": "CS-TCH-016",
         "price": 329000,
         "qty": 2
@@ -6933,7 +6933,7 @@
     "items": [
       {
         "productId": 20,
-        "name": "Ly Thủy Tinh Highlands Cold Brew 500ml",
+        "name": "Highlands Tall Leaf-Pattern Tumbler",
         "sku": "CM-HC-020",
         "price": 185000,
         "qty": 1
@@ -6947,7 +6947,7 @@
       },
       {
         "productId": 26,
-        "name": "Ống Lọc Cà Phê Giấy Trung Nguyên",
+        "name": "Paper Coffee Filters (100 pcs)",
         "sku": "MG-TN-026",
         "price": 59000,
         "qty": 1
@@ -7001,14 +7001,14 @@
     "items": [
       {
         "productId": 23,
-        "name": "Ly Giữ Nhiệt The Coffee House On-The-Go",
+        "name": "The Coffee House Go Green Insulated Tumbler 480ml",
         "sku": "CM-TCH-023",
         "price": 315000,
         "qty": 1
       },
       {
         "productId": 29,
-        "name": "Bình French Press Phúc Long 600ml",
+        "name": "BODUM Brazil French Press - Black",
         "sku": "MG-PL-029",
         "price": 429000,
         "qty": 2
@@ -7083,21 +7083,21 @@
       },
       {
         "productId": 26,
-        "name": "Ống Lọc Cà Phê Giấy Trung Nguyên",
+        "name": "Paper Coffee Filters (100 pcs)",
         "sku": "MG-TN-026",
         "price": 59000,
         "qty": 2
       },
       {
         "productId": 10,
-        "name": "Trung Nguyên Chinh Phục 5",
+        "name": "Trung Nguyên Legend Gift Set",
         "sku": "CS-TN-010",
         "price": 499000,
         "qty": 1
       },
       {
         "productId": 18,
-        "name": "Ly Sứ Trung Nguyên Legend Heritage",
+        "name": "Trung Nguyên Legend Message Mug",
         "sku": "CM-TN-018",
         "price": 189000,
         "qty": 1
@@ -7152,21 +7152,21 @@
     "items": [
       {
         "productId": 15,
-        "name": "The Coffee House Home Barista",
+        "name": "The Coffee House Gift Box",
         "sku": "CS-TCH-015",
         "price": 475000,
         "qty": 3
       },
       {
         "productId": 30,
-        "name": "Máy Xay Cà Phê Cầm Tay The Coffee House",
+        "name": "Hand Coffee Grinder",
         "sku": "MG-TCH-030",
         "price": 895000,
         "qty": 2
       },
       {
         "productId": 29,
-        "name": "Bình French Press Phúc Long 600ml",
+        "name": "BODUM Brazil French Press - Black",
         "sku": "MG-PL-029",
         "price": 429000,
         "qty": 4
@@ -7249,7 +7249,7 @@
     "items": [
       {
         "productId": 26,
-        "name": "Ống Lọc Cà Phê Giấy Trung Nguyên",
+        "name": "Paper Coffee Filters (100 pcs)",
         "sku": "MG-TN-026",
         "price": 59000,
         "qty": 1
@@ -7263,14 +7263,14 @@
       },
       {
         "productId": 6,
-        "name": "Phúc Long Arabica Honey",
+        "name": "Phúc Long Arabica Culi",
         "sku": "RC-PL-006",
         "price": 175000,
         "qty": 3
       },
       {
         "productId": 20,
-        "name": "Ly Thủy Tinh Highlands Cold Brew 500ml",
+        "name": "Highlands Tall Leaf-Pattern Tumbler",
         "sku": "CM-HC-020",
         "price": 185000,
         "qty": 2
@@ -7317,7 +7317,7 @@
     "items": [
       {
         "productId": 19,
-        "name": "Ly Sứ Highlands Coffee 2025",
+        "name": "Highlands Coffee Ceramic Mugs 360ml (Set of 2)",
         "sku": "CM-HC-019",
         "price": 159000,
         "qty": 4
@@ -7331,14 +7331,14 @@
       },
       {
         "productId": 22,
-        "name": "Bình Giữ Nhiệt Phúc Long 600ml",
+        "name": "Phúc Long Insulated Bottle 600ml",
         "sku": "CM-PL-022",
         "price": 329000,
         "qty": 4
       },
       {
         "productId": 25,
-        "name": "Phin Inox Trung Nguyên Legend 170ml",
+        "name": "Trung Nguyên Legend Stainless Steel Phin Filter 170ml",
         "sku": "MG-TN-025",
         "price": 189000,
         "qty": 2

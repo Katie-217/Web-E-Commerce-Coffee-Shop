@@ -2,19 +2,20 @@ import React, { useState } from 'react';
 import './coffee-origin.css';
 
 const CoffeeOrigin = () => {
-  const [selectedOrigin, setSelectedOrigin] = useState('Highlands');
+  const [selectedOrigin, setSelectedOrigin] = useState('Trung Nguyen');
 
-  const origins = ['Highlands', 'Bui Van Ngo', 'La Viet', 'Trung Nguyen', 'Cong'];
-
+  const origins = ['Trung Nguyen', 'Highlands', 'Phuc Long', 'The Coffee House'];
 
   return (
-    <section className="coffee-origin"
-    style={{ 
+    <section
+      className="coffee-origin"
+      style={{
         backgroundImage: `url('/images/origin-bg.png')`,
         backgroundRepeat: 'no-repeat',
         backgroundSize: 'contain',
-        backgroundPosition: 'center'
-      }}>
+        backgroundPosition: 'center',
+      }}
+    >
       <div className="container">
         <div className="origin-layout">
           {/* Left Column - Brand Story & Heritage */}
@@ -25,14 +26,14 @@ const CoffeeOrigin = () => {
             </header>
             <div className="content-body">
               <p>
-                Since 1857, coffee has become an integral part of Vietnamese culture. 
-                We proudly inherit the <strong>160-year tradition</strong> of Vietnamese coffee industry, 
+                Since 1857, coffee has become an integral part of Vietnamese culture. We proudly
+                inherit the <strong>160-year tradition</strong> of Vietnamese coffee industry,
                 bringing you coffee beans carefully selected from the most fertile regions.
               </p>
               <p>
-                Each coffee bean is <strong>hand-roasted</strong> using traditional methods, 
-                combined with modern technology to create unique flavors, 
-                rich in Vietnamese identity.
+                Each coffee bean is <strong>hand-roasted</strong> using traditional methods,
+                combined with modern technology to create unique flavors, rich in Vietnamese
+                identity.
               </p>
               <ul className="heritage-list">
                 <li>✓ 160 years of experience</li>
@@ -42,21 +43,23 @@ const CoffeeOrigin = () => {
               </ul>
             </div>
             <footer>
-              <a href="/about" className="show-products" aria-label="Learn more about coffee history">Discover Our History</a>
+              <a href="/about" className="show-products" aria-label="Learn more about coffee history">
+                Discover Our History
+              </a>
             </footer>
           </article>
 
-          {/* Middle Column - Interactive Origin Selection */}
+          {/* Middle Column - Interactive Brand Selection */}
           <section className="origin-column">
             <header>
-              <h3>Discover Coffee Regions</h3>
+              <h3>Discover Vietnamese Coffee Brands</h3>
               <p className="origin-description">
-                Each region brings unique coffee flavors and characteristics. 
-                Choose your favorite region to explore its distinctive features.
+                From heritage roasters to modern specialty chains, each brand brings its own
+                signature roasting style and flavor profile.
               </p>
             </header>
-            <nav className="origin-navigation" aria-label="Select coffee growing region">
-              <p className="origin-prompt">Choose your coffee region:</p>
+            <nav className="origin-navigation" aria-label="Select coffee brand">
+              <p className="origin-prompt">Choose your coffee brand:</p>
               <div className="origin-list" role="tablist">
                 {origins.map((origin) => (
                   <button
@@ -65,7 +68,7 @@ const CoffeeOrigin = () => {
                     onClick={() => setSelectedOrigin(origin)}
                     role="tab"
                     aria-selected={selectedOrigin === origin}
-                    aria-label={`Coffee from ${origin} region`}
+                    aria-label={`Coffee from ${origin} brand`}
                     type="button"
                   >
                     {origin}
@@ -76,18 +79,20 @@ const CoffeeOrigin = () => {
             <div className="origin-info" aria-live="polite">
               <div className="origin-details">
                 <h4 className="origin-title">
-                  {selectedOrigin === 'Highlands' && 'Central Highlands Region'}
-                  {selectedOrigin === 'Bui Van Ngo' && 'Bui Van Ngo Coffee'}
-                  {selectedOrigin === 'La Viet' && 'La Viet Coffee'}
-                  {selectedOrigin === 'Trung Nguyen' && 'Trung Nguyen Coffee'}
-                  {selectedOrigin === 'Cong' && 'Cong Coffee'}
+                  {selectedOrigin === 'Trung Nguyen' && 'Trung Nguyen Legend'}
+                  {selectedOrigin === 'Highlands' && 'Highlands Coffee'}
+                  {selectedOrigin === 'Phuc Long' && 'Phuc Long Coffee & Tea'}
+                  {selectedOrigin === 'The Coffee House' && 'The Coffee House'}
                 </h4>
                 <p className="selected-origin-description">
-                  {selectedOrigin === 'Highlands' && 'Fertile red basalt soil and cool climate create rich, aromatic coffee flavors characteristic of the Central Highlands.'}
-                  {selectedOrigin === 'Bui Van Ngo' && 'Traditional coffee brand with secret roasting formula, delivering rich flavors that embody Vietnamese identity.'}
-                  {selectedOrigin === 'La Viet' && 'Modern style with refined flavors suitable for specialty coffee trends, popular among young people.'}
-                  {selectedOrigin === 'Trung Nguyen' && 'National brand with distinctive rich flavors, representing Vietnamese coffee excellence worldwide.'}
-                  {selectedOrigin === 'Cong' && 'Classic style with retro atmosphere, traditional flavors loved by multiple generations.'}
+                  {selectedOrigin === 'Trung Nguyen' &&
+                    'The pioneering Vietnamese coffee brand with bold, multi-layered blends that represent the spirit of Vietnamese coffee around the world.'}
+                  {selectedOrigin === 'Highlands' &&
+                    'Urban coffee chain inspired by the Central Highlands, offering balanced flavors and familiar drinks for everyday enjoyment.'}
+                  {selectedOrigin === 'Phuc Long' &&
+                    'Famous for strong coffee and fragrant tea, delivering a rich, memorable cup that reflects Saigon’s vibrant lifestyle.'}
+                  {selectedOrigin === 'The Coffee House' &&
+                    'Modern coffee space focusing on smooth, easy-to-drink flavors and a cozy atmosphere for working, meeting and relaxing.'}
                 </p>
                 <div className="origin-stats">
                   <span className="stat-item">🌡️ Temperature: 18-25°C</span>
@@ -101,7 +106,10 @@ const CoffeeOrigin = () => {
           {/* Right Column - Service & Experience */}
           <div className="cta-column">
             <h3>Service & Experience</h3>
-            <p>We are committed to delivering the perfect coffee experience with professional and dedicated service.</p>
+            <p>
+              We are committed to delivering the perfect coffee experience with professional and
+              dedicated service.
+            </p>
             <div className="service-features">
               <div className="service-item">
                 <span className="service-icon">🚚</span>
@@ -137,6 +145,3 @@ const CoffeeOrigin = () => {
 };
 
 export default CoffeeOrigin;
-
-
-

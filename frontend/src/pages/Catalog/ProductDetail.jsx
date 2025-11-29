@@ -44,12 +44,32 @@ function getPriceWithSize(p, optIdx = 0) {
   return base + delta;
 }
 
-// ===== Star rating input (1–5, clickable) =====
-function StarRatingInput({ value, onChange }) {
+// ===== Star rating input (1–5, clickable, có hỗ trợ disabled) =====
+function StarRatingInput({ value, onChange, disabled }) {
   const [hover, setHover] = React.useState(0);
 
+  const handleEnter = (star) => {
+    if (disabled) return;
+    setHover(star);
+  };
+
+  const handleLeave = () => {
+    if (disabled) return;
+    setHover(0);
+  };
+
+  const handleClick = (star) => {
+    if (disabled) return;
+    onChange?.(star);
+  };
+
   return (
-    <div className="star-rating-input">
+    <div
+      className={
+        "star-rating-input" +
+        (disabled ? " star-rating-input--disabled" : "")
+      }
+    >
       {[1, 2, 3, 4, 5].map((star) => {
         const filled = star <= (hover || value);
         return (
@@ -57,10 +77,11 @@ function StarRatingInput({ value, onChange }) {
             key={star}
             type="button"
             className={`star-btn ${filled ? "filled" : ""}`}
-            onMouseEnter={() => setHover(star)}
-            onMouseLeave={() => setHover(0)}
-            onClick={() => onChange(star)}
+            onMouseEnter={() => handleEnter(star)}
+            onMouseLeave={handleLeave}
+            onClick={() => handleClick(star)}
             aria-label={`${star} stars`}
+            disabled={disabled}
           >
             ★
           </button>
@@ -102,6 +123,8 @@ const ProductDetail = () => {
 
   // always keep wishlist as array for easier handling
   const wishlist = Array.isArray(user?.wishlist) ? user.wishlist : [];
+
+  const isLoggedIn = !!user;
 
   // Prefill name/email when user is logged in
   useEffect(() => {
@@ -156,7 +179,7 @@ const ProductDetail = () => {
     return () => controller.abort();
   }, [id]);
 
-  // ===== Fetch reviews from backend =====
+  // ===== Fetch reviews from backend (initial load) =====
   useEffect(() => {
     if (!id) return;
     const controller = new AbortController();
@@ -192,6 +215,87 @@ const ProductDetail = () => {
 
     fetchReviews();
     return () => controller.abort();
+  }, [id]);
+
+  // ===== WebSocket: live update reviews/ratings (nếu backend hỗ trợ) =====
+  useEffect(() => {
+    if (!id) return;
+
+    // Cho phép cấu hình qua env, nếu không thì fallback localhost:3001
+    let wsBase = process.env.REACT_APP_WS_BASE_URL;
+    if (!wsBase && typeof window !== "undefined") {
+      const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+      const host = window.location.hostname;
+      const port = process.env.REACT_APP_WS_PORT || "3001";
+      wsBase = `${protocol}//${host}:${port}`;
+    }
+    if (!wsBase) return;
+
+    const wsUrl =
+      wsBase.replace(/\/$/, "") + `/ws/products/${id}/reviews`;
+
+    let ws;
+    try {
+      ws = new WebSocket(wsUrl);
+    } catch (err) {
+      console.warn("Cannot open reviews WebSocket:", err);
+      return;
+    }
+
+    ws.onopen = () => {
+      // console.log("Reviews WebSocket connected", wsUrl);
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        const payload = JSON.parse(event.data);
+
+        // 1) nếu server gửi nguyên list
+        const list =
+          (Array.isArray(payload) && payload) ||
+          (Array.isArray(payload.data) && payload.data) ||
+          (Array.isArray(payload.reviews) && payload.reviews);
+
+        if (list) {
+          setReviews(list);
+          return;
+        }
+
+        // 2) nếu server gửi single review
+        const review =
+          payload.review ||
+          payload.data ||
+          (payload.type === "review:new" ? payload.payload : null);
+
+        if (review) {
+          setReviews((prev) => {
+            const idKey = review._id || review.id;
+            if (
+              idKey &&
+              prev.some((r) => (r._id || r.id) === idKey)
+            ) {
+              // update / replace
+              return prev.map((r) =>
+                (r._id || r.id) === idKey ? review : r
+              );
+            }
+            return [review, ...prev];
+          });
+        }
+      } catch (err) {
+        console.warn("Error parsing reviews WS message:", err);
+      }
+    };
+
+    ws.onerror = (err) => {
+      console.warn("Reviews WebSocket error:", err);
+    };
+
+    return () => {
+      try {
+        ws && ws.close();
+      } catch (_) {}
+    };
   }, [id]);
 
   const sizeVar = getSizeVar(product);
@@ -293,14 +397,18 @@ const ProductDetail = () => {
   };
 
   // ===== Reviews helpers =====
+  // Chỉ tính average trên những review có rating > 0
   const ratingStats = useMemo(() => {
-    if (!reviews.length) return { avg: 0, count: 0 };
-    const sum = reviews.reduce(
-      (s, r) => s + (Number(r.rating) || 0),
-      0
+    const rated = reviews.filter(
+      (r) =>
+        typeof r.rating === "number" &&
+        !Number.isNaN(r.rating) &&
+        r.rating > 0
     );
-    const avg = sum / reviews.length;
-    return { avg, count: reviews.length };
+    if (!rated.length) return { avg: 0, count: 0 };
+    const sum = rated.reduce((s, r) => s + Number(r.rating || 0), 0);
+    const avg = sum / rated.length;
+    return { avg, count: rated.length };
   }, [reviews]);
 
   const renderStars = (value) => {
@@ -319,18 +427,17 @@ const ProductDetail = () => {
     );
   };
 
-  // Submit review to API – require name + email
+  // Submit review to API
+  // - Không cần login để comment
+  // - BEGIN: chỉ user login mới được rating sao
   const handleSubmitReview = async (e) => {
     e.preventDefault();
 
     const text = reviewComment.trim();
     const name = (user?.name || user?.fullName || customerName || "").trim();
     const email = (user?.email || customerEmail || "").trim();
+    const canRate = !!user;
 
-    if (!reviewRating || reviewRating < 1 || reviewRating > 5) {
-      alert("Please choose a rating (1–5 stars).");
-      return;
-    }
     if (!text) {
       alert("Please enter your review content.");
       return;
@@ -343,13 +450,24 @@ const ProductDetail = () => {
       alert("Please enter your email.");
       return;
     }
+    if (canRate) {
+      // chỉ bắt buộc rating nếu user đã login
+      if (!reviewRating || reviewRating < 1 || reviewRating > 5) {
+        alert("Please choose a rating (1–5 stars).");
+        return;
+      }
+    }
 
     const payload = {
-      rating: reviewRating,
       comment: text,
       customerName: name,
       customerEmail: email,
     };
+
+    // chỉ gửi rating nếu user login
+    if (canRate) {
+      payload.rating = reviewRating;
+    }
 
     try {
       const res = await fetch(
@@ -370,12 +488,25 @@ const ProductDetail = () => {
       const json = await res.json();
       const created = json.data || json.review || payload;
 
-      setReviews((prev) => [created, ...prev]);
+      // Optimistic update: thêm vào list hiện tại
+      setReviews((prev) => {
+        const idKey = created._id || created.id;
+        if (idKey && prev.some((r) => (r._id || r.id) === idKey)) {
+          return prev.map((r) =>
+            (r._id || r.id) === idKey ? created : r
+          );
+        }
+        return [created, ...prev];
+      });
 
       setReviewComment("");
-      setReviewRating(5);
+      // reset rating về 5 cho lần sau
+      if (canRate) {
+        setReviewRating(5);
+      }
 
       if (!user) {
+        // lưu lại name/email trong form cho lần comment tiếp theo
         setCustomerName(name);
         setCustomerEmail(email);
       }
@@ -468,7 +599,6 @@ const ProductDetail = () => {
     );
   }
 
-  const isLoggedIn = !!user;
   const pid = product.id ?? product._id;
   const liked =
     pid &&
@@ -480,6 +610,8 @@ const ProductDetail = () => {
           : entry;
       return String(eid) === String(pid);
     });
+
+  const canRate = isLoggedIn; // dùng cho UI ngôi sao
 
   return (
     <div className="product-detail-page">
@@ -509,7 +641,9 @@ const ProductDetail = () => {
               {/* Heart button on image */}
               <button
                 type="button"
-                className={`pd-heart-btn ${liked ? "pd-heart-btn--active" : ""}`}
+                className={`pd-heart-btn ${
+                  liked ? "pd-heart-btn--active" : ""
+                }`}
                 onClick={handleToggleWishlist}
                 disabled={savingWishlist}
                 title={
@@ -563,7 +697,9 @@ const ProductDetail = () => {
               <span>SKU: {product.sku}</span>
               <span>
                 Status:{" "}
-                <strong>{inStock ? "In stock" : "Temporarily out of stock"}</strong>
+                <strong>
+                  {inStock ? "In stock" : "Temporarily out of stock"}
+                </strong>
               </span>
             </div>
 
@@ -730,9 +866,12 @@ const ProductDetail = () => {
                   <div key={r._id || r.id} className="pd-review-item">
                     <div className="pd-review-header">
                       <strong>{r.customerName || "Anonymous"}</strong>
-                      <span className="pd-review-stars">
-                        {renderStars(r.rating)}
-                      </span>
+                      {typeof r.rating === "number" &&
+                        r.rating > 0 && (
+                          <span className="pd-review-stars">
+                            {renderStars(r.rating)}
+                          </span>
+                        )}
                     </div>
                     <p className="pd-review-comment">{r.comment}</p>
                     {r.customerEmail && (
@@ -770,30 +909,42 @@ const ProductDetail = () => {
                     </strong>{" "}
                     ({user.email})
                   </p>
+                  <p className="pd-review-hint">
+                    You&apos;re logged in &mdash; your star rating will be
+                    counted.
+                  </p>
                 </div>
               ) : (
-                <div className="pd-review-form-row">
-                  <label>
-                    Your name:
-                    <input
-                      type="text"
-                      value={customerName}
-                      onChange={(e) =>
-                        setCustomerName(e.target.value)
-                      }
-                    />
-                  </label>
-                  <label>
-                    Email:
-                    <input
-                      type="email"
-                      value={customerEmail}
-                      onChange={(e) =>
-                        setCustomerEmail(e.target.value)
-                      }
-                    />
-                  </label>
-                </div>
+                <>
+                  <div className="pd-review-form-row">
+                    <label>
+                      Your name:
+                      <input
+                        type="text"
+                        value={customerName}
+                        onChange={(e) =>
+                          setCustomerName(e.target.value)
+                        }
+                      />
+                    </label>
+                    <label>
+                      Email:
+                      <input
+                        type="email"
+                        value={customerEmail}
+                        onChange={(e) =>
+                          setCustomerEmail(e.target.value)
+                        }
+                      />
+                    </label>
+                  </div>
+                  <p className="pd-review-hint">
+                    You can leave a comment without logging in.{" "}
+                    <strong>
+                      Log in if you want your star rating to be counted.
+                    </strong>
+                  </p>
+                </>
               )}
 
               <form onSubmit={handleSubmitReview}>
@@ -801,11 +952,18 @@ const ProductDetail = () => {
                   <div className="review-rating-row">
                     <span>Rating:</span>
                     <StarRatingInput
-                      value={reviewRating}
-                      onChange={(val) => setReviewRating(val)}
+                      value={canRate ? reviewRating : 0}
+                      onChange={
+                        canRate
+                          ? (val) => setReviewRating(val)
+                          : undefined
+                      }
+                      disabled={!canRate}
                     />
                     <span className="review-rating-label">
-                      {reviewRating} stars
+                      {canRate
+                        ? `${reviewRating} stars`
+                        : "Login to rate with stars (optional for comment)."}
                     </span>
                   </div>
                 </div>

@@ -27,12 +27,10 @@ const Footer = () => {
             <h3>STORE LOCATIONS</h3>
             <ul>
               <li>
-                Branch 1: 6th Floor, Ladeco Building, 266 Đội Cấn, Liễu Giai
-                Ward, Hà Nội, Việt Nam
+                Branch 1: 6th Floor, A Building, 19 Nguyen Huu Tho, District 7, Ho Chi Minh City, Vietnam
               </li>
               <li>
-                Branch 2: Lữ Gia Building, 70 Lữ Gia, Ward 15, District 11,
-                Ho Chi Minh City, Việt Nam
+                Branch 2: 98 Ngo Tat To, Ward 19, Binh Thanh District, Ho Chi Minh City, Vietnam
               </li>
             </ul>
           </div>
@@ -40,7 +38,7 @@ const Footer = () => {
             <h3>CONTACT</h3>
             <ul>
               <li>Order hotline: 19006750</li>
-              <li>Email: support@sapo.vn</li>
+              <li>Email: CoffeShop@gmail.com</li>
               <li>Monday - Friday: 7am - 10pm</li>
               <li>Saturday - Sunday: 8am - 9pm</li>
             </ul>

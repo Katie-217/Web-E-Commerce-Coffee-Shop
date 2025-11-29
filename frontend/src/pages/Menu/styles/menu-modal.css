@@ -292,15 +292,16 @@
 /* Dòng "The highest price is ..." */
 .filter-section .price-info {
   font-size: 13px;
-  color: #e5e7eb;        /* chữ xám nhạt trên nền đen */
+  color: #e5e7eb;
   margin: 6px 0 10px;
+  line-height: 1.5;
 }
 
-/* Layout 2 cột cho Min / Max */
+/* Layout 2 cột cho Min / Max (desktop) */
 .filter-section .price-inputs {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
+  gap: 10px;
 }
 
 /* Mỗi ô Min / Max: label ở trên, input ở dưới */
@@ -318,15 +319,45 @@
 /* Ô nhập số */
 .filter-section .price-inputs input[type="number"] {
   width: 100%;
-  border-radius: 8px;
+  border-radius: 999px;          /* bo tròn giống nút lọc */
   border: 1px solid #4b5563;
-  padding: 6px 10px;
+  padding: 7px 12px;
   font-size: 13px;
-  background: #020617;   /* nền tối */
-  color: #f9fafb;        /* chữ trắng */
+  background: #020617;          /* nền tối */
+  color: #f9fafb;               /* chữ trắng */
   outline: none;
   box-sizing: border-box;
+  text-align: right;            /* số thẳng lề phải nhìn gọn hơn */
 }
+
+/* Ẩn mũi tên up/down của number trên một số trình duyệt */
+.filter-section .price-inputs input[type="number"]::-webkit-outer-spin-button,
+.filter-section .price-inputs input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.filter-section .price-inputs input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+.filter-section .price-inputs input[type="number"]::placeholder {
+  color: #6b7280;
+}
+
+/* Focus */
+.filter-section .price-inputs input[type="number"]:focus {
+  border-color: #f97316;
+  box-shadow: 0 0 0 1px rgba(249, 115, 22, 0.4);
+  background: #020617;
+}
+
+/* Mobile: min / max xếp 1 cột để tránh bị chật */
+@media (max-width: 640px) {
+  .filter-section .price-inputs {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 
 .filter-section .price-inputs input[type="number"]::placeholder {
   color: #6b7280;
@@ -623,5 +654,95 @@
     width: 32px;
     height: 32px;
     font-size: 16px;
+  }
+}
+
+.modal-actions .btn-buy:disabled,
+.modal-actions .btn-add:disabled,
+.product-cta .buy-now:disabled,
+.product-cta .add-to-cart:disabled {
+  background: #b8b8b8 !important;
+  color: #f5f5f5 !important;
+  cursor: not-allowed !important;
+  box-shadow: none;
+  transform: none;
+  border-color: transparent;
+  opacity: 0.85;
+}
+
+.catalog-pagination {
+  margin: 24px 0 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;                   /* nhiều trang thì tự xuống dòng */
+}
+
+/* Nút số trang & Prev/Next cùng style pill */
+.catalog-pagination .page-btn,
+.catalog-pagination .page-nav {
+  min-width: 34px;
+  height: 32px;
+  border-radius: 999px;
+  border: 1px solid #4b5563;
+  background: #020617;
+  color: #e5e7eb;
+  font-size: 13px;
+  padding: 0 12px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.12s ease;
+}
+
+/* Text Prev/Next */
+.catalog-pagination .page-nav {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 500;
+}
+
+/* Active page */
+.catalog-pagination .page-btn--active {
+  background: #f97316;
+  border-color: #f97316;
+  color: #fefce8;
+  font-weight: 600;
+  transform: translateY(-1px);
+}
+
+/* Hover chung */
+.catalog-pagination .page-btn:hover,
+.catalog-pagination .page-nav:hover {
+  background: #111827;
+  border-color: #6b7280;
+  transform: translateY(-1px);
+}
+
+/* Disabled (Prev ở trang 1, Next ở trang cuối) */
+.catalog-pagination button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Mobile: giảm size chút cho đỡ chật */
+@media (max-width: 480px) {
+  .catalog-pagination {
+    gap: 4px;
+  }
+
+  .catalog-pagination .page-btn,
+  .catalog-pagination .page-nav {
+    min-width: 30px;
+    height: 30px;
+    font-size: 12px;
+    padding: 0 10px;
   }
 }

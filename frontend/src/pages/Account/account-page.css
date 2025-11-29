@@ -397,6 +397,20 @@
   transform: translateY(0);
   box-shadow: none;
 }
+.account-edit-btn--ghost {
+  background: transparent;
+  color: var(--account-primary);
+  box-shadow: none;
+  border: 1px dashed rgba(148, 163, 184, 0.9);
+  padding-inline: 14px;
+}
+
+.account-edit-btn--ghost:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(148, 115, 86, 0.28);
+  background: rgba(248, 250, 252, 0.9);
+  filter: none;
+}
 
 /* =========================
    DANH SÁCH & EMPTY STATE
@@ -790,6 +804,24 @@
   color: var(--account-danger);
 }
 
+.modal-info {
+  font-size: 12px;
+  color: #166534;
+}
+
+.modal-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.modal-hint {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--account-text-muted);
+}
+
 .modal-actions {
   display: flex;
   flex-wrap: wrap;
@@ -943,6 +975,38 @@
   transition: background 0.15s ease, transform 0.15s ease;
 }
 
+/* Khi đang upload avatar */
+.account-avatar--loading img {
+  filter: grayscale(0.2) brightness(0.9);
+  opacity: 0.7;
+}
+
+/* vòng quay loading quanh avatar */
+.account-avatar--loading::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 999px;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-top-color: rgba(139, 94, 60, 0.95); /* màu nâu primary */
+  animation: account-avatar-spin 0.8s linear infinite;
+  pointer-events: none;
+}
+
+/* nút đổi avatar khi đang loading: dịu hơn, không hover */
+.account-avatar--loading .account-avatar-change {
+  background: rgba(15, 23, 42, 0.6);
+  box-shadow: none;
+}
+
+/* animation cho vòng quay */
+@keyframes account-avatar-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
 .account-avatar-change:hover:not(:disabled) {
   background: rgba(15, 23, 42, 1);
   transform: translateY(-1px);
@@ -969,44 +1033,57 @@
   overflow: hidden;
 }
 
-/* Label "Trang tài khoản" to hơn, nổi hơn */
-.account-page .account-label {
-  font-size: 14px;              /* 11px → 14px */
-  padding: 6px 14px;            /* pill dày hơn */
-  padding-top: -0px;
-  letter-spacing: 0.14em;       /* giãn chữ hơn chút cho giống tag */
-}
+
 /* Định vị lại header để gắn pill ở giữa */
 .account-page .account-header {
   position: relative;
-  padding-top: 32px; /* chừa chỗ cho pill ở trên */
+  padding-top: 40px; /* chừa chỗ cho pill phía trên */
 }
 
-/* Pill "TRANG TÀI KHOẢN" đẹp hơn, giống mockup */
+/* Pill "TRANG TÀI KHOẢN" – style riêng cho trang account */
+/* Header để chứa pill "TRANG TÀI KHOẢN" */
+.account-page .account-header {
+  position: relative;
+  padding-top: 40px; /* chừa chỗ cho pill phía trên bên trái */
+}
+
+/* Pill "TRANG TÀI KHOẢN" – to hơn, nằm bên trái */
 .account-page .account-label {
   position: absolute;
   top: 0;
-  left: 12%;
-  transform: translateX(-50%);
-  
+  left: 0px;          /* 👈 nằm bên trái */
+  transform: none;
+
   display: inline-flex;
   align-items: center;
   justify-content: center;
 
-  padding: 8px 32px;
+  padding: 8px 26px;
   border-radius: 999px;
 
-  background: #f3e4d5;          /* nền be nhạt */
-  color: #9a5a33;               /* nâu chữ */
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.22em;       /* giãn chữ như hình */
+  background: #f3e4d5;     /* nền be */
+  color: #9a5a33;          /* chữ nâu */
+  font-size: 16px;         /* 👈 TO HƠN */
+  font-weight: 700;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
 
   box-shadow: 0 10px 22px rgba(148, 115, 86, 0.25);
 }
+@media (max-width: 768px) {
+  .account-page .account-header {
+    padding-top: 32px;
+  }
 
-/* Cho chắc: chỉ áp dụng trong account-page, không ảnh hưởng chỗ khác */
+  .account-page .account-label {
+    left: 16px;
+    font-size: 13px;
+    padding: 6px 20px;
+  }
+}
+
+
+
 /* ===== Wishlist horizontal scroll ===== */
 
 .favorites-grid {
@@ -1099,4 +1176,22 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.favorite-card {
+  position: relative;
+  cursor: pointer;
+  border-radius: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  transition:
+    transform 0.16s ease,
+    box-shadow 0.16s ease,
+    border-color 0.16s ease,
+    background-color 0.16s ease;
+  z-index: 10;
+}
+.favorite-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.45);
+  border-color: rgba(248, 250, 252, 0.4);
 }

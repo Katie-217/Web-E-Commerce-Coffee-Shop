@@ -4,6 +4,7 @@ import OrderModal from "./OrderModal";
 import "../../Menu/styles/menu-modal.css";
 import { useAuth } from "../../../contexts/AuthContext";
 import { updateProfile } from "../../../services/account";
+import { useCart } from "../../../contexts/CartContext";
 
 const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL || "http://localhost:3001";
@@ -41,9 +42,7 @@ function formatPrice(n) {
 }
 
 // Local FE sort helper based on sortBy
-// Ước lượng độ "bán chạy" của 1 product dựa trên các field nếu có
 function getSoldScore(p = {}) {
-  // Các field có thể tồn tại tuỳ backend
   const base =
     p.sold ??
     p.soldCount ??
@@ -56,15 +55,13 @@ function getSoldScore(p = {}) {
   let score = Number(base);
   if (!Number.isFinite(score) || score < 0) score = 0;
 
-  // Nếu có rating / reviewCount thì cộng thêm điểm
   const rating = Number(p.rating ?? p.avgRating ?? 0);
   const reviews = Number(p.reviewCount ?? p.reviewsCount ?? 0);
 
   if (Number.isFinite(rating) && rating > 0) {
-    score += rating * 2; // rating cao thì ưu tiên hơn
+    score += rating * 2;
   }
   if (Number.isFinite(reviews) && reviews > 0) {
-    // giới hạn để không quá lệch
     score += Math.min(reviews, 50);
   }
 
@@ -75,35 +72,35 @@ function getCreatedAtTime(p = {}) {
   return new Date(p.createdAt || p.updatedAt || 0).getTime() || 0;
 }
 
-// Hàm sort local trên FE theo sortBy
 function sortProducts(list, sortBy) {
   const sorted = [...list];
+
+  const getSold = (p) => {
+    return Number(p.soldCount || getSoldScore(p) || 0);
+  };
+
+  const getName = (p) => (p.name || "").trim().toLowerCase();
 
   switch (sortBy) {
     case "priceAsc":
       sorted.sort((a, b) => (a.price || 0) - (b.price || 0));
       break;
-
     case "priceDesc":
       sorted.sort((a, b) => (b.price || 0) - (a.price || 0));
       break;
-
     case "new":
       sorted.sort((a, b) => getCreatedAtTime(b) - getCreatedAtTime(a));
       break;
-
     case "best":
+      sorted.sort((a, b) => getSold(b) - getSold(a));
+      break;
+    case "nameAsc": // A → Z
+      sorted.sort((a, b) => getName(a).localeCompare(getName(b)));
+      break;
+    case "nameDesc": // Z → A
+      sorted.sort((a, b) => getName(b).localeCompare(getName(a)));
+      break;
     default:
-      sorted.sort((a, b) => {
-        const sb = getSoldScore(b);
-        const sa = getSoldScore(a);
-
-        if (sb === sa) {
-          // nếu điểm giống nhau thì ưu tiên sản phẩm mới hơn
-          return getCreatedAtTime(b) - getCreatedAtTime(a);
-        }
-        return sb - sa; // điểm cao hơn đứng trước
-      });
       break;
   }
 
@@ -144,6 +141,68 @@ function isProductInStock(p) {
   return true;
 }
 
+// ==== Cart helpers (giống ProductDetail, rút gọn) ====
+function getSizeVar(p) {
+  return p?.variants?.find((v) => v.name === "size");
+}
+
+function getPriceWithSize(p, optIdx = 0) {
+  const base = Number(p?.price || 0);
+  const sizeVar = getSizeVar(p);
+  const delta = Number(sizeVar?.options?.[optIdx]?.priceDelta || 0);
+  return base + delta;
+}
+
+function buildQuickCartItem(product, qty = 1) {
+  if (!product) return null;
+
+  const sizeVar = getSizeVar(product);
+
+  // chọn size đầu tiên nếu có
+  let optIdx = 0;
+  let currentLabel = "";
+  if (sizeVar?.options?.length) {
+    currentLabel = sizeVar.options[0].label;
+  }
+
+  const priceNumber = getPriceWithSize(product, optIdx);
+  const basePrice = Number(product.price || 0);
+  const imageSrc = resolveImage(product);
+
+  const rawStock =
+    Number(product?.quantity) ??
+    Number(product?.stock) ??
+    Number(product?.countInStock) ??
+    0;
+  const stock = Number.isFinite(rawStock) && rawStock > 0 ? rawStock : 0;
+
+  const safeQty = qty && qty > 0 ? qty : 1;
+
+  const variant =
+    sizeVar && currentLabel
+      ? { name: "size", value: currentLabel }
+      : null;
+
+  const variantOptions = sizeVar?.options?.map((op) => ({
+    label: op.label,
+    priceDelta: Number(op.priceDelta || 0),
+  }));
+
+  return {
+    productId: String(product._id || product.id),
+    name: product.name,
+    price: priceNumber,
+    image: imageSrc,
+    variant,
+    qty: safeQty,
+    stock,
+    category: product.category,
+    basePrice,
+    variantOptions,
+    variantIndex: optIdx,
+  };
+}
+
 export default function MenuCatalogSection({
   breadcrumbLabel = "Home / Coffee Menu",
   // category is used to filter by type / collection in DB
@@ -151,7 +210,14 @@ export default function MenuCatalogSection({
 }) {
   const [products, setProducts] = useState([]);
   const { user, updateUser } = useAuth();
+  const { addToCart } = useCart();
+
+
   const [savingWishlistId, setSavingWishlistId] = useState(null);
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 6; // bao nhiêu sp / trang
 
   // always treat wishlist as array
   const wishlist = Array.isArray(user?.wishlist) ? user.wishlist : [];
@@ -159,7 +225,6 @@ export default function MenuCatalogSection({
   const isInWishlist = (productId) =>
     wishlist.some((entry) => {
       if (!entry) return false;
-      // entry can be a primitive or object { productId, ... }
       const pid =
         typeof entry === "object"
           ? entry.productId ?? entry.id ?? entry._id
@@ -190,6 +255,7 @@ export default function MenuCatalogSection({
   const [selectedSizes, setSelectedSizes] = useState([]);
   const [sortBy, setSortBy] = useState("best"); // best | priceAsc | priceDesc | new
 
+
   const navigate = useNavigate();
 
   // --- Fetch products from backend (only use filter: category, availability, type, size) ---
@@ -217,9 +283,8 @@ export default function MenuCatalogSection({
           params.set("sizes", selectedSizes.join(","));
         }
 
-        const url = `${API_BASE_URL}/api/products${
-          params.toString() ? `?${params.toString()}` : ""
-        }`;
+        const url = `${API_BASE_URL}/api/products${params.toString() ? `?${params.toString()}` : ""
+          }`;
 
         const res = await fetch(url, { signal: controller.signal });
 
@@ -229,7 +294,6 @@ export default function MenuCatalogSection({
         }
 
         const json = await res.json();
-        // Backend may return data / items / products
         const list = json.data || json.items || json.products || [];
         setRawProducts(list); // keep raw data
       } catch (err) {
@@ -252,6 +316,20 @@ export default function MenuCatalogSection({
     const t = setTimeout(() => setToastItem(null), 3000);
     return () => clearTimeout(t);
   }, [toastItem]);
+
+  // --- reset page khi filter / sort đổi ---
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [
+    sortBy,
+    minPrice,
+    maxPrice,
+    availability,
+    selectedBrands,
+    selectedTypes,
+    selectedSizes,
+    rawProducts.length,
+  ]);
 
   // --- Filter by price + brand + local sort ---
   useEffect(() => {
@@ -282,7 +360,6 @@ export default function MenuCatalogSection({
       const inStockFlag = isProductInStock(p);
       if (availability === "in" && !inStockFlag) return false;
       if (availability === "out" && inStockFlag) return false;
-      // ====================================
 
       // price filter
       if (min != null && price < min) return false;
@@ -311,6 +388,32 @@ export default function MenuCatalogSection({
     setShowModal(true);
   };
 
+  const handleQuickAddToCart = (product) => {
+    const item = buildQuickCartItem(product, 1);
+    if (!item) return;
+
+    if (item.stock !== undefined && item.stock <= 0) {
+      alert("This product is out of stock.");
+      return;
+    }
+
+    addToCart(item);
+    setToastItem(item);
+  };
+
+  const handleQuickBuyNow = (product) => {
+    const item = buildQuickCartItem(product, 1);
+    if (!item) return;
+
+    if (item.stock !== undefined && item.stock <= 0) {
+      alert("This product is out of stock.");
+      return;
+    }
+
+    addToCart(item);
+    navigate("/checkout");
+  };
+
   // Called when OrderModal reports item added to cart
   const handleItemAdded = (item) => {
     setShowModal(false);
@@ -328,6 +431,7 @@ export default function MenuCatalogSection({
     setSelectedBrands([]);
     setSelectedSizes([]);
     setSortBy("best");
+    setCurrentPage(1);
   };
 
   // Helper to toggle values in checkbox lists
@@ -407,10 +511,8 @@ export default function MenuCatalogSection({
         ];
       }
 
-      // Call update profile API, reusing endpoint from AccountPage
       const updated = await updateProfile({ wishlist: next });
 
-      // updateProfile may return { data: user } or user directly
       const newUser = updated?.data ?? updated;
       if (newUser) {
         updateUser?.(newUser);
@@ -419,13 +521,18 @@ export default function MenuCatalogSection({
       console.error("Toggle wishlist error:", err);
       alert(
         err?.response?.data?.message ||
-          err.message ||
-          "Failed to update wishlist."
+        err.message ||
+        "Failed to update wishlist."
       );
     } finally {
       setSavingWishlistId(null);
     }
   };
+
+  // ===== Pagination derived values =====
+  const totalPages = Math.max(1, Math.ceil(products.length / PAGE_SIZE));
+  const startIndex = (currentPage - 1) * PAGE_SIZE;
+  const pageItems = products.slice(startIndex, startIndex + PAGE_SIZE);
 
   return (
     <div className="catalog-wrapper">
@@ -472,8 +579,8 @@ export default function MenuCatalogSection({
               {availability === "all"
                 ? "0 selected"
                 : availability === "in"
-                ? "1 selected (In stock)"
-                : "1 selected (Out of stock)"}
+                  ? "1 selected (In stock)"
+                  : "1 selected (Out of stock)"}
             </span>
           </div>
           <div className="filter-options">
@@ -573,6 +680,8 @@ export default function MenuCatalogSection({
               <option value="priceAsc">Price: Low to High</option>
               <option value="priceDesc">Price: High to Low</option>
               <option value="new">Newest</option>
+              <option value="nameAsc">Name: A - Z</option>
+              <option value="nameDesc">Name: Z - A</option>
             </select>
           </div>
         </div>
@@ -583,113 +692,162 @@ export default function MenuCatalogSection({
           <p style={{ color: "red" }}>Failed to load products: {error}</p>
         )}
 
-        {/* Product Grid */}
+        {/* Product Grid + Pagination */}
         {!loading && !error && (
-          <div className="product-grid">
-            {products.map((p) => {
-              const pid = p.id ?? p._id;
-              const liked = pid ? isInWishlist(pid) : false;
+          <>
+            <div className="product-grid">
+              {pageItems.map((p) => {
+                const pid = p.id ?? p._id;
+                const liked = pid ? isInWishlist(pid) : false;
+                const inStock = isProductInStock(p);
 
-              return (
-                <div key={pid || p._id || p.id} className="product-card">
-                  <div className="product-image">
-                    <img
-                      src={resolveImage(p)}
-                      alt={p.name}
-                      onClick={() => goToProductDetail(p)}
-                      style={{ cursor: "pointer" }}
-                    />
-                    <div className="product-badges">
-                      <span className="discount-badge">-20%</span>
-                      <span className="new-badge">New</span>
+                return (
+                  <div key={pid || p._id || p.id} className="product-card">
+                    <div className="product-image">
+                      <img
+                        src={resolveImage(p)}
+                        alt={p.name}
+                        onClick={() => goToProductDetail(p)}
+                        style={{ cursor: "pointer" }}
+                      />
+                      <div className="product-badges">
+                        <span className="discount-badge">-20%</span>
+                        <span className="new-badge">New</span>
+                      </div>
+                      <div className="product-actions">
+                        <button
+                          type="button"
+                          className={`action-btn action-btn--wishlist ${liked ? "action-btn--favorite" : ""
+                            }`}
+                          data-tooltip={
+                            liked ? "Remove from wishlist" : "Add to wishlist"
+                          }
+                          disabled={savingWishlistId === pid}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleToggleWishlist(p);
+                          }}
+                        >
+                          {liked ? "♥" : "♡"}
+                        </button>
+
+                        <button
+                          className="action-btn"
+                          onClick={() => handleOpenModal(p)}
+                        >
+                          👁
+                        </button>
+                      </div>
                     </div>
-                    <div className="product-actions">
-                      {/* Heart button */}
-                      <button
-                        type="button"
-                        className={`action-btn action-btn--wishlist ${
-                          liked ? "action-btn--favorite" : ""
-                        }`}
-                        data-tooltip={
-                          liked ? "Remove from wishlist" : "Add to wishlist"
-                        }
-                        disabled={savingWishlistId === pid}
-                        onClick={(e) => {
-                          e.stopPropagation(); // avoid triggering card click
-                          handleToggleWishlist(p);
-                        }}
+
+                    <div className="product-info">
+                      <h3
+                        className="product-title"
+                        onClick={() => goToProductDetail(p)}
+                        style={{ cursor: "pointer" }}
                       >
-                        {liked ? "♥" : "♡"}
-                      </button>
+                        {p.name}
+                      </h3>
+                      <p className="product-desc">
+                        {p.description || p.desc || ""}
+                      </p>
 
-                      <button
-                        className="action-btn"
-                        onClick={() => handleOpenModal(p)}
-                      >
-                        👁
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="product-info">
-                    <h3
-                      className="product-title"
-                      onClick={() => goToProductDetail(p)}
-                      style={{ cursor: "pointer" }}
-                    >
-                      {p.name}
-                    </h3>
-                    <p className="product-desc">
-                      {p.description || p.desc || ""}
-                    </p>
-
-                    <div className="product-price">
-                      <span className="current-price">
-                        {formatPrice(p.price)}
-                      </span>
-                      {p.oldPrice && (
-                        <span className="old-price">
-                          {formatPrice(p.oldPrice)}
+                      <div className="product-price">
+                        <span className="current-price">
+                          {formatPrice(p.price)}
                         </span>
-                      )}
-                    </div>
-                    <div className="product-cta">
-                      <button
-                        className="add-to-cart"
-                        onClick={() => handleOpenModal(p)}
-                      >
-                        ADD TO CART
-                      </button>
-                      <button
-                        className="buy-now"
-                        onClick={() => handleOpenModal(p)}
-                      >
-                        BUY NOW
-                      </button>
+                        {p.oldPrice && (
+                          <span className="old-price">
+                            {formatPrice(p.oldPrice)}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="product-cta">
+                        <button
+                          className="buy-now"
+                          disabled={!inStock}
+                          onClick={() => inStock && handleQuickBuyNow(p)}
+                        >
+                          BUY NOW
+                        </button>
+                        <button
+                          className="add-to-cart"
+                          disabled={!inStock}
+                          onClick={() => inStock && handleQuickAddToCart(p)}
+                        >
+                          ADD TO CART
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
 
-            {products.length === 0 && (
-              <p>
-                No products match the current filters.{" "}
-                <button
-                  type="button"
-                  style={{
-                    textDecoration: "underline",
-                    border: "none",
-                    background: "none",
-                    cursor: "pointer",
-                  }}
-                  onClick={handleResetFilters}
-                >
-                  Clear filters
-                </button>
-              </p>
-            )}
-          </div>
+              {products.length === 0 && (
+                <p>
+                  No products match the current filters.{" "}
+                  <button
+                    type="button"
+                    style={{
+                      textDecoration: "underline",
+                      border: "none",
+                      background: "none",
+                      cursor: "pointer",
+                    }}
+                    onClick={handleResetFilters}
+                  >
+                    Clear filters
+                  </button>
+                </p>
+              )}
+            </div>
+
+            {/* Pagination – luôn hiển thị, kể cả khi chỉ có 1 page */}
+            <div className="catalog-pagination">
+              <button
+                type="button"
+                className="page-nav"
+                disabled={currentPage === 1}
+                onClick={() =>
+                  setCurrentPage((p) => (p > 1 ? p - 1 : p))
+                }
+              >
+                Prev
+              </button>
+
+              {Array.from({ length: totalPages }).map((_, idx) => {
+                const pageNum = idx + 1;
+                return (
+                  <button
+                    key={pageNum}
+                    type="button"
+                    className={
+                      pageNum === currentPage
+                        ? "page-btn page-btn--active"
+                        : "page-btn"
+                    }
+                    onClick={() => setCurrentPage(pageNum)}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              })}
+
+              <button
+                type="button"
+                className="page-nav"
+                disabled={currentPage === totalPages}
+                onClick={() =>
+                  setCurrentPage((p) =>
+                    p < totalPages ? p + 1 : p
+                  )
+                }
+              >
+                Next
+              </button>
+            </div>
+          </>
         )}
 
         {showModal && (
@@ -699,7 +857,6 @@ export default function MenuCatalogSection({
             setTempQty={setTempQty}
             tempSize={tempSize}
             setTempSize={setTempSize}
-            // OrderModal itself adds to CartContext; onAdd is used to close popup + show toast
             onAdd={handleItemAdded}
             onClose={() => setShowModal(false)}
           />
@@ -720,9 +877,12 @@ export default function MenuCatalogSection({
               <button
                 type="button"
                 className="toast-link"
-                onClick={() => goToProductDetail(toastItem)}
+                onClick={() => {
+                  setToastItem(null);   // ẩn toast
+                  navigate("/cart");    // 👉 chuyển sang trang giỏ hàng
+                }}
               >
-                View details
+                View cart
               </button>
               <button
                 type="button"
@@ -735,6 +895,7 @@ export default function MenuCatalogSection({
           </div>
         </div>
       )}
+
     </div>
   );
 }

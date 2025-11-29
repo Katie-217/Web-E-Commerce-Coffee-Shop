@@ -27,14 +27,22 @@
    ========================= */
 
 .checkout-page {
-  min-height: calc(100vh - 120px);
+  /* phủ hết màn hình để không bị lộ nền body */
+  min-height: 100vh;
   padding: 32px 16px 48px;
-  padding-top: 160px;
-  background: radial-gradient(circle at top, #fdfaf6 0, #f3eee7 45%, #ece6dd 100%);
+  padding-top: 180px;
+
+  /* 1 màu nền phẳng, cùng tông site */
+  background-color: var(--co-bg);
+
   display: flex;
   justify-content: center;
+  /* mặc định: bám lên trên */
+  align-items: flex-start;
   box-sizing: border-box;
 }
+
+
 
 .checkout-layout {
   width: 100%;
@@ -75,6 +83,100 @@
   margin: 0 0 14px;
   font-size: 13px;
   color: var(--co-text-muted);
+}
+/* =========================
+   INLINE NOTICE (ACCOUNT CREATED)
+   ========================= */
+
+.checkout-inline-notice {
+  margin: 8px 0 14px;
+  padding: 10px 12px;
+  border-radius: 18px;
+  border: 1px solid rgba(22, 163, 74, 0.32);
+  background: radial-gradient(circle at top left, #ecfdf5 0, #e0f2fe 40%, #f9fafb 100%);
+  display: flex;
+  gap: 10px;
+  position: relative;
+  box-shadow: 0 14px 30px rgba(15, 118, 110, 0.16);
+}
+
+.checkout-inline-notice-main {
+  flex: 1;
+}
+
+.checkout-inline-notice-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #065f46;
+  margin-bottom: 4px;
+}
+
+.checkout-inline-notice-text {
+  font-size: 12px;
+  color: #047857;
+  margin: 0 0 6px;
+}
+
+.checkout-inline-notice-credentials {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin-bottom: 4px;
+}
+
+.notice-cred-item {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.notice-cred-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #0f766e;
+}
+
+.notice-cred-value {
+  font-size: 12px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.checkout-inline-notice-sub {
+  margin: 0;
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.checkout-inline-notice-close {
+  border: none;
+  background: rgba(15, 23, 42, 0.06);
+  border-radius: 999px;
+  width: 22px;
+  height: 22px;
+  cursor: pointer;
+  align-self: flex-start;
+  font-size: 14px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #4b5563;
+  transition: background 0.18s ease, transform 0.18s ease;
+}
+
+.checkout-inline-notice-close:hover {
+  background: rgba(15, 23, 42, 0.12);
+  transform: translateY(-1px);
+}
+
+/* email hint dưới input email khi guest checkout */
+
+.checkout-email-hint {
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--co-text-soft);
 }
 
 /* =========================
@@ -655,3 +757,92 @@
     justify-content: center;
   }
 }
+
+/* ============ ORDER SUCCESS CARD ============ */
+
+.checkout-success-card {
+  margin-top: 14px;
+  padding: 20px 22px;
+  border-radius: 22px;
+  background: #ffffff;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.14);
+  border: 1px solid rgba(15, 23, 42, 0.05);
+}
+
+.checkout-success-card h2 {
+  margin: 0 0 6px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.checkout-success-text {
+  margin: 0 0 14px;
+  font-size: 13px;
+  color: #4b5563;
+}
+
+.checkout-success-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 32px;
+  margin-bottom: 14px;
+}
+
+.checkout-success-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.checkout-success-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #6b7280;
+}
+
+.checkout-success-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.checkout-success-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.checkout-submit-btn--primary {
+  /* dùng chung class submit gốc, chỉ đảm bảo nó nổi bật hơn */
+}
+
+.checkout-back-btn--ghost {
+  background: transparent;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+}
+/* Khi đã đặt hàng xong -> chỉ còn 1 cột, card nằm giữa rộng hơn */
+.checkout-layout--single {
+  max-width: 760px;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* optional: có thể tweak thêm nếu muốn */
+.checkout-page--success .checkout-main {
+  border-radius: 26px;
+}
+
+.checkout-page--success {
+  padding-bottom: 72px;
+}
+
+.checkout-layout--single {
+  max-width: 780px;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.checkout-main--success-only {
+  padding-bottom: 24px;
+}
+

@@ -34,6 +34,11 @@
       "react-app/jest"
     ]
   },
+  "jest": {
+    "transformIgnorePatterns": [
+      "node_modules/(?!(axios)/)"
+    ]
+  },
   "browserslist": {
     "production": [
       ">0.2%",
@@ -44,6 +49,16 @@
       "last 1 chrome version",
       "last 1 firefox version",
       "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "typescript": "^4.9.5"
+  }
+}
+
+      "node_modules/(?!(axios)/)"
     ]
   },
   "devDependencies": {

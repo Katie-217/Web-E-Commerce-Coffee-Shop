@@ -1,10 +1,84 @@
-import React, { useState } from 'react';
-import './coffee-origin.css';
+import React, { useEffect, useState } from "react";
+import "./coffee-origin.css";
+
+const API_BASE_URL =
+  process.env.REACT_APP_API_URL || "http://localhost:3001";
+
+function formatVND(n) {
+  return new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+    maximumFractionDigits: 0,
+  }).format(n || 0);
+}
+
 
 const CoffeeOrigin = () => {
   const [selectedOrigin, setSelectedOrigin] = useState('Trung Nguyen');
 
   const origins = ['Trung Nguyen', 'Highlands', 'Phuc Long', 'The Coffee House'];
+  const [showHowTo, setShowHowTo] = useState(false);
+  const handleShopNow = () => {
+    // tuỳ m, /products hoặc /shop, /menu...
+    window.location.href = "/menu/roast-coffee";
+  };
+
+  const handleHowToUse = () => {
+  setShowHowTo((prev) => !prev);
+};
+
+
+  const [vouchers, setVouchers] = useState([]);
+  const [voucherLoading, setVoucherLoading] = useState(false);
+  const [voucherError, setVoucherError] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadVouchers() {
+      try {
+        setVoucherLoading(true);
+        setVoucherError("");
+
+        const res = await fetch(
+          `${API_BASE_URL}/api/discount-codes/public`,
+          {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+
+        if (!res.ok) {
+          throw new Error("Failed to load vouchers");
+        }
+
+        const data = await res.json();
+        const list = data.data || data.items || data;
+
+        if (!cancelled) {
+          setVouchers(Array.isArray(list) ? list : []);
+        }
+      } catch (err) {
+        console.error("Load vouchers error:", err);
+        if (!cancelled) {
+          setVoucherError(
+            err.message || "Unable to load discount vouchers."
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setVoucherLoading(false);
+        }
+      }
+    }
+
+    loadVouchers();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
 
   return (
     <section
@@ -103,40 +177,91 @@ const CoffeeOrigin = () => {
             </div>
           </section>
 
-          {/* Right Column - Service & Experience */}
+          {/* Right Column - Available Vouchers */}
           <div className="cta-column">
-            <h3>Service & Experience</h3>
+            <h3>Available Vouchers</h3>
             <p>
-              We are committed to delivering the perfect coffee experience with professional and
-              dedicated service.
+              Use these discount codes at checkout to save on your favorite
+              coffee.
             </p>
-            <div className="service-features">
-              <div className="service-item">
-                <span className="service-icon">🚚</span>
-                <div className="service-content">
-                  <h4>Fast Delivery</h4>
-                  <p>Free delivery within 24h for orders from $25</p>
-                </div>
+
+            {voucherError && (
+              <p className="voucher-error">{voucherError}</p>
+            )}
+
+            {voucherLoading ? (
+              <p className="voucher-loading">Loading vouchers...</p>
+            ) : vouchers.length === 0 ? (
+              <p className="voucher-empty">
+                There are no active vouchers at the moment.
+              </p>
+            ) : (
+              <div className="voucher-list">
+                {vouchers.map((v) => {
+                  const remaining = Math.max(0, (v.maxUses || 0) - (v.usedCount || 0));
+                  const isAmount = v.type === "amount";
+
+                  return (
+                    <div
+                      key={v._id || v.code}
+                      className="service-item voucher-item"
+                    >
+                      <span className="service-icon">🎟️</span>
+                      <div className="service-content">
+                        <h4>
+                          Code: <span className="voucher-code">{v.code}</span>
+                        </h4>
+
+                        {/* THAY dòng này */}
+                        <p className="voucher-discount">
+                          {isAmount
+                            ? `Discount: -${formatVND(v.discountAmount || 0)}`
+                            : `Discount: ${v.discountPercent || 0}% off`}
+                        </p>
+
+                        <p className="voucher-usage">
+                          Remaining uses: {remaining} / {v.maxUses || 0}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+
               </div>
-              <div className="service-item">
-                <span className="service-icon">☕</span>
-                <div className="service-content">
-                  <h4>Custom Roasting</h4>
-                  <p>Fresh roasting on order, ensuring maximum freshness and quality</p>
-                </div>
-              </div>
-              <div className="service-item">
-                <span className="service-icon">🎁</span>
-                <div className="service-content">
-                  <h4>Special Gifts</h4>
-                  <p>Complimentary brewing guide and premium coffee accessories</p>
-                </div>
-              </div>
-            </div>
+            )}
+
             <div className="cta-actions">
-              <button className="cta-button primary">Order Now</button>
-              <button className="cta-button secondary">Free Consultation</button>
-            </div>
+  <button
+    type="button"
+    className="cta-button primary"
+    onClick={handleShopNow}
+  >
+    Shop now & apply voucher
+  </button>
+  <button
+    type="button"
+    className="cta-button secondary"
+    onClick={handleHowToUse}
+  >
+    {showHowTo ? "Hide instructions" : "How to use discount codes"}
+  </button>
+</div>
+
+{showHowTo && (
+  <div className="howto-panel">
+    <h5>How to use discount codes</h5>
+    <ol>
+      <li>Add products to your cart and go to Checkout.</li>
+      <li>
+        Enter one of the codes above into the <strong>"Discount code"</strong>{" "}
+        field.
+      </li>
+      <li>Click Apply to see the discount before paying.</li>
+    </ol>
+  </div>
+)}
+
+
           </div>
         </div>
       </div>

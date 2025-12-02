@@ -342,6 +342,94 @@
   border-color: #fff;
 }
 
+.voucher-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.voucher-item {
+  /* dùng lại style của .service-item, nên có hoặc không class này đều được,
+     nhưng để sau này muốn custom riêng thì có sẵn selector */
+}
+
+.voucher-code {
+  font-family: "Courier New", monospace;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.voucher-usage {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #d4a574;
+  opacity: 0.9;
+}
+
+.voucher-error {
+  color: #fca5a5;
+  font-size: 13px;
+  margin: 4px 0 8px;
+}
+
+.voucher-loading,
+.voucher-empty {
+  color: #fff;
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+
+/* Card voucher */
+.voucher-item.service-item {
+  border-radius: 18px;
+  background: rgba(0, 0, 0, 0.9);
+  border: 1px solid rgba(212, 165, 116, 0.6);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
+  padding: 16px 18px;
+}
+
+/* Icon bên trái to hơn chút */
+.voucher-item .service-icon {
+  font-size: 28px;
+  margin-top: 4px;
+}
+
+/* Tiêu đề code nổi hơn */
+.voucher-item .service-content h4 {
+  font-size: 15px;
+  margin-bottom: 6px;
+}
+
+.voucher-code {
+  font-family: "Courier New", monospace;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* Dòng Remaining uses nhỏ + khác màu */
+.voucher-usage {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #d4a574;
+  opacity: 0.9;
+}
+
+/* Text trạng thái */
+.voucher-loading,
+.voucher-empty {
+  color: #fff;
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.voucher-error {
+  color: #fca5a5;
+  font-size: 13px;
+  margin: 4px 0 8px;
+}
+
+
 /* Responsive Design */
 @media (max-width: 1024px) {
   .origin-layout {
@@ -370,4 +458,207 @@
   .origin-decoration {
     display: none;
   }
+}
+
+
+/* =======================
+   VOUCHER COLUMN REFINEMENT
+   ======================= */
+/* Danh sách voucher chung + luôn có scroll */
+.voucher-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-height: 260px;       /* mobile cũng bị giới hạn chiều cao */
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+/* Scrollbar gọn gàng hơn (chủ yếu ăn trên desktop / Android) */
+.voucher-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.voucher-list::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 999px;
+}
+
+.voucher-list::-webkit-scrollbar-thumb {
+  background: rgba(212, 165, 116, 0.8);
+  border-radius: 999px;
+}
+
+/* Firefox */
+.voucher-list {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(212, 165, 116, 0.8)
+    rgba(255, 255, 255, 0.03);
+}
+
+
+/* CARD VOUCHER */
+.voucher-item.service-item {
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at top left,
+      rgba(212, 165, 116, 0.18),
+      transparent 60%)
+    rgba(5, 5, 8, 0.96);
+  border: 1px solid rgba(212, 165, 116, 0.7);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.8);
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+/* Icon bên trái */
+.voucher-item .service-icon {
+  font-size: 30px;
+  margin-top: 0;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 6px rgba(212, 165, 116, 0.6));
+}
+
+/* Phần text bên phải */
+.voucher-item .service-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Dòng "Code: XXXXX" */
+.voucher-item .service-content h4 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(245, 227, 200, 0.85);
+}
+
+/* Code nổi bật, to hơn */
+.voucher-item .voucher-code {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffe0a6;
+}
+
+/* Dòng discount (p đầu tiên trong service-content) – to và nổi bật */
+.voucher-item .service-content p:first-of-type {
+  margin: 2px 0 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffb15e;
+}
+
+/* Remaining uses nhỏ hơn, màu phụ hơn */
+.voucher-usage {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #d4a574;
+  opacity: 0.85;
+}
+
+/* Text trạng thái / lỗi */
+.voucher-loading,
+.voucher-empty {
+  color: #fff;
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.voucher-error {
+  color: #fca5a5;
+  font-size: 13px;
+  margin: 4px 0 8px;
+}
+
+/* =======================
+   CTA BUTTON INTERACTION
+   ======================= */
+
+/* Thêm state khi nhấn / focus cho nút secondary (How to use...) */
+.cta-button.secondary {
+  position: relative;
+  overflow: hidden;
+}
+
+.cta-button.secondary:active {
+  transform: translateY(1px) scale(0.98);
+  background: rgba(212, 165, 116, 0.18);
+  color: #fff;
+  border-color: #fff;
+}
+
+.cta-button.secondary:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 1px #000,
+    0 0 0 3px rgba(212, 165, 116, 0.85);
+}
+
+/* Cho primary nhìn đồng bộ khi bấm */
+.cta-button.primary:active {
+  transform: translateY(1px) scale(0.98);
+  box-shadow: 0 0 0 1px #000,
+    0 0 0 3px rgba(212, 165, 116, 0.6);
+}
+.howto-panel {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.9);
+  border: 1px solid rgba(212, 165, 116, 0.7);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.8);
+  color: #fff;
+  font-size: 13px;
+  line-height: 1.5;
+  animation: howto-fade-in 0.18s ease-out;
+}
+
+.howto-panel h5 {
+  margin: 0 0 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #d4a574;
+}
+
+.howto-panel ol {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.howto-panel li + li {
+  margin-top: 4px;
+}
+
+@keyframes howto-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+/* Bigger voucher icon & code */
+.voucher-item .service-icon {
+  font-size: 50px;  /* 👈 icon vé to hơn */
+  margin-top: 0;
+}
+
+.voucher-item .voucher-code {
+  display: inline-block;
+  margin-left: 10px;
+  margin-right: 10px;
+  font-size: 20px;  /* 👈 code to hơn */
+  font-weight: 700;
+  font-family: "Courier New", monospace;
+  letter-spacing: 1px;
+  text-transform: uppercase;
 }

@@ -624,6 +624,11 @@
   margin-top: 4px;
 }
 
+.checkout-summary-row {
+  align-items: flex-start; /* để ô bên phải lên cùng hàng label */
+}
+
+
 .checkout-summary-row span:first-child {
   color: var(--co-text-soft);
 }
@@ -716,6 +721,9 @@
    ========================= */
 
 @media (max-width: 960px) {
+  .checkout-page {
+    padding-top: 70px;
+  }
   .checkout-layout {
     grid-template-columns: 1fr;
   }
@@ -729,9 +737,11 @@
   }
 }
 
+
 @media (max-width: 720px) {
   .checkout-page {
     padding: 22px 10px 32px;
+    padding-top: 70px;
   }
 
   .checkout-main {
@@ -846,3 +856,106 @@
   padding-bottom: 24px;
 }
 
+.checkout-summary-label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.checkout-summary-subtext {
+  font-size: 11px;
+  color: var(--co-text-soft);
+}
+
+.checkout-summary-control {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+/* input + button trong cùng 1 hàng trên desktop */
+.checkout-voucher-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.checkout-voucher-input {
+  min-width: 0;
+  flex: 1;
+  border-radius: 999px;
+  border: 1px solid #d1d5db;
+  padding: 6px 10px;
+  font-size: 13px;
+  background: #f9fafb;
+}
+
+.checkout-voucher-input:focus,
+.checkout-points-input:focus {
+  outline: none;
+  border-color: var(--co-primary);
+  box-shadow: 0 0 0 1px rgba(139, 94, 60, 0.25);
+}
+
+.checkout-voucher-apply-btn {
+  border-radius: 999px;
+  border: none;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  background: #c79a66;
+  color: #fefce8;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background var(--co-transition),
+    transform var(--co-transition),
+    box-shadow var(--co-transition);
+}
+
+.checkout-voucher-apply-btn:hover {
+  background: #020617;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.3);
+}
+
+/* input điểm loyalty */
+.checkout-points-input {
+  width: 90px;
+  border-radius: 999px;
+  border: 1px solid #d1d5db;
+  padding: 6px 8px;
+  font-size: 13px;
+  text-align: right;
+  background: #f9fafb;
+}
+
+@media (max-width: 720px) {
+  /* ... các rule cũ ... */
+
+  .checkout-summary-control {
+    align-items: stretch;
+  }
+
+  .checkout-voucher-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .checkout-voucher-apply-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .checkout-points-input {
+    width: 100%;
+    text-align: left;
+  }
+}
+
+@media (max-width: 1199px) {
+  .checkout-page {
+    padding-top: 70px;
+  }
+}

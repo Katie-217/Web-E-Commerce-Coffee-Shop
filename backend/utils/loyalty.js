@@ -1,95 +1,118 @@
+// backend/utils/loyalty.js
+
 /**
  * Loyalty Program Utility Functions
- * 
- * Logic:
- * - Customers earn 10% of total order amount as points for each purchase
- * - 100 points = 100,000 VND (1 point = 1,000 VND)
- * - Points can be used immediately in the next order, không giới hạn
- * - Chỉ dùng ở đơn tiếp theo (không dùng ở cùng đơn)
- * - Không có hạn sử dụng
+ *
+ * - Khách được 10% giá trị đơn hàng dưới dạng điểm
+ * - 100 points = 100,000 VND  (1 point = 1,000 VND)
+ * - Điểm dùng cho các đơn sau, không giới hạn số lần, không hạn sử dụng
  */
 
+function normalizeMoney(value) {
+  const n = Number(value);
+  return Number.isFinite(n) && n > 0 ? n : 0;
+}
+
+function normalizePoints(value) {
+  const n = parseInt(value, 10);
+  return Number.isFinite(n) && n > 0 ? n : 0;
+}
+
 /**
- * Calculate points earned from an order
- * Formula: pointsEarned = orderTotal * 10%
- * Note: Calculate based on orderTotal BEFORE discount (e-commerce standard)
- * 
- * @param {number} orderTotal - Total order amount before discount
- * @returns {number} Points earned
+ * Tính điểm tích được từ đơn hàng
+ * - orderTotal nên là: subtotal + shippingFee (TRƯỚC giảm giá)
+ * - Ví dụ: 1.000.000 VND → 10% = 100.000 → 100 điểm
  */
 function calculatePointsEarned(orderTotal) {
-  if (!orderTotal || orderTotal <= 0) return 0;
-  // 10% of order total in VND, then convert to points (1 point = 1,000 VND)
-  // Example: orderTotal = 1,000,000 VND
-  // - 10% = 100,000 VND
-  // - Points = 100,000 / 1,000 = 100 points
-  return Math.floor((orderTotal * 0.1) / 1000);
+  const total = normalizeMoney(orderTotal);
+  if (!total) return 0;
+  // 10% giá trị tiền, 1 điểm = 1.000 VND
+  return Math.floor((total * 0.1) / 1000);
 }
 
 /**
- * Calculate discount amount from points used
- * Formula: discount = pointsUsed * 1,000 VND
- * 
- * @param {number} pointsUsed - Number of points to use
- * @returns {number} Discount amount in VND
+ * Quy đổi điểm thành tiền giảm giá
+ * 1 điểm = 1.000 VND
  */
 function calculateDiscountFromPoints(pointsUsed) {
-  if (!pointsUsed || pointsUsed <= 0) return 0;
-  return pointsUsed * 1000; // 1 point = 1,000 VND
+  const p = normalizePoints(pointsUsed);
+  if (!p) return 0;
+  return p * 1000;
 }
 
 /**
- * Calculate maximum points that can be used for an order
- * Limited by customer's available points and order total
- * 
- * @param {number} availablePoints - Customer's current available points
- * @param {number} orderTotal - Order total before discount
- * @returns {number} Maximum points that can be used
+ * Tính tối đa số điểm có thể dùng cho 1 order
+ * - Không vượt quá availablePoints
+ * - Không vượt quá giá trị order (tránh giảm > tổng tiền)
  */
 function calculateMaxPointsUsable(availablePoints, orderTotal) {
-  if (!availablePoints || availablePoints <= 0) return 0;
-  if (!orderTotal || orderTotal <= 0) return 0;
-  
-  // Can use all available points (no limit)
-  return availablePoints;
+  const available = normalizePoints(availablePoints);
+  const total = normalizeMoney(orderTotal);
+  if (!available || !total) return 0;
+
+  const maxByTotal = Math.floor(total / 1000); // vì 1 điểm = 1.000 VND
+  return Math.max(0, Math.min(available, maxByTotal));
 }
 
 /**
- * Validate points usage
- * - Points can only be used in next order (not same order where earned)
- * - No expiration date
- * - No usage limit
- * 
- * @param {number} pointsToUse - Points customer wants to use
- * @param {number} availablePoints - Customer's current available points
- * @returns {object} { valid: boolean, error?: string }
+ * Validate + chuẩn hoá việc dùng điểm trên 1 order
+ *
+ * @param {object} params
+ * @param {number} params.pointsToUse     - số điểm khách muốn dùng
+ * @param {number} params.availablePoints - điểm hiện có
+ * @param {number} params.orderTotal      - tổng tiền (subtotal + shippingFee) TRƯỚC giảm
+ *
+ * @returns {{
+ *  ok: boolean,
+ *  pointsToUse: number,
+ *  discount: number,
+ *  reason?: string
+ * }}
  */
-function validatePointsUsage(pointsToUse, availablePoints) {
-  if (!pointsToUse || pointsToUse <= 0) {
-    return { valid: true }; // No points to use is valid
+
+function validatePointsUsage({ availablePoints, pointsToUse, orderTotal }) {
+  const safeAvailable =
+    Math.max(0, Number(availablePoints) || 0);
+  let safePoints =
+    Math.max(0, Math.floor(Number(pointsToUse) || 0));
+
+  // Không dùng điểm thì coi như ok, discount = 0
+  if (safePoints === 0) {
+    return { ok: true, pointsToUse: 0, discount: 0 };
   }
-  
-  if (pointsToUse > availablePoints) {
-    return {
-      valid: false,
-      error: `Insufficient points. Available: ${availablePoints}, Requested: ${pointsToUse}`
-    };
+
+  // Không cho vượt quá số điểm hiện có
+  if (safePoints > safeAvailable) {
+    safePoints = safeAvailable;
   }
-  
-  return { valid: true };
+
+  // Không cho giảm quá tổng tiền (tránh total âm)
+  if (orderTotal && orderTotal > 0) {
+    const maxPointsByOrderTotal = Math.floor(orderTotal / 1000);
+    safePoints = Math.min(safePoints, maxPointsByOrderTotal);
+  }
+
+  const discount = calculateDiscountFromPoints(safePoints);
+
+  return {
+    ok: true,
+    pointsToUse: safePoints,
+    discount,
+  };
 }
 
+
 /**
- * Format points display message
- * Example: "Bạn nhận được 100 points (trị giá 100.000₫)."
- * 
- * @param {number} points - Points to display
- * @returns {string} Formatted message
+ * Format message hiển thị cho khách
+ * Ví dụ: "Bạn nhận được 100 points (trị giá 100.000₫)."
  */
 function formatPointsEarnedMessage(points) {
-  if (!points || points <= 0) return '';
-  const valueInVND = points * 1000;
-  return `Bạn nhận được ${points} points (trị giá ${valueInVND.toLocaleString('vi-VN')}₫).`;
+  const p = normalizePoints(points);
+  if (!p) return "";
+  const valueInVND = p * 1000;
+  return `Bạn nhận được ${p} points (trị giá ${valueInVND.toLocaleString(
+    "vi-VN"
+  )}₫).`;
 }
 
 module.exports = {
@@ -97,6 +120,5 @@ module.exports = {
   calculateDiscountFromPoints,
   calculateMaxPointsUsable,
   validatePointsUsage,
-  formatPointsEarnedMessage
+  formatPointsEarnedMessage,
 };
-

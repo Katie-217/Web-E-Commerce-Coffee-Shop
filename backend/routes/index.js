@@ -21,6 +21,7 @@ const categoriesRouter = require('./categories');
 const uploadRouter = require('./upload');
 const debugRouter = require('./debug');
 const authRouter      = require('./auth');
+const discountCodesRouter = require("./discountCodes");
 
 /**
  * API Endpoints Documentation
@@ -55,6 +56,7 @@ router.use('/categories', categoriesRouter);
 router.use('/upload', uploadRouter);
 router.use('/debug', debugRouter);
 router.use('/auth', authRouter); 
+router.use("/discount-codes", discountCodesRouter);
 
 // API Info endpoint - Tổng hợp thông tin về các API endpoints và collections
 router.get('/info', (req, res) => {

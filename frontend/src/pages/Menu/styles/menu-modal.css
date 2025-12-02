@@ -496,8 +496,26 @@
 
   .catalog-toast-inner {
     border-radius: 14px;
+    flex-direction: column;   /* text trên, nút dưới */
+    align-items: center;      /* CĂNG GIỮA */
+    text-align: center;
+  }
+
+  .catalog-toast-main {
+    width: 100%;
+  }
+
+  .catalog-toast-main span {
+    white-space: normal;      /* cho phép xuống dòng */
+  }
+
+  .catalog-toast-actions {
+    margin-left: 0;
+    width: 100%;
+    justify-content: center;  /* nút View cart + dấu × ở giữa luôn */
   }
 }
+
 
 /* ===== STOCK INFO ===== */
 .stock-info {
@@ -746,3 +764,4 @@
     padding: 0 10px;
   }
 }
+

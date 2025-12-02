@@ -9,6 +9,7 @@ const Customer = require('../models/Customer');
 const Product = require('../models/Product');
 const Order = require('../models/Order');
 const Review = require('../models/Review');
+const DiscountCode = require('../models/DiscountCode');
 
 // Thư mục chứa các file JSON (docs/)
 const DATA_DIR = path.join(__dirname, '..', 'docs');
@@ -104,9 +105,8 @@ async function seed() {
   const mongoUri =
     process.env.MONGO_URI ||
     (process.env.MONGODB_URI && process.env.DATABASE_NAME
-      ? `${process.env.MONGODB_URI.replace(/\/$/, '')}/${
-          process.env.DATABASE_NAME
-        }`
+      ? `${process.env.MONGODB_URI.replace(/\/$/, '')}/${process.env.DATABASE_NAME
+      }`
       : 'mongodb://127.0.0.1:27017/CoffeeDB');
 
   console.log('🔗 Connecting to MongoDB:', mongoUri);
@@ -130,41 +130,50 @@ async function seed() {
       );
     }
 
-    // Convert $oid / $date
-    // Convert $oid / $date + map loyalty.points => currentPoints/totalEarned
-const customersMapped = customersRaw.map((raw) => {
-  const mapped = mapMongoIds(raw);
-
-  if (mapped.loyalty && typeof mapped.loyalty === 'object') {
-    const pts = mapped.loyalty.points;
-    if (typeof pts === 'number') {
-      // đẩy vào đúng field schema
-      if (mapped.loyalty.currentPoints == null) {
-        mapped.loyalty.currentPoints = pts;
-      }
-      if (mapped.loyalty.totalEarned == null) {
-        mapped.loyalty.totalEarned = pts;
-      }
-      // optional: xoá field cũ để code về sau đỡ rối
-      delete mapped.loyalty.points;
+    let discountCodesRaw = [];
+    try {
+      discountCodesRaw = readJSON('discountCodes.json'); // hoặc 'discountCode.json' miễn khớp tên file
+    } catch (err) {
+      console.warn(
+        '⚠️  Không thấy discountCodes.json, bỏ qua phần seed discount codes.'
+      );
     }
-  }
 
-  // nếu sau này em thêm dateOfBirth vào JSON dưới dạng string
-  if (mapped.dateOfBirth && typeof mapped.dateOfBirth === 'string') {
-    mapped.dateOfBirth = new Date(mapped.dateOfBirth);
-  }
+    // Convert $oid / $date + map loyalty.points => currentPoints/totalEarned
+    const customersMapped = customersRaw.map((raw) => {
+      const mapped = mapMongoIds(raw);
 
-  return mapped;
-});
+      if (mapped.loyalty && typeof mapped.loyalty === 'object') {
+        const pts = mapped.loyalty.points;
+        if (typeof pts === 'number') {
+          // đẩy vào đúng field schema
+          if (mapped.loyalty.currentPoints == null) {
+            mapped.loyalty.currentPoints = pts;
+          }
+          if (mapped.loyalty.totalEarned == null) {
+            mapped.loyalty.totalEarned = pts;
+          }
+          // optional: xoá field cũ để code về sau đỡ rối
+          delete mapped.loyalty.points;
+        }
+      }
 
-const customers = await ensureHashedCustomers(customersMapped);
+      // nếu sau này em thêm dateOfBirth vào JSON dưới dạng string
+      if (mapped.dateOfBirth && typeof mapped.dateOfBirth === 'string') {
+        mapped.dateOfBirth = new Date(mapped.dateOfBirth);
+      }
+
+      return mapped;
+    });
+
+    const customers = await ensureHashedCustomers(customersMapped);
 
 
     const products = productsRaw.map(mapMongoIds);
     const orders = ordersRaw.map(mapMongoIds);
     const reviews = reviewsRaw.map(mapMongoIds);
     const shipping = shippingRaw.map(mapMongoIds);
+    const discountCodes = discountCodesRaw.map(mapMongoIds);
 
     // Xoá data cũ
     await Promise.all([
@@ -172,8 +181,10 @@ const customers = await ensureHashedCustomers(customersMapped);
       Product.deleteMany({}),
       Order.deleteMany({}),
       Review.deleteMany({}),
+      DiscountCode.deleteMany({}), // 👈 thêm
     ]);
-    console.log('🧹 Đã xoá Customer, Product, Order, Review cũ');
+    console.log('🧹 Đã xoá Customer, Product, Order, Review, DiscountCode cũ');
+
 
     if (shipping.length) {
       await mongoose.connection
@@ -182,7 +193,6 @@ const customers = await ensureHashedCustomers(customersMapped);
       console.log('🧹 Đã xoá collection shipping_activity_data cũ');
     }
 
-    // Insert mới
     const insertedCustomers = await Customer.insertMany(customers);
     console.log(`👤 Inserted ${insertedCustomers.length} customers`);
 
@@ -195,12 +205,20 @@ const customers = await ensureHashedCustomers(customersMapped);
     const insertedReviews = await Review.insertMany(reviews);
     console.log(`⭐ Inserted ${insertedReviews.length} reviews`);
 
+    if (discountCodes.length) {
+      const insertedCodes = await DiscountCode.insertMany(discountCodes);
+      console.log(`🏷️  Inserted ${insertedCodes.length} discount codes`);
+    } else {
+      console.log('🏷️  Không có discount codes để seed');
+    }
+
     if (shipping.length) {
       const res = await mongoose.connection
         .collection('shipping_activity_data')
         .insertMany(shipping);
       console.log(`🚚 Inserted ${res.insertedCount} shipping activity docs`);
     }
+
 
     console.log('✅ SEED HOÀN TẤT OK');
   } catch (err) {

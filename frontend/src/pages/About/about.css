@@ -214,11 +214,12 @@
 /* ========= ABOUT PAGE RESPONSIVE ========= */
 
 /* Tablet */
+/* Tablet: iPad Pro, Surface, Nest Hub */
 @media (max-width: 1024px) {
   .about-hero {
-    height: auto;                /* bỏ full-screen */
-    padding: 100px 20px 120px;   /* chừa khoảng cho box story */
-    margin-bottom: 40px;
+    min-height: 80vh;            /* hero cao ~80% màn hình */
+    padding: 100px 20px 80px;    /* tăng padding dưới 1 xíu */
+    margin-bottom: 0;
     text-align: center;
   }
 
@@ -231,14 +232,44 @@
     max-width: 90%;
   }
 
-  /* story-box vẫn overlay nhưng gọn hơn */
+  /* Story box: KHÔNG overlay nữa, thành card thường bên dưới hero */
   .story-box {
-    bottom: -100px;
-    left: 50%;
-    max-width: 70%;
-    transform: translateX(-50%);
+    position: static;
+    max-width: 80%;
+    width: 100%;
+    margin: 24px auto 40px;
+    padding: 24px;
+    transform: none;
+    bottom: auto;
+    left: auto;
+  }
+
+  /* Section vẫn 2 cột nhưng hình full cột, không bị kì */
+  .section {
+    grid-template-columns: 1fr 1fr;
+    max-width: 1000px;
+    gap: 24px;
+    padding: 0 24px;
+  }
+
+  .section img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+  }
+
+  /* Quote: bỏ overlay để không đè lên text Team/Story */
+  .quote-overlay {
+    height: auto;
+    margin: 40px 0 60px;
+  }
+
+  .highlight {
+    margin: 0 auto 40px;
+    max-width: 80%;
   }
 }
+
 
 /* Mobile */
 @media (max-width: 768px) {

@@ -146,3 +146,66 @@
   max-height: 35vh;
   object-fit: contain;
 }
+
+/* ============================
+   RESPONSIVE FIXES
+   ============================ */
+
+/* Tablet */
+@media (max-width: 992px) {
+  .why-container {
+    width: 90%;
+    padding: 30px 30px;
+  }
+
+  .title {
+    font-size: 32px;
+  }
+
+  .desc {
+    font-size: 15px;
+    max-width: 100%;
+  }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+
+  .why-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 20px;
+  }
+
+  .title {
+    font-size: 26px;
+    line-height: 1.25;
+  }
+
+  .subtitle {
+    font-size: 13px;
+    letter-spacing: 1px;
+  }
+
+  .desc {
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
+  
+}
+
+/* Small Mobile (iPhone SE) */
+@media (max-width: 480px) {
+  .title {
+    font-size: 22px;
+  }
+
+  .desc {
+    font-size: 13px;
+  }
+
+  .why-container {
+    border-radius: 14px;
+    padding: 20px 16px;
+  }
+}

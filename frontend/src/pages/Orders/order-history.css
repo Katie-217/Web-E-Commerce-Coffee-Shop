@@ -324,6 +324,7 @@
 @media (max-width: 768px) {
   .order-history-page {
     padding: 22px 0 32px;
+    padding-top: 70px;
   }
 
   .order-history-card {
@@ -343,5 +344,11 @@
 
   .order-history-card {
     padding-inline: 12px;
+  }
+}
+@media (max-width: 1050px) {
+  .order-history-page {
+    padding: 22px 0 32px;
+    padding-top: 70px;
   }
 }

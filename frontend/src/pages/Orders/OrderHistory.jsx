@@ -191,15 +191,17 @@ const OrderHistory = () => {
                     <th>Date &amp; time</th>
                     <th>Total</th>
                     <th>Status</th>
+                    <th>Points</th>
                   </tr>
                 </thead>
                 <tbody>
+
                   {orders.map((order) => {
                     const shortCode = order.displayCode
                       ? `#${String(order.displayCode).toUpperCase()}`
                       : order.id
-                      ? `#${String(order.id).slice(-4).toUpperCase()}`
-                      : "—";
+                        ? `#${String(order.id).slice(-4).toUpperCase()}`
+                        : "—";
 
                     const rowId = order._id || order.id;
 
@@ -213,6 +215,20 @@ const OrderHistory = () => {
                         <td>{formatDate(order.createdAt)}</td>
                         <td>{formatCurrency(order.total)}</td>
                         <td>{renderStatusBadge(order.status)}</td>
+                        <td className="orders-history-col-points">
+                          {order.pointsUsed > 0 && (
+                            <div className="points-used">
+                              Used: {order.pointsUsed}
+                            </div>
+                          )}
+                          {order.pointsEarned > 0 && (
+                            <div className="points-earned">
+                              Earned: {order.pointsEarned}
+                            </div>
+                          )}
+                          {order.pointsUsed <= 0 && order.pointsEarned <= 0 && "—"}
+                        </td>
+
                       </tr>
                     );
                   })}

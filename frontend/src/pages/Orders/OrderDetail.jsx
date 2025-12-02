@@ -26,6 +26,27 @@ function formatDate(value) {
   });
 }
 
+function calculateLoyaltyPoints(order) {
+  if (!order) return 0;
+
+  // Nếu backend đã ghi sẵn pointsEarned thì ưu tiên dùng luôn
+  if (order.pointsEarned != null) {
+    const n = Number(order.pointsEarned);
+    return Number.isNaN(n) ? 0 : n;
+  }
+
+  const subtotal = Number(order.subtotal) || 0;
+  const shipping = Number(order.shippingFee) || 0;
+  const discount = Number(order.discount) || 0;
+
+  // tổng tiền thực để tính điểm: subtotal + ship - discount
+  const totalForPoints = Math.max(0, subtotal + shipping - discount);
+
+  // Rule: 10% giá trị đơn, 1.000đ = 1 điểm
+  const raw = (totalForPoints * 0.1) / 1000;
+  return Math.floor(raw);
+}
+
 const STATUS_LABELS = {
   created: "Created",
   pending: "Pending",
@@ -85,6 +106,13 @@ const OrderDetail = () => {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const lineItems = useMemo(() => {
+    if (!order) return [];
+    const raw =
+      order.items || order.orderItems || order.cartItems || [];
+    return Array.isArray(raw) ? raw : [];
+  }, [order]);
 
   const loadOrder = async () => {
     if (!orderId) {
@@ -149,34 +177,28 @@ const OrderDetail = () => {
   }, [orderId]);
 
   const totalItems = useMemo(() => {
-    if (!order) return 0;
-
-    // kiếm list items theo nhiều key khác nhau
-    const lineItems =
-      order.items || order.orderItems || order.cartItems || [];
-
-    if (!Array.isArray(lineItems)) return 0;
+    if (!lineItems.length) return 0;
 
     let count = lineItems.reduce((sum, item) => {
       const q =
-        item.quantity ??   // chuẩn backend nếu dùng "quantity"
-        item.qty ??        // chuẩn cart/checkout hay dùng "qty"
-        item.count ??      // fallback khác
+        item.quantity ??
+        item.qty ??
+        item.count ??
         0;
 
       return sum + (Number(q) || 0);
     }, 0);
 
-    // nếu vẫn = 0 nhưng có dòng item, ít nhất trả về số dòng
     if (!count && lineItems.length) {
       count = lineItems.length;
     }
 
     return count;
+  }, [lineItems]);
+
+  const loyaltyPoints = useMemo(() => {
+    return calculateLoyaltyPoints(order);
   }, [order]);
-  console.log("ORDER DETAIL", order);
-
-
 
   const status = normalizeStatus(order?.status);
   const isRefunded = status === "refunded";
@@ -292,7 +314,7 @@ const OrderDetail = () => {
 
               {/* MAIN CONTENT GRID */}
               <div className="order-detail-grid">
-                {/* LEFT: SHIPPING + PAYMENT */}
+                {/* LEFT: SHIPPING + PAYMENT + ITEMS */}
                 <div className="order-detail-column">
                   <div className="order-detail-section">
                     <h2>Shipping information</h2>
@@ -325,6 +347,7 @@ const OrderDetail = () => {
                     </div>
                   </div>
 
+
                   <div className="order-detail-section">
                     <h2>Payment</h2>
                     <div className="order-detail-info">
@@ -341,7 +364,96 @@ const OrderDetail = () => {
                       )}
                     </div>
                   </div>
+
+
+                  <div className="order-detail-section order-detail-items">
+                    <h2>Ordered items</h2>
+
+                    {lineItems.length === 0 ? (
+                      <p className="order-detail-items-empty">
+                        This order has no items.
+                      </p>
+                    ) : (
+                      <ul className="order-detail-items-list">
+                        {lineItems.map((item, index) => {
+                          const qty =
+                            item.quantity ??
+                            item.qty ??
+                            item.count ??
+                            1;
+                          const price = Number(item.price) || 0;
+                          const lineTotal = qty * price;
+
+                          // Lấy text variant
+                          // Lấy text variant, ưu tiên value (option đã chọn)
+                          let variantText = "";
+
+                          if (item.variant) {
+                            if (typeof item.variant === "object") {
+                              const value =
+                                item.variant.value ||
+                                item.variant.label ||
+                                item.variant.option ||
+                                "";
+
+                              const groupName = item.variant.name || item.variant.type || "";
+
+                              // Nếu có cả tên nhóm & value thì ghép "Size: 250g"
+                              if (groupName && value) {
+                                variantText = `${groupName}: ${value}`;
+                              } else {
+                                variantText = value || groupName;
+                              }
+                            } else {
+                              // variant là string đơn giản
+                              variantText = String(item.variant);
+                            }
+                          }
+
+
+                          return (
+                            <li
+                              key={
+                                item._id ||
+                                item.id ||
+                                item.productId ||
+                                index
+                              }
+                              className="order-detail-item-row"
+                            >
+                              <div className="order-detail-item-main">
+                                <div className="order-detail-item-title">
+                                  {item.name || "Unnamed item"}
+                                </div>
+
+                                {variantText && (
+                                  <div className="order-detail-item-variant">
+                                    {variantText}
+                                  </div>
+                                )}
+
+                                <div className="order-detail-item-meta">
+                                  <span className="order-detail-item-qty">
+                                    Qty: {qty}
+                                  </span>
+                                  <span className="order-detail-item-price">
+                                    {formatCurrency(price)}
+                                  </span>
+                                </div>
+                              </div>
+
+                              <div className="order-detail-item-total">
+                                {formatCurrency(lineTotal)}
+                              </div>
+                            </li>
+                          );
+                        })}
+
+                      </ul>
+                    )}
+                  </div>
                 </div>
+
 
                 {/* RIGHT: TOTALS */}
                 <div className="order-detail-column">
@@ -365,10 +477,16 @@ const OrderDetail = () => {
                         <span>-{formatCurrency(order.discount)}</span>
                       </div>
                     )}
+
                     <div className="order-detail-summary-row order-detail-summary-total">
                       <span>Total</span>
                       <span>{formatCurrency(order.total)}</span>
                     </div>
+                    <div className="order-detail-summary-row">
+                      <span>Loyalty points earned</span>
+                      <span>{loyaltyPoints}</span>
+                    </div>
+
                   </div>
                 </div>
               </div>

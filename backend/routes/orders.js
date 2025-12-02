@@ -10,6 +10,121 @@ const {
 } = require('../utils/loyalty');
 
 const router = express.Router();
+const mailer = require("../config/mailer");
+const DiscountCode = require("../models/DiscountCode"); 
+
+
+function formatVnd(amount) {
+  try {
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+      maximumFractionDigits: 0,
+    }).format(amount || 0);
+  } catch (e) {
+    return `${amount} VND`;
+  }
+}
+
+async function sendOrderConfirmationEmail(order) {
+  console.log("[order/email] DEBUG order:", {
+    hasOrder: !!order,
+    customerEmail: order?.customerEmail,
+    id: order?._id || order?.id,
+    items: Array.isArray(order?.items) ? order.items.length : 0,
+  });
+
+  if (!order || !order.customerEmail) {
+    console.log("[order/email] SKIP: missing order or customerEmail");
+    return;
+  }
+
+  const appName = process.env.APP_NAME || "Coffee Shop";
+  const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+
+  const from =
+    process.env.FROM_EMAIL ||
+    process.env.MAIL_FROM ||
+    process.env.SMTP_USER ||
+    "no-reply@example.com";
+
+  const itemsHtml = (order.items || [])
+    .map((it) => {
+      const qty = Number(it.quantity || it.qty || 1);
+      const price = Number(it.price || 0);
+      const lineTotal = qty * price;
+      const variant =
+        it.variant && it.variant.value ? ` (${it.variant.value})` : "";
+      return `
+        <tr>
+          <td style="padding:4px 8px;">${it.name}${variant}</td>
+          <td style="padding:4px 8px;text-align:center;">${qty}</td>
+          <td style="padding:4px 8px;text-align:right;">${formatVnd(lineTotal)}</td>
+        </tr>
+      `;
+    })
+    .join("");
+
+  const totalAmount =
+    Number(order.totalAmount || order.total || 0) +
+    Number(order.shippingFee || 0);
+
+  const html = `
+    <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;line-height:1.6;color:#111827">
+      <h2 style="font-size:18px;margin:0 0 8px;">Thank you for your order!</h2>
+      <p style="margin:0 0 8px;">We have received your order ${order.displayCode || ""
+    } at <strong>${appName}</strong>.</p>
+      <p style="margin:0 0 12px;">Here is a summary:</p>
+      <table width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;border:1px solid #e5e7eb;">
+        <thead>
+          <tr style="background:#f9fafb;">
+            <th align="left" style="padding:6px 8px;font-size:12px;text-transform:uppercase;color:#6b7280;">Item</th>
+            <th align="center" style="padding:6px 8px;font-size:12px;text-transform:uppercase;color:#6b7280;">Qty</th>
+            <th align="right" style="padding:6px 8px;font-size:12px;text-transform:uppercase;color:#6b7280;">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${itemsHtml}
+        </tbody>
+      </table>
+      <p style="margin:12px 0 4px;text-align:right;">
+        <strong>Shipping fee:</strong> ${formatVnd(order.shippingFee || 0)}
+      </p>
+      <p style="margin:0 0 16px;text-align:right;">
+        <strong>Grand total:</strong> ${formatVnd(totalAmount)}
+      </p>
+      <p style="margin:0 0 16px;">You can view your order details at any time:</p>
+      <p style="margin:0 0 16px;">
+        <a href="${frontendUrl}/orders${order._id ? "/" + order._id : ""
+    }" style="display:inline-block;padding:8px 16px;border-radius:999px;background:#7c3aed;color:#fff;text-decoration:none;font-size:14px;">View order</a>
+      </p>
+      <p style="font-size:12px;color:#6b7280;margin:0;">This email was sent automatically, please do not reply.</p>
+    </div>
+  `;
+
+  try {
+    const info = await mailer.sendMail({
+      from,
+      to: order.customerEmail,
+      subject: `${appName} – Order ${order.displayCode || order._id} confirmation`,
+      html,
+      text: `Thank you for your order at ${appName}. Total: ${formatVnd(
+        totalAmount
+      )}.`,
+    });
+
+    console.log(
+      "📧 Order confirmation email sent:",
+      info && info.messageId,
+      "=>",
+      order.customerEmail
+    );
+  } catch (err) {
+    console.error("[order/email] sendMail ERROR:", err);
+    throw err; // để .catch bên ngoài bắt được
+  }
+}
+
 
 // GET /api/orders
 router.get('/', async (req, res) => {
@@ -18,7 +133,7 @@ router.get('/', async (req, res) => {
     const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 20, 1), 100);
     const skip = (page - 1) * limit;
     const { q, status, email, range, startDate, endDate } = req.query;
-    
+
 
     const filters = {};
     if (status) filters.status = status;
@@ -27,7 +142,7 @@ router.get('/', async (req, res) => {
     if (email && (!q || q === '' || String(q).trim() === '')) {
       filters.customerEmail = new RegExp(String(email), 'i');
     }
-    
+
     // Handle search query - search ONLY in order ID
     // When user types, filter immediately and narrow down results
     // User can search by ID number without "#" - e.g., "1" or "0001" will find "ORD-2024-0001"
@@ -41,22 +156,22 @@ router.get('/', async (req, res) => {
       let searchTerm = String(q).trim();
       // Remove "#" if user typed it - allow searching without "#"
       searchTerm = searchTerm.replace(/^#+/, '');
-      
+
       if (searchTerm) {
         // Escape special regex characters to prevent regex injection
         const escapedTerm = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        
+
         // Search in displayCode field - 4-character alphanumeric code (e.g., "A3f2", "75a0")
         // UI displays ID as #XXXX where XXXX is the displayCode (used to hide real order ID)
         // When user types "A3", match displayCodes STARTING with "A3": "A3f2", "A3bc", etc.
         // When user types "75a", match displayCodes STARTING with "75a": "75a0", "75a1", etc.
         // Pattern: ^[searchTerm] matches displayCodes that start with the search term (case-insensitive)
         // Only search orders that have displayCode (not null/undefined)
-        filters.displayCode = { 
+        filters.displayCode = {
           $exists: true,
           $ne: null,
-          $regex: `^${escapedTerm}`, 
-          $options: 'i' 
+          $regex: `^${escapedTerm}`,
+          $options: 'i'
         };
       }
     }
@@ -113,7 +228,7 @@ router.get('/', async (req, res) => {
       if (rangeEnd) filters.createdAt.$lte = rangeEnd;
     }
 
-    
+
     // Determine sort order: if searching, sort by displayCode (alphabetical order), otherwise by createdAt
     // When searching, we want to prioritize orders where the search term appears at the beginning of displayCode
     let sortOrder = { createdAt: -1 }; // Default: newest first
@@ -124,12 +239,12 @@ router.get('/', async (req, res) => {
       // When user types "a3", it will show: "a3bc", "a3cd", etc.
       sortOrder = { displayCode: 1 }; // Sort by displayCode ascending (alphabetical order)
     }
-    
+
     // Try different databases: 'orders' database first, then 'CoffeeDB'
     // When searching, try all databases to find matching orders
     let items = [];
     let total = 0;
-    
+
     // Try 1: 'orders' database > 'ordersList' collection
     try {
       const ordersDb = mongoose.connection.useDb('orders', { useCache: true });
@@ -141,7 +256,7 @@ router.get('/', async (req, res) => {
     } catch (err) {
       console.error("Error querying 'orders' database:", err);
     }
-    
+
     // Try 2: Current database (CoffeeDB) > ordersList collection
     // Always try next database if no results yet (even with search query)
     if (total === 0) {
@@ -196,28 +311,39 @@ router.get('/', async (req, res) => {
     res.status(500).json({ success: false, message: 'Failed to fetch orders', error: err.message });
   }
 });
+
 // POST /api/orders - tạo đơn hàng mới từ trang checkout
-router.post('/', async (req, res) => {
+router.post("/", async (req, res) => {
   try {
     const body = req.body || {};
     const rawItems = Array.isArray(body.items) ? body.items : [];
-    // Chuẩn hóa items: luôn có qty & quantity
-    const items = rawItems.map((it) => {
-      const qty = Number(it.qty ?? it.quantity ?? 1);
-      return {
-        productId: it.productId,
-        name: it.name,
-        sku: it.sku,
-        price: Number(it.price) || 0,
-        qty,
-        quantity: qty,
-      };
-    });
+
+// Chuẩn hóa items: luôn có qty & quantity + giữ lại variant
+const items = rawItems.map((it) => {
+  const qty = Number(it.qty ?? it.quantity ?? 1);
+
+  const variant =
+    it.variant ??
+    it.selectedVariant ??
+    it.variants ??
+    null; // tuỳ FE gửi gì, giữ nguyên object/string
+
+  return {
+    productId: it.productId,
+    name: it.name,
+    sku: it.sku,
+    price: Number(it.price) || 0,
+    qty,
+    quantity: qty,
+    variant, // 👈 lưu vào order luôn
+  };
+});
+
 
     if (!items.length) {
       return res.status(400).json({
         success: false,
-        message: 'Order items required',
+        message: "Order items required",
       });
     }
 
@@ -233,11 +359,126 @@ router.post('/', async (req, res) => {
       body.shippingFee != null
         ? Number(body.shippingFee)
         : subtotal > 300000
-        ? 0
-        : 30000;
+          ? 0
+          : 30000;
 
-    const discount = Number(body.discount) || 0;
-    const total = subtotal + shippingFee - discount;
+    // ====== LOYALTY: dùng điểm trên đơn này ======
+
+    // Lấy email từ body hoặc từ user đăng nhập (để tìm điểm hiện có)
+    const customerEmail =
+      body.customerEmail ||
+      (req.user && (req.user.email || req.user.username)) ||
+      null;
+
+    if (!customerEmail) {
+      return res.status(400).json({
+        success: false,
+        message: "customerEmail is required",
+      });
+    }
+
+    let availablePoints = 0;
+    let customerDoc = null;
+
+    try {
+      // nếu bạn lưu customer ở DB khác thì chỉnh đoạn này
+      customerDoc = await Customer.findOne({
+        email: customerEmail.toLowerCase().trim(),
+      }).lean();
+
+      if (customerDoc && customerDoc.loyalty) {
+        availablePoints =
+          customerDoc.loyalty.currentPoints ||
+          customerDoc.loyalty.points ||
+          0;
+      }
+    } catch (err) {
+      console.error("[orders] fetch customer for loyalty failed:", err);
+    }
+
+        // Số điểm FE gửi lên muốn dùng cho đơn này
+    const requestedPoints = Number(body.pointsUsed) || 0;
+    let pointsUsed = 0;
+    let discountFromPoints = 0;
+
+    if (requestedPoints > 0 && availablePoints > 0) {
+      const { ok, pointsToUse, discount } = validatePointsUsage({
+        availablePoints,
+        pointsToUse: requestedPoints,
+        orderTotal: subtotal + shippingFee, // tính trên tổng trước giảm
+      });
+
+      if (ok) {
+        pointsUsed = pointsToUse;
+        discountFromPoints = discount; // VND
+      }
+    }
+
+        // ===== VOUCHER / DISCOUNT CODE =====
+    let manualDiscount = 0;
+    let appliedDiscountCode = null;
+
+    const rawCode = body.discountCode || body.voucherCode || body.coupon;
+    if (rawCode) {
+      const normalizedCode = String(rawCode).trim().toUpperCase();
+
+      const codeRegex = /^[A-Z0-9]{5}$/;
+      if (!codeRegex.test(normalizedCode)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid discount code format.",
+        });
+      }
+
+      const voucher = await DiscountCode.findOne({ code: normalizedCode });
+
+      if (
+        !voucher ||
+        voucher.isActive === false ||
+        voucher.usedCount >= voucher.maxUses
+      ) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "This discount code is invalid or has reached its usage limit.",
+        });
+      }
+
+      const base = subtotal + shippingFee; // tổng trước loyalty
+
+      // 👇 HỖ TRỢ 2 KIỂU: percent & amount
+      if (voucher.type === "amount") {
+        // Trừ thẳng tiền, nhưng không vượt quá tổng base
+        manualDiscount = Math.min(
+          Number(voucher.discountAmount || 0),
+          base
+        );
+      } else {
+        // Mặc định / "percent"
+        const percent =
+          typeof voucher.discountPercent === "number"
+            ? voucher.discountPercent
+            : 10;
+
+        manualDiscount = Math.floor((base * percent) / 100);
+      }
+
+      appliedDiscountCode = normalizedCode;
+
+      // tăng số lần dùng
+      voucher.usedCount = (voucher.usedCount || 0) + 1;
+      await voucher.save();
+    } else {
+      // fallback: nếu muốn cho phép gửi thẳng discount VND từ FE
+      manualDiscount = Number(body.discount) || 0;
+    }
+
+
+    // Tổng discount = voucher + loyalty
+    const discount = manualDiscount + discountFromPoints;
+
+    // Total không cho âm
+    const total = Math.max(0, subtotal + shippingFee - discount);
 
     const now = new Date();
     const year = now.getFullYear();
@@ -254,29 +495,16 @@ router.post('/', async (req, res) => {
         if (m) seq = parseInt(m[1], 10) + 1;
       }
     } catch (e) {
-      console.error('Find last order error:', e);
+      console.error("Find last order error:", e);
     }
 
-    const seqStr = String(seq).padStart(4, '0');
+    const seqStr = String(seq).padStart(4, "0");
     const id = `ORD-${year}-${seqStr}`;
 
     // Mã ngắn hiển thị #xxxx
     const displayCode =
       body.displayCode ||
       Math.random().toString(16).slice(2, 6).toLowerCase();
-
-    // Lấy email từ body hoặc từ user đăng nhập
-    const customerEmail =
-      body.customerEmail ||
-      (req.user && (req.user.email || req.user.username)) ||
-      null;
-
-    if (!customerEmail) {
-      return res.status(400).json({
-        success: false,
-        message: 'customerEmail is required',
-      });
-    }
 
     const customerId =
       body.customerId ||
@@ -285,22 +513,22 @@ router.post('/', async (req, res) => {
 
     // Trạng thái order/payout theo schema
     const VALID_STATUS = [
-      'pending',
-      'processing',
-      'shipped',
-      'delivered',
-      'cancelled',
-      'returned',
+      "pending",
+      "processing",
+      "shipped",
+      "delivered",
+      "cancelled",
+      "returned",
     ];
-    const VALID_PAYMENT_STATUS = ['pending', 'paid', 'failed', 'refunded'];
+    const VALID_PAYMENT_STATUS = ["pending", "paid", "failed", "refunded"];
 
     const status = VALID_STATUS.includes(body.status)
       ? body.status
-      : 'pending';
+      : "pending";
 
     const paymentStatus = VALID_PAYMENT_STATUS.includes(body.paymentStatus)
       ? body.paymentStatus
-      : 'pending';
+      : "pending";
 
     const orderDoc = {
       id,
@@ -315,19 +543,49 @@ router.post('/', async (req, res) => {
       subtotal,
       shippingFee,
       discount,
+      discountCode: appliedDiscountCode || null,
       tax: body.tax || 0,
       total,
-      currency: body.currency || 'VND',
+      currency: body.currency || "VND",
       notes: body.note,
-      paymentMethod: body.paymentMethod || 'cod',
+      paymentMethod: body.paymentMethod || "cod",
       paymentStatus,
       status,
       shippingActivity: body.shippingActivity || [],
-      // createdAt / updatedAt để Mongoose tự set (timestamps)
+      pointsUsed,       // ⭐ lưu lại điểm đã dùng
+      pointsEarned: 0,  // sẽ set khi delivered ở PATCH
     };
 
-    // 👉 dùng model Order nên chắc chắn đúng DB + collection
+    // tạo đơn
     const order = await Order.create(orderDoc);
+
+    // Nếu có dùng điểm thì trừ điểm của khách
+    if (pointsUsed > 0 && customerDoc) {
+      try {
+        const customerId = customerDoc._id || customerDoc.id;
+        const historyEntry = {
+          orderId: order.id,
+          orderDate: order.createdAt || new Date(),
+          type: 'used',
+          points: pointsUsed,
+          description: `Used ${pointsUsed} points for order ${order.id}`,
+          createdAt: new Date(),
+        };
+
+        await Customer.findByIdAndUpdate(customerId, {
+          $inc: { 'loyalty.currentPoints': -pointsUsed },
+          $push: { 'loyalty.history': historyEntry },
+        });
+      } catch (err) {
+        console.error("[orders] deduct loyalty points failed:", err);
+      }
+    }
+
+
+    // 🔔 GỬI EMAIL XÁC NHẬN ĐƠN HÀNG (không chặn response nếu lỗi)
+    sendOrderConfirmationEmail(order).catch((err) => {
+      console.error("[orders] sendOrderConfirmationEmail failed:", err);
+    });
 
     const transformed = {
       _id: String(order._id),
@@ -350,34 +608,35 @@ router.post('/', async (req, res) => {
       shippingAddress: order.shippingAddress,
       billingAddress: order.billingAddress,
       shippingActivity: order.shippingActivity,
+      pointsUsed: order.pointsUsed || 0,
+      pointsEarned: order.pointsEarned || 0,
       createdAt: order.createdAt,
       updatedAt: order.updatedAt,
     };
 
     return res.status(201).json({ success: true, data: transformed });
   } catch (err) {
-    console.error('Create order error:', err);
+    console.error("Create order error:", err);
     return res.status(500).json({
       success: false,
-      message: 'Failed to create order',
+      message: "Failed to create order",
       error: err.message,
     });
   }
 });
-
 
 // GET /api/orders/:id
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     let order = null;
-    
+
     // Try collections in order: orders DB > ordersList, then current DB > ordersList, orders.ordersList, orders
     // Try 1: 'orders' database > 'ordersList' collection
     try {
       const ordersDb = mongoose.connection.useDb('orders', { useCache: true });
       const coll = ordersDb.collection('ordersList');
-      
+
       if (Types.ObjectId.isValid(id)) {
         const objId = new Types.ObjectId(id);
         order = await coll.findOne({ _id: objId });
@@ -394,7 +653,7 @@ router.get('/:id', async (req, res) => {
       }
     } catch (err) {
     }
-    
+
     // Try 2: Current database > ordersList collection
     if (!order) {
       try {
@@ -411,7 +670,7 @@ router.get('/:id', async (req, res) => {
       } catch (err) {
       }
     }
-    
+
     // Try 3: orders.ordersList
     if (!order) {
       try {
@@ -428,7 +687,7 @@ router.get('/:id', async (req, res) => {
       } catch (err) {
       }
     }
-    
+
     // Try 3: orders
     if (!order) {
       try {
@@ -445,7 +704,7 @@ router.get('/:id', async (req, res) => {
       } catch (err) {
       }
     }
-    
+
     // Fallback to default Order model collection
     if (!order) {
       if (Types.ObjectId.isValid(id)) order = await Order.findById(id);
@@ -486,108 +745,80 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// Helper function to update customer loyalty points when order is delivered
+// Helper: update điểm loyalty khi đơn hoàn tất
+// - COD: khi status = 'delivered'
+// - Online: khi paymentStatus = 'paid'
 async function updateCustomerLoyaltyPoints(order) {
   try {
-    if (!order || order.status !== 'delivered') return;
-    
+    if (!order) return;
+
+    const method = (order.paymentMethod || "").toLowerCase();
+    const isCod =
+      method === "cod" ||
+      method === "cash_on_delivery" ||
+      method === "cod_cash";
+
+    // COD: chỉ cộng khi đã giao xong (coi như đã thu tiền)
+    if (isCod) {
+      if (order.status !== "delivered") return;
+    } else {
+      // Online: chỉ cộng khi đã thanh toán
+      if (order.paymentStatus !== "paid") return;
+    }
+
     const customerEmail = order.customerEmail?.toLowerCase()?.trim();
     if (!customerEmail) return;
-    
-    // Find customer by email
-    let customer = null;
-    
-    // Try to find in customers database
-    try {
-      const customersDb = mongoose.connection.useDb('customers', { useCache: true });
-      const customersColl = customersDb.collection('customersList');
-      customer = await customersColl.findOne({ email: customerEmail });
-    } catch (err) {
-      console.error('Error finding customer in customers DB:', err);
-    }
-    
-    // Try current database
+
+    // 🔍 Luôn tìm bằng model Customer (đây là nơi auth + loyalty đang dùng)
+    const customer = await Customer.findOne({ email: customerEmail });
     if (!customer) {
-      try {
-        const customersColl = mongoose.connection.db.collection('customersList');
-        customer = await customersColl.findOne({ email: customerEmail });
-      } catch (err) {
-        console.error('Error finding customer in current DB:', err);
-      }
-    }
-    
-    // Try Customer model
-    if (!customer) {
-      try {
-        customer = await Customer.findOne({ email: customerEmail }).lean();
-      } catch (err) {
-        console.error('Error finding customer in Customer model:', err);
-      }
-    }
-    
-    if (!customer) {
-      console.warn(`Customer not found for email: ${customerEmail}`);
+      console.warn(`[loyalty] Customer not found for email: ${customerEmail}`);
       return;
     }
-    
-    // Calculate points earned (10% of orderTotal BEFORE discount)
-    const orderTotal = order.subtotal + (order.shippingFee || 0);
+
+    // Tính tiền thực trả = subtotal + ship - discount
+    const gross = (order.subtotal || 0) + (order.shippingFee || 0);
+    const discount = order.discount || 0; // gồm voucher + dùng điểm
+    const orderTotal = Math.max(0, gross - discount);
+
     const pointsEarned = calculatePointsEarned(orderTotal);
-    
     if (pointsEarned <= 0) return;
-    
-    // Update customer loyalty points
-    const customerId = customer._id || customer.id;
-    const currentPoints = customer.loyalty?.currentPoints || customer.loyalty?.points || 0;
-    const totalEarned = (customer.loyalty?.totalEarned || 0) + pointsEarned;
+
+    const currentPoints =
+      (customer.loyalty &&
+        (customer.loyalty.currentPoints ?? customer.loyalty.points)) ||
+      0;
+
+    const totalEarned =
+      (customer.loyalty && customer.loyalty.totalEarned) || 0;
+
     const newPoints = currentPoints + pointsEarned;
-    
-    // Add to history
+    const newTotalEarned = totalEarned + pointsEarned;
+
+    const orderIdStr = order.id || order._id?.toString();
+
     const historyEntry = {
-      orderId: order.id || order._id?.toString(),
+      orderId: orderIdStr,
       orderDate: order.createdAt || new Date(),
-      type: 'earned',
+      type: "earned",
       points: pointsEarned,
-      description: `Earned ${pointsEarned} points from order ${order.id}`,
-      createdAt: new Date()
+      description: `Earned ${pointsEarned} points from order ${orderIdStr}`,
+      createdAt: new Date(),
     };
-    
-    const updateData = {
-      'loyalty.totalEarned': totalEarned,
-      'loyalty.currentPoints': newPoints,
-      'loyalty.lastAccrualAt': new Date(),
-      $push: { 'loyalty.history': historyEntry }
+
+    const setData = {
+      "loyalty.totalEarned": newTotalEarned,
+      "loyalty.currentPoints": newPoints,
+      "loyalty.lastAccrualAt": new Date(),
     };
-    
-    // Update in same location where customer was found
-    try {
-      const customersDb = mongoose.connection.useDb('customers', { useCache: true });
-      const customersColl = customersDb.collection('customersList');
-      await customersColl.updateOne(
-        { _id: Types.ObjectId.isValid(customerId) ? new Types.ObjectId(customerId) : customerId },
-        { $set: updateData, $push: { 'loyalty.history': historyEntry } }
-      );
-    } catch (err) {
-      try {
-        const customersColl = mongoose.connection.db.collection('customersList');
-        await customersColl.updateOne(
-          { _id: Types.ObjectId.isValid(customerId) ? new Types.ObjectId(customerId) : customerId },
-          { $set: updateData, $push: { 'loyalty.history': historyEntry } }
-        );
-      } catch (err2) {
-        try {
-          await Customer.findByIdAndUpdate(customerId, {
-            $set: updateData,
-            $push: { 'loyalty.history': historyEntry }
-          });
-        } catch (err3) {
-          console.error('Error updating customer loyalty points:', err3);
-        }
-      }
-    }
-    
+
+    // ✅ Cập nhật trực tiếp vào Customer (cùng nơi auth/me đọc)
+    await Customer.findByIdAndUpdate(customer._id, {
+      $set: setData,
+      $push: { "loyalty.history": historyEntry },
+    });
   } catch (err) {
-    console.error('Error in updateCustomerLoyaltyPoints:', err);
+    console.error("Error in updateCustomerLoyaltyPoints:", err);
   }
 }
 
@@ -595,32 +826,115 @@ async function updateCustomerLoyaltyPoints(order) {
 router.patch('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { status, shippingActivity, pointsUsed } = req.body;
-    
+    const { status, paymentStatus, shippingActivity, pointsUsed } = req.body;
+
+
     // Get current order to check previous status
     let currentOrder = null;
+
+    // Try 1: 'orders' database > ordersList collection
     try {
       const ordersDb = mongoose.connection.useDb('orders', { useCache: true });
       const coll = ordersDb.collection('ordersList');
-      currentOrder = await coll.findOne({ id: id }) || await coll.findOne({ _id: Types.ObjectId.isValid(id) ? new Types.ObjectId(id) : id });
+
+      if (Types.ObjectId.isValid(id)) {
+        const objId = new Types.ObjectId(id);
+        currentOrder = await coll.findOne({ _id: objId });
+      }
+      if (!currentOrder) {
+        currentOrder = await coll.findOne({ id });
+      }
+      if (!currentOrder && !isNaN(id)) {
+        currentOrder = await coll.findOne({ id: String(id) });
+      }
     } catch (err) {
+      // ignore
+    }
+
+    // Try 2: current database > ordersList collection
+    if (!currentOrder) {
       try {
         const coll = mongoose.connection.db.collection('ordersList');
-        currentOrder = await coll.findOne({ id: id }) || await coll.findOne({ _id: Types.ObjectId.isValid(id) ? new Types.ObjectId(id) : id });
-      } catch (err2) {
-        currentOrder = await Order.findOne({ id: id }) || await Order.findById(id);
+
+        if (Types.ObjectId.isValid(id)) {
+          currentOrder = await coll.findOne({ _id: new Types.ObjectId(id) });
+        }
+        if (!currentOrder) {
+          currentOrder = await coll.findOne({ id });
+        }
+        if (!currentOrder && !isNaN(id)) {
+          currentOrder = await coll.findOne({ id: String(id) });
+        }
+      } catch (err) {
+        // ignore
       }
     }
-    
+
+    // Try 3: orders.ordersList
+    if (!currentOrder) {
+      try {
+        const coll = mongoose.connection.db.collection('orders.ordersList');
+
+        if (Types.ObjectId.isValid(id)) {
+          currentOrder = await coll.findOne({ _id: new Types.ObjectId(id) });
+        }
+        if (!currentOrder) {
+          currentOrder = await coll.findOne({ id });
+        }
+        if (!currentOrder && !isNaN(id)) {
+          currentOrder = await coll.findOne({ id: String(id) });
+        }
+      } catch (err) {
+        // ignore
+      }
+    }
+
+    // Try 4: orders
+    if (!currentOrder) {
+      try {
+        const coll = mongoose.connection.db.collection('orders');
+
+        if (Types.ObjectId.isValid(id)) {
+          currentOrder = await coll.findOne({ _id: new Types.ObjectId(id) });
+        }
+        if (!currentOrder) {
+          currentOrder = await coll.findOne({ id });
+        }
+        if (!currentOrder && !isNaN(id)) {
+          currentOrder = await coll.findOne({ id: String(id) });
+        }
+      } catch (err) {
+        // ignore
+      }
+    }
+
+    // Fallback to default Order model collection
+    if (!currentOrder) {
+      if (Types.ObjectId.isValid(id)) {
+        currentOrder = await Order.findById(id);
+      }
+      if (!currentOrder) {
+        currentOrder = await Order.findOne({ id });
+      }
+      if (!currentOrder && !isNaN(id)) {
+        currentOrder = await Order.findOne({ id: String(id) });
+      }
+    }
+
+    // ---------- QUYẾT ĐỊNH KHI NÀO CỘNG ĐIỂM ----------
+    let shouldUpdatePoints = false;
+
+
     // Build update data
     const updateData = {};
     if (status !== undefined) updateData.status = status;
+    if (paymentStatus !== undefined) updateData.paymentStatus = paymentStatus;
     if (shippingActivity !== undefined) updateData.shippingActivity = shippingActivity;
     if (pointsUsed !== undefined) {
       updateData.pointsUsed = Math.max(0, parseInt(pointsUsed, 10) || 0);
       // Calculate discount from points used (1 point = 1,000 VND)
       updateData.discount = calculateDiscountFromPoints(updateData.pointsUsed);
-      
+
       // Recalculate total if discount changed
       if (currentOrder) {
         const subtotal = currentOrder.subtotal || 0;
@@ -628,30 +942,84 @@ router.patch('/:id', async (req, res) => {
         updateData.total = Math.max(0, subtotal + shippingFee - updateData.discount);
       }
     }
-    
-    // Calculate points earned when order is delivered
-    if (status === 'delivered' && currentOrder) {
-      const orderTotal = (currentOrder.subtotal || 0) + (currentOrder.shippingFee || 0);
-      updateData.pointsEarned = calculatePointsEarned(orderTotal);
+
+    // ---------- TÍNH ĐIỂM TÍCH (COD vs Online) ----------
+    if (currentOrder) {
+      const method = (currentOrder.paymentMethod || "").toLowerCase();
+      const isCod =
+        method === "cod" ||
+        method === "cash_on_delivery" ||
+        method === "cod_cash";
+
+      // Trạng thái mới sau update (nếu không gửi thì dùng giá trị cũ)
+      const newStatus =
+        status !== undefined ? status : currentOrder.status;
+      const newPaymentStatus =
+        paymentStatus !== undefined
+          ? paymentStatus
+          : currentOrder.paymentStatus;
+
+      if (isCod) {
+        // COD: lần đầu chuyển sang delivered thì cộng điểm
+        if (
+          newStatus === "delivered" &&
+          currentOrder.status !== "delivered"
+        ) {
+          shouldUpdatePoints = true;
+        }
+      } else {
+        // Online: lần đầu chuyển sang paid thì cộng điểm
+        if (
+          newPaymentStatus === "paid" &&
+          currentOrder.paymentStatus !== "paid"
+        ) {
+          shouldUpdatePoints = true;
+        }
+      }
+
+      if (shouldUpdatePoints) {
+        const gross =
+          (currentOrder.subtotal || 0) +
+          (currentOrder.shippingFee || 0);
+
+        // Nếu trong PATCH này có đổi pointsUsed/discount thì ưu tiên discount mới
+        const discount =
+          updateData.discount !== undefined
+            ? updateData.discount
+            : (currentOrder.discount || 0);
+
+        const orderTotal = Math.max(0, gross - discount); // tiền thực trả sau giảm
+
+        updateData.pointsEarned = calculatePointsEarned(orderTotal);
+      }
+
     }
-    
+
     updateData.updatedAt = new Date();
-    
+
+
+
+
+
+
+
+    updateData.updatedAt = new Date();
+
     if (Object.keys(updateData).length === 0) {
       return res.status(400).json({ success: false, message: 'No fields to update' });
     }
-    
+
     // Use same logic as GET route to find order
     // Try collections in order: orders DB > ordersList, then current DB > ordersList, orders.ordersList, orders
     let updated = false;
-    
+
     // Try 1: 'orders' database > 'ordersList' collection
     try {
       const ordersDb = mongoose.connection.useDb('orders', { useCache: true });
       const coll = ordersDb.collection('ordersList');
-      
+
       let result = null;
-      
+
       if (Types.ObjectId.isValid(id)) {
         const objId = new Types.ObjectId(id);
         result = await coll.updateOne(
@@ -662,7 +1030,7 @@ router.patch('/:id', async (req, res) => {
           updated = true;
         }
       }
-      
+
       if (!updated) {
         result = await coll.updateOne(
           { id: id },
@@ -672,7 +1040,7 @@ router.patch('/:id', async (req, res) => {
           updated = true;
         }
       }
-      
+
       if (!updated) {
         // Also try with _id as string
         result = await coll.updateOne(
@@ -683,7 +1051,7 @@ router.patch('/:id', async (req, res) => {
           updated = true;
         }
       }
-      
+
       if (!updated && !isNaN(id)) {
         result = await coll.updateOne(
           { id: String(id) },
@@ -695,13 +1063,13 @@ router.patch('/:id', async (req, res) => {
       }
     } catch (err) {
     }
-    
+
     // Try 2: Current database > ordersList collection
     if (!updated) {
       try {
         const coll = mongoose.connection.db.collection('ordersList');
         let result = null;
-        
+
         if (Types.ObjectId.isValid(id)) {
           result = await coll.updateOne(
             { _id: new Types.ObjectId(id) },
@@ -711,7 +1079,7 @@ router.patch('/:id', async (req, res) => {
             updated = true;
           }
         }
-        
+
         if (!updated) {
           result = await coll.updateOne(
             { id },
@@ -721,7 +1089,7 @@ router.patch('/:id', async (req, res) => {
             updated = true;
           }
         }
-        
+
         if (!updated && !isNaN(id)) {
           result = await coll.updateOne(
             { id: String(id) },
@@ -734,13 +1102,13 @@ router.patch('/:id', async (req, res) => {
       } catch (err) {
       }
     }
-    
+
     // Try 3: orders.ordersList
     if (!updated) {
       try {
         const coll = mongoose.connection.db.collection('orders.ordersList');
         let result = null;
-        
+
         if (Types.ObjectId.isValid(id)) {
           result = await coll.updateOne(
             { _id: new Types.ObjectId(id) },
@@ -750,7 +1118,7 @@ router.patch('/:id', async (req, res) => {
             updated = true;
           }
         }
-        
+
         if (!updated) {
           result = await coll.updateOne(
             { id },
@@ -760,7 +1128,7 @@ router.patch('/:id', async (req, res) => {
             updated = true;
           }
         }
-        
+
         if (!updated && !isNaN(id)) {
           result = await coll.updateOne(
             { id: String(id) },
@@ -773,13 +1141,13 @@ router.patch('/:id', async (req, res) => {
       } catch (err) {
       }
     }
-    
+
     // Try 4: orders
     if (!updated) {
       try {
         const coll = mongoose.connection.db.collection('orders');
         let result = null;
-        
+
         if (Types.ObjectId.isValid(id)) {
           result = await coll.updateOne(
             { _id: new Types.ObjectId(id) },
@@ -789,7 +1157,7 @@ router.patch('/:id', async (req, res) => {
             updated = true;
           }
         }
-        
+
         if (!updated) {
           result = await coll.updateOne(
             { id },
@@ -799,7 +1167,7 @@ router.patch('/:id', async (req, res) => {
             updated = true;
           }
         }
-        
+
         if (!updated && !isNaN(id)) {
           result = await coll.updateOne(
             { id: String(id) },
@@ -812,7 +1180,7 @@ router.patch('/:id', async (req, res) => {
       } catch (err) {
       }
     }
-    
+
     // Fallback to Order model
     if (!updated) {
       if (Types.ObjectId.isValid(id)) {
@@ -834,36 +1202,30 @@ router.patch('/:id', async (req, res) => {
         }
       }
     }
-    
+
     if (!updated) {
-      return res.status(404).json({ 
-        success: false, 
+      return res.status(404).json({
+        success: false,
         message: `Order not found with id: ${id}`
       });
     }
-    
-    // If order status changed to 'delivered', update customer loyalty points
-    if (status === 'delivered' && currentOrder && currentOrder.status !== 'delivered') {
-      // Get updated order
-      let updatedOrder = null;
-      try {
-        const ordersDb = mongoose.connection.useDb('orders', { useCache: true });
-        const coll = ordersDb.collection('ordersList');
-        updatedOrder = await coll.findOne({ id: id }) || await coll.findOne({ _id: Types.ObjectId.isValid(id) ? new Types.ObjectId(id) : id });
-      } catch (err) {
-        try {
-          const coll = mongoose.connection.db.collection('ordersList');
-          updatedOrder = await coll.findOne({ id: id }) || await coll.findOne({ _id: Types.ObjectId.isValid(id) ? new Types.ObjectId(id) : id });
-        } catch (err2) {
-          updatedOrder = await Order.findOne({ id: id }) || await Order.findById(id);
-        }
-      }
-      
-      if (updatedOrder) {
-        await updateCustomerLoyaltyPoints(updatedOrder);
-      }
+
+    // ---------- GỌI HELPER CỘNG ĐIỂM (COD / Online) ----------
+    if (shouldUpdatePoints && currentOrder) {
+      // Dùng currentOrder + dữ liệu vừa update, không cần đọc lại DB
+      const plainCurrent =
+        currentOrder.toObject ? currentOrder.toObject() : currentOrder;
+
+      const mergedOrder = {
+        ...plainCurrent,
+        ...updateData,
+        updatedAt: updateData.updatedAt || new Date(),
+      };
+
+      await updateCustomerLoyaltyPoints(mergedOrder);
     }
-    
+
+
     // If points were used, deduct from customer
     if (pointsUsed !== undefined && pointsUsed > 0 && currentOrder) {
       const customerEmail = currentOrder.customerEmail?.toLowerCase()?.trim();
@@ -879,16 +1241,16 @@ router.patch('/:id', async (req, res) => {
             const customersColl = mongoose.connection.db.collection('customersList');
             customer = await customersColl.findOne({ email: customerEmail });
           }
-          
+
           if (!customer) {
             customer = await Customer.findOne({ email: customerEmail }).lean();
           }
-          
+
           if (customer) {
             const customerId = customer._id || customer.id;
             const currentPoints = customer.loyalty?.currentPoints || customer.loyalty?.points || 0;
             const newPoints = Math.max(0, currentPoints - pointsUsed);
-            
+
             // Add to history
             const historyEntry = {
               orderId: currentOrder.id || currentOrder._id?.toString(),
@@ -898,13 +1260,13 @@ router.patch('/:id', async (req, res) => {
               description: `Used ${pointsUsed} points for order ${currentOrder.id}`,
               createdAt: new Date()
             };
-            
+
             try {
               const customersDb = mongoose.connection.useDb('customers', { useCache: true });
               const customersColl = customersDb.collection('customersList');
               await customersColl.updateOne(
                 { _id: Types.ObjectId.isValid(customerId) ? new Types.ObjectId(customerId) : customerId },
-                { 
+                {
                   $set: { 'loyalty.currentPoints': newPoints },
                   $push: { 'loyalty.history': historyEntry }
                 }
@@ -914,7 +1276,7 @@ router.patch('/:id', async (req, res) => {
                 const customersColl = mongoose.connection.db.collection('customersList');
                 await customersColl.updateOne(
                   { _id: Types.ObjectId.isValid(customerId) ? new Types.ObjectId(customerId) : customerId },
-                  { 
+                  {
                     $set: { 'loyalty.currentPoints': newPoints },
                     $push: { 'loyalty.history': historyEntry }
                   }
@@ -926,14 +1288,14 @@ router.patch('/:id', async (req, res) => {
                 });
               }
             }
-            
+
           }
         } catch (err) {
           console.error('Error deducting points from customer:', err);
         }
       }
     }
-    
+
     res.json({ success: true, message: 'Order updated successfully' });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Failed to update order', error: err.message });
@@ -941,6 +1303,3 @@ router.patch('/:id', async (req, res) => {
 });
 
 module.exports = router;
-
-
-

@@ -103,3 +103,82 @@
   .newsletter-form input { min-width: 100%; }
   .newsletter-form button { width: 100%; }
 }
+
+/* ======================
+   RESPONSIVE IMPROVED
+   ====================== */
+
+/* Tablet */
+@media (max-width: 992px) {
+  .newsletter {
+    width: 90%;
+    left: 0;
+    padding: 60px 20px;
+  }
+
+  .newsletter-container {
+    padding-left: 0;
+    text-align: center;
+  }
+
+  .main-heading {
+    font-size: 2rem;
+  }
+
+  .discount-text {
+    font-size: 1.6rem;
+  }
+
+  .description {
+    margin: 0 auto 24px auto;
+  }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .newsletter {
+    width: 100%;
+    padding: 50px 20px;
+    left: 0;
+  }
+
+  .newsletter-container {
+    padding-left: 0;
+    text-align: center;
+  }
+
+  .newsletter-form {
+    flex-direction: column;
+    width: 100%;
+    gap: 12px;
+  }
+
+  .newsletter-form input {
+    width: 100%;
+    min-width: unset;
+  }
+
+  .newsletter-form button {
+    width: 100%;
+  }
+}
+
+/* Small Mobile (iPhone SE, etc.) */
+@media (max-width: 480px) {
+  .main-heading {
+    font-size: 1.7rem;
+    line-height: 1.2;
+  }
+
+  .discount-text {
+    font-size: 1.4rem;
+  }
+
+  .description {
+    font-size: 0.9rem;
+  }
+
+  .newsletter {
+    padding: 40px 16px;
+  }
+}

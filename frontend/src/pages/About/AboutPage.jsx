@@ -6,13 +6,16 @@ const AboutPage = () =>  {
   return (
     <div className="about-page">
       {/* Header */}
-       <section className="about-hero"
-         style={{ 
-         backgroundImage: "url('/images/hero-about.png')",
-         backgroundRepeat: 'no-repeat',
-         backgroundSize: 'contain',
-         backgroundPosition: 'center',
-       }}>
+       <section
+  className="about-hero"
+  style={{
+    backgroundImage: "url('/images/hero-about.png')",
+    backgroundRepeat: 'no-repeat',
+    backgroundSize: 'cover',      // cho hình fill hết khung
+    backgroundPosition: 'center',
+  }}
+>
+
          <div className="container">
           <div className="hero-content">
              <h1>About Our Coffee Journey</h1>

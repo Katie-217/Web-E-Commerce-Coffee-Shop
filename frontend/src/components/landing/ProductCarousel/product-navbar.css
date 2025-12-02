@@ -101,14 +101,34 @@
   }
 }
 
-@media (max-width: 480px) {
-  .product-navbar-list {
-    flex-direction: column;
-    gap: 0.5rem;
+/* MOBILE: navbar nằm ngang và kéo được từ tab đầu */
+@media (max-width: 768px) {
+  .product-navbar {
+    overflow-x: auto;               /* cuộn ngang toàn bộ thanh nav */
+    -webkit-overflow-scrolling: touch;
   }
-  
+
+  .product-navbar-container {
+    max-width: none;                /* bỏ giới hạn 1200 + margin auto */
+    margin: 0;
+    padding: 0 1rem;
+    display: block;                 /* tránh flex gây co kéo kỳ lạ */
+  }
+
+  .product-navbar-list {
+    display: flex;
+    flex-wrap: nowrap;              /* luôn 1 hàng ngang */
+    gap: 1.25rem;
+    min-width: max-content;         /* dài theo nội dung */
+  }
+
+  .product-navbar-item {
+    flex: 0 0 auto;
+  }
+
   .product-navbar-link {
-    font-size: 0.85rem;
-    padding: 0.6rem 0;
+    white-space: nowrap;            /* không xuống dòng */
+    font-size: 0.9rem;
+    padding: 0.75rem 0;
   }
 }

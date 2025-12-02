@@ -18,6 +18,12 @@
   justify-content: space-between;
   position: relative;
 }
+/* Đảm bảo padding không làm container rộng hơn 100% */
+.header,
+.header-container {
+  box-sizing: border-box;
+}
+
 
 .logo {
   position: absolute;
@@ -322,29 +328,6 @@ button:active {
   justify-content: center;
 }
 
-
-@media (max-width: 992px) {
-  .header-container { 
-    flex-direction: column; 
-    gap: 12px; 
-    padding: 10px 16px;
-  }
-  .logo {
-    position: static;
-    transform: none;
-    order: -1;
-  }
-  .nav {
-    width: 100%;
-    justify-content: space-between;
-  }
-  .nav-links {
-    gap: 15px;
-  }
-  .nav-links li a {
-    font-size: 12px;
-  }
-}
 /* Avatar dropdown dùng chung style dropdown như MENU */
 .dropdown.account { position: relative; }
 
@@ -471,8 +454,40 @@ button:active {
 .accordion.open .accordion-panel{ max-height:500px; }
 
 /* Hamburger */
-.hamburger{ display:none; width:40px; height:40px; border-radius:50%; border:2px solid var(--light-brown); background:transparent; }
-.hamburger span{ display:block; width:18px; height:2px; background:var(--cream-white); margin:2px 0; }
+/* Hamburger cơ bản */
+.hamburger {
+  display: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid var(--light-brown);
+  background: transparent;
+  position: relative;           /* để span absolute bám theo */
+}
+
+/* 3 gạch, luôn căn giữa nút tròn */
+.hamburger span {
+  position: absolute;
+  left: 50%;
+  width: 20px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--cream-white);
+  transform: translateX(-50%);
+}
+
+.hamburger span:nth-child(1) {
+  top: 11px;
+}
+
+.hamburger span:nth-child(2) {
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.hamburger span:nth-child(3) {
+  bottom: 11px;
+}
 
 .searchBox-wrapper {
   position: relative;
@@ -504,18 +519,474 @@ button:active {
   background-color: #f5f5f5;
 }
 
-/* ====== RESPONSIVE ====== */
-@media (max-width: 992px){
-  .header{ height:auto; } /* gọn gàng trên mobile */
-  .header-container{ flex-direction: row; gap:8px; padding:10px 12px; }
-  .nav.nav-left{ display:none; }          /* ẩn menu ngang bên trái */
-  .hamburger{ display:inline-flex; align-items:center; justify-content:center; }
+/* =========================
+   FINAL RESPONSIVE OVERRIDE
+   ========================= */
 
-  .logo{ position: static; transform: none; margin: 0 auto; }
-  .logo img{ width:140px; height:auto; margin-top:0; }
+/* Desktop: ẩn hamburger, dùng menu ngang bình thường */
+.hamburger {
+  display: none;
+}
 
-  .phone-link{ display:none; }
-  .nav-right{ flex:0 0 auto; gap:10px; }
-  .searchBox{ max-width:180px; height:38px; }
-  .notification .notifi-btn, .icon-btn{ width:36px; height:36px; }
+/* Tablet + mobile: dùng hamburger + icon tròn + search hàng dưới */
+@media (max-width: 1199.98px) {
+  /* Ẩn menu ngang + logo tròn */
+  .nav.nav-left {
+    display: none !important;
+  }
+
+  .logo {
+    display: none !important;
+  }
+
+  .header {
+    height: auto;
+  }
+
+  .header-container {
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap; /* cho search xuống hàng */
+    gap: 8px;
+  }
+
+  /* HIỆN hamburger bên trái – hình tròn 3 gạch */
+  .hamburger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid var(--light-brown);
+    background: transparent;
+    position: relative;
+    padding: 0;
+    cursor: pointer;
+    position: relative;   /* để span absolute bám theo */
+  }
+
+  /* chỉ dùng 3 span, tắt ::before/::after cũ */
+  .hamburger::before,
+  .hamburger::after {
+    display: none;
+    content: none;
+  }
+
+  /* Bên phải: 3 icon tròn đứng cùng 1 hàng */
+  .nav.nav-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    flex-wrap: wrap; /* icon hàng trên, search hàng dưới */
+  }
+
+  /* 3 icon tròn (chuông, giỏ, avatar) = nhau */
+  .nav.nav-right .notification .notifi-btn,
+  .nav.nav-right .icon-btn,
+  .nav.nav-right .dropdown.account .account-link {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid var(--light-brown);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  /* bỏ nền pill trắng dài của avatar trên nền tối */
+  .dropdown.account .account-link {
+    background: transparent;
+  }
+
+  .account-avatar,
+  .account-icon {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .caret {
+    display: none; /* ẩn dấu ▾ cho đỡ rối */
+  }
+
+  /* Icon = hàng trên, search = hàng dưới full width (nhưng ngắn lại) */
+  .nav.nav-right .notification,
+  .nav.nav-right .icon-btn,
+  .nav.nav-right .dropdown.account {
+    order: 1;
+  }
+
+  .searchBox-wrapper {
+    order: 2;
+    flex: 0 0 100%;
+    display: flex;
+    justify-content: center;
+    margin-top: 6px;
+  }
+
+  .searchBox {
+    width: 80%;
+    max-width: 360px;
+    height: 40px;
+  }
+
+  .searchInput {
+    padding: 8px 40px 8px 16px;
+    font-size: 14px;
+  }
+
+  .searchButton {
+    width: 30px;
+    height: 30px;
+    right: 6px;
+  }
+
+  /* dropdown thông báo fit màn nhỏ */
+  .notification-dropdown {
+    right: 0;
+    left: auto;
+    width: min(320px, 92vw);
+  }
+}
+
+/* Mobile nhỏ: thu icon nhẹ một xíu */
+/* MOBILE: search full width, icon nhỏ lại */
+@media (max-width: 575.98px) {
+  /* cho header + nhóm bên phải được xuống hàng */
+  .header-container {
+    padding: 10px 12px;
+    flex-wrap: wrap;
+  }
+
+  .nav.nav-right {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .hamburger,
+  .nav.nav-right .notification .notifi-btn,
+  .nav.nav-right .icon-btn,
+  .nav.nav-right .dropdown.account .account-link {
+    width: 36px;
+    height: 36px;
+  }
+
+  /* search xuống hàng 2, chiếm full width */
+  .searchBox-wrapper {
+    order: 2;
+    flex: 0 0 100%;
+    max-width: 100%;
+    margin-top: 6px;
+  }
+
+  .searchBox {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+.notification-dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 10px);
+  width: 320px;
+  max-height: 420px;
+  overflow-y: auto;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.18);
+  padding: 6px 0;
+  z-index: 999;
+}
+
+.notification-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.notification-item {
+  padding: 8px 12px 10px;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 13px;
+}
+
+.notification-item:last-child {
+  border-bottom: none;
+}
+
+.notification-item--unread {
+  background: #f9fafb;
+}
+
+.notification-item-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+.notification-title {
+  font-weight: 600;
+  color: #111827;
+  font-size: 13px;
+}
+
+.notification-time {
+  white-space: nowrap;
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+.notification-message {
+  margin: 0;
+  font-size: 12px;
+  color: #4b5563;
+}
+
+.notification-empty {
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+/* =========================
+   SEARCH NGANG HÀNG ICON
+   ========================= */
+@media (max-width: 1199.98px) {
+  .header-container {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    flex-wrap: nowrap; /* tất cả chung 1 hàng */
+    padding: 10px 12px;
+  }
+
+  /* Ẩn menu ngang + logo trên màn nhỏ */
+  .nav.nav-left,
+  .logo {
+    display: none !important;
+  }
+
+  /* Hamburger bên trái */
+  .hamburger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid var(--light-brown);
+    background: transparent;
+    padding: 0;
+    cursor: pointer;
+  }
+
+
+
+  /* Nhóm bên phải (search + 3 icon) */
+  .nav.nav-right {
+    flex: 1 1 auto;     /* cho phép thu nhỏ */
+    min-width: 0;       /* CHỐT: cho flex co lại, không đẩy tràn */
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    flex-wrap: nowrap;
+  }
+
+  /* Search nằm giữa, chiếm phần còn lại */
+  .searchBox-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex: 1 1 auto;     /* cho phép co dãn */
+    min-width: 0;  
+    margin: 0 8px;
+    order: 1;
+    max-width: 260px;   /* NGẮN LẠI */
+  }
+
+  .searchBox {
+    width: 100%;
+    max-width: 260px;
+    height: 38px;
+  }
+
+  .searchInput {
+    padding: 8px 40px 8px 14px;
+    font-size: 14px;
+  }
+
+  .searchButton {
+    width: 30px;
+    height: 30px;
+    right: 6px;
+  }
+
+  /* 3 icon ngang hàng – đúng thứ tự: Bell → Cart → Avatar */
+.nav.nav-right .notification { order: 1; }
+.nav.nav-right .cart-btn     { order: 2; }
+.nav.nav-right .dropdown.account { order: 3; }
+
+/* style chung */
+.nav.nav-right .notification .notifi-btn,
+.nav.nav-right .icon-btn,
+.nav.nav-right .dropdown.account .account-link {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid var(--light-brown);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+
+  flex-shrink: 0;
+}
+
+
+  .account-avatar,
+  .account-icon {
+    width: 22px;
+    height: 22px;
+    object-fit: cover;
+    background: #fff;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: none;
+  }
+
+  .caret {
+    display: none;
+  }
+}
+
+/* Mobile nhỏ – thu mọi thứ thêm chút xíu */
+@media (max-width: 575.98px) {
+  .hamburger,
+  .nav.nav-right .notification .notifi-btn,
+  .nav.nav-right .icon-btn,
+  .nav.nav-right .dropdown.account .account-link {
+    width: 36px;
+    height: 36px;
+  }
+
+  .searchBox-wrapper {
+    max-width: 220px;
+  }
+
+  .searchBox {
+    max-width: 220px;
+  }
+
+  
+}
+
+/* =========================
+   DRAWER CLEAN LAYOUT
+   ========================= */
+
+@media (max-width: 991.98px) {
+
+  /* Drawer full width */
+  .nav-drawer {
+    width: 100vw !important;
+    max-width: 70vw;
+    padding-top: 8px;
+    background: #4a2f23; /* nâu đậm hơn một chút để đẹp hơn */
+  }
+
+  /* Header của drawer */
+  .drawer-header {
+    padding: 20px 22px;
+    border-bottom: 1px solid rgba(255,255,255,0.15);
+  }
+
+  .drawer-header h2,
+  .drawer-header span {
+    font-size: 20px;
+    font-weight: 600;
+  }
+
+  /* LIST MENU CHÍNH */
+  .drawer-links > li {
+    padding: 14px 22px;            /* canh lề trái đồng đều */
+    font-size: 17px;
+    font-weight: 600;
+    color: #fff;
+  }
+
+  .drawer-links > li:hover {
+    background: rgba(255,255,255,0.06);
+  }
+
+  .drawer-links a {
+    color: #fff;
+    text-decoration: none;
+  }
+
+  /* SUBMENU (Coffee Sets, Cup & Mugs...) */
+  .accordion .accordion-toggle {
+    padding: 14px 22px;   /* đồng bộ với menu chính */
+    font-size: 17px;
+    font-weight: 600;
+  }
+
+  .accordion .accordion-panel {
+    background: rgba(0,0,0,0.12);
+    padding: 4px 0 10px 0;
+  }
+
+  .accordion .accordion-panel li {
+    padding: 10px 40px;  /* submenu lệch nhẹ, đẹp */
+    font-size: 16px;
+    font-weight: 500;
+    color: #f7f7f7;
+  }
+
+  .accordion .accordion-panel li:hover {
+    background: rgba(255,255,255,0.04);
+  }
+
+  /* Tăng khoảng cách cuối Trang */
+  .nav-drawer {
+    padding-bottom: 40px;
+  }
+}
+
+/* Trên mobile, cho dropdown account canh phải, không bị tràn */
+@media (max-width: 575.98px) {
+  .dropdown.account .dropdown-menu-right {
+    left: auto;
+    right: 0;
+    transform: none;
+    min-width: 160px;
+    max-width: 80vw;      /* đảm bảo không vượt quá màn hình */
+  }
+}
+
+
+@media (max-width: 991.98px) {
+  .dropdown.account .dropdown-menu-right {
+  top: calc(100% + 8px);
+  left: auto;                     /* bỏ left: 33% cũ */
+  right: 0;                       /* bám theo cạnh phải avatar */
+  transform: none;                /* không dịch sang phải nữa */
+  min-width: 150px;
+  max-width: min(240px, 90vw);    /* rộng vừa, không tràn khỏi viewport */
+}
 }

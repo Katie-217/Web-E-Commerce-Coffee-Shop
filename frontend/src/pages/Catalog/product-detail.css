@@ -748,6 +748,7 @@
 @media (max-width: 640px) {
   .product-detail-page {
     padding: 18px 10px 32px;
+    padding-top: 80px;
   }
 
   .product-detail-container {
@@ -772,3 +773,4 @@
     padding-inline: 14px;
   }
 }
+

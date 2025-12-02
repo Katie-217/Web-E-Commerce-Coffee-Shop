@@ -32,7 +32,7 @@
 .account-page {
   min-height: calc(100vh - 120px);
   padding: 32px 16px 48px;
-  padding-top: 150px;
+  padding-top: 180px;
   background: radial-gradient(circle at top, #fdfaf6 0, #f3eee7 45%, #ece6dd 100%);
   display: flex;
   justify-content: center;
@@ -884,6 +884,7 @@
 @media (max-width: 768px) {
   .account-page {
     padding: 20px 10px 28px;
+    padding-top: 50px;
   }
 
   .account-card {
@@ -1194,4 +1195,58 @@
   transform: translateY(-4px);
   box-shadow: 0 18px 40px rgba(15, 23, 42, 0.45);
   border-color: rgba(248, 250, 252, 0.4);
+}
+
+/* Định vị lại header để gắn pill */
+.account-page .account-header {
+  position: relative;
+  padding-top: 40px; /* chừa chỗ cho pill phía trên */
+}
+
+/* Pill "ACCOUNT" – nằm GIỮA */
+.account-page .account-label {
+  position: absolute;
+  top: 0;
+  left: 50%;                 /* canh giữa theo ngang */
+  transform: translateX(-50%); /* kéo lại đúng giữa */
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 8px 26px;
+  border-radius: 999px;
+
+  background: #f3e4d5;
+  color: #9a5a33;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+
+  box-shadow: 0 10px 22px rgba(148, 115, 86, 0.25);
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .account-page .account-header {
+    padding-top: 32px;
+  }
+
+  .account-page .account-label {
+    left: 50%;                 /* vẫn canh giữa */
+    transform: translateX(-50%);
+    font-size: 13px;
+    padding: 6px 20px;
+  }
+}
+@media (max-width: 1000px) {
+  .account-page {
+  min-height: calc(100vh - 120px);
+  padding: 70px 16px 48px;
+  background: radial-gradient(circle at top, #fdfaf6 0, #f3eee7 45%, #ece6dd 100%);
+  display: flex;
+  justify-content: center;
+  box-sizing: border-box;
+}
 }

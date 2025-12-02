@@ -25,7 +25,8 @@ const orderItemSchema = new Schema({
   quantity: {
     type: Number,
     min: 1
-  }
+  },
+  variant: { type: mongoose.Schema.Types.Mixed, default: null },
 }, { _id: false });
 
 const addressSchema = new Schema({

@@ -4,7 +4,10 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useCart } from "../../contexts/CartContext";
 import { useAuth } from "../../contexts/AuthContext";
 import { updateProfile } from "../../services/account";
+import { useNotifications } from "../../contexts/NotificationContext";
 import "./checkout-page.css";
+import { api } from "../../lib/api";
+
 
 const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL || "http://localhost:3001";
@@ -28,11 +31,33 @@ function generateTempPassword(length = 10) {
 }
 
 const CheckoutPage = () => {
+  const { addNotification } = useNotifications();
   const location = useLocation();
   const navigate = useNavigate();
   const { items: cartItems, clearCart } = useCart();
-  const { user, register, updateUser } = useAuth(); // 👈 thêm updateUser
+  const { user, register, updateUser } = useAuth();
 
+  // Số điểm khách đang muốn dùng cho đơn này
+  const [pointsToUse, setPointsToUse] = useState(0);
+
+  // Số điểm hiện có (lấy từ user nếu backend trả về trong payload)
+  const availablePoints = Math.max(
+    0,
+    Number(
+      user?.loyalty?.currentPoints ??
+      user?.loyalty?.points ??
+      0
+    ) || 0
+  );
+
+
+  // Giá trị quy đổi sang VND
+  const loyaltyDiscount = pointsToUse * 1000;
+
+  // ===== VOUCHER =====
+  const [voucherCode, setVoucherCode] = useState("");
+  const [voucherDiscount, setVoucherDiscount] = useState(0);
+  const [voucherMessage, setVoucherMessage] = useState("");
 
   // Items passed from CartPage (navigate("/checkout", { state: { items } }))
   const itemsFromState = Array.isArray(location.state?.items)
@@ -52,7 +77,11 @@ const CheckoutPage = () => {
   );
 
   const shippingFee = subtotal > 300000 ? 0 : 30000;
-  const total = subtotal + shippingFee;
+  const total = Math.max(
+    0,
+    subtotal + shippingFee - loyaltyDiscount - voucherDiscount
+  );
+
 
   // ======= Get addresses & payment methods from user (default first) =======
   const savedAddresses = Array.isArray(user?.addresses)
@@ -162,6 +191,62 @@ const CheckoutPage = () => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
+  
+    const handleApplyVoucher = async () => {
+    const trimmed = voucherCode.trim();
+    if (!trimmed) {
+      setVoucherMessage("Please enter a discount code.");
+      setVoucherDiscount(0);
+      return;
+    }
+
+    try {
+      setVoucherMessage("Checking code...");
+
+      const res = await api.post("/api/discount-codes/validate", {
+        code: trimmed,
+        subtotal,
+        shippingFee,
+      });
+
+      const data = res.data || res;
+
+      if (!data.valid) {
+        setVoucherMessage(data.message || "This code is not valid.");
+        setVoucherDiscount(0);
+        return;
+      }
+
+      const discountAmount = Number(data.discountAmount) || 0;
+      setVoucherDiscount(discountAmount);
+
+      const type = (data.type || "").toLowerCase();
+
+      if (type === "amount") {
+        // Mã GIAM10, TRU20... trừ thẳng tiền
+        setVoucherMessage(
+          `Code applied: -${formatVND(discountAmount)}.`
+        );
+      } else {
+        // Mã giảm theo %
+        setVoucherMessage(
+          `Code applied: ${data.discountPercent || 0}% off (-${formatVND(
+            discountAmount
+          )}).`
+        );
+      }
+    } catch (err) {
+      console.error("Apply voucher error:", err);
+      const msg =
+        err?.response?.data?.message ||
+        err.message ||
+        "Unable to apply this discount code.";
+      setVoucherMessage(msg);
+      setVoucherDiscount(0);
+    }
+  };
+
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -328,6 +413,9 @@ const CheckoutPage = () => {
         paymentMethod,
         currency: "VND",
         shippingFee,
+        pointsUsed: pointsToUse,
+        discount: voucherDiscount,
+        discountCode: voucherCode.trim() || undefined,
       };
 
       const res = await fetch(`${API_BASE_URL}/api/orders`, {
@@ -354,6 +442,61 @@ const CheckoutPage = () => {
 
       const data = await res.json();
       const order = data.data || data.order || data;
+
+      // Nếu là thanh toán online (không phải COD) thì giả lập thanh toán thành công:
+      // gọi PATCH để set paymentStatus = 'paid'
+      try {
+        if (paymentMethod !== "cod") {
+          const orderId = order.id || order._id; // backend xử lý cả 2 kiểu
+
+          await fetch(`${API_BASE_URL}/api/orders/${orderId}`, {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+            body: JSON.stringify({
+              paymentStatus: "paid",
+            }),
+          });
+        }
+      } catch (patchErr) {
+        console.error("Failed to mark order as paid:", patchErr);
+        // demo nên có thể bỏ qua, không chặn flow đặt hàng
+      }
+
+      // 🔄 REFRESH USER ĐỂ LẤY LẠI LOYALTY MỚI TỪ BACKEND
+      try {
+        const meRes = await api.get("/api/auth/me");
+        const raw = meRes?.data || meRes;
+        const freshUser = raw.data || raw.user || raw;
+        updateUser?.(freshUser);
+      } catch (refreshErr) {
+        console.error("Failed to refresh user after order:", refreshErr);
+      }
+
+      // 🔄 REFRESH USER ĐỂ LẤY LẠI LOYALTY MỚI TỪ BACKEND
+      try {
+        const meRes = await fetch(`${API_BASE_URL}/api/account/me`, {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (meRes.ok) {
+          const meJson = await meRes.json();
+          const freshUser = meJson.data || meJson.user || meJson;
+
+          // Đẩy user mới vào AuthContext
+          updateUser?.(freshUser);
+        } else {
+          console.warn("Refresh user failed with status", meRes.status);
+        }
+      } catch (refreshErr) {
+        console.error("Failed to refresh user after order:", refreshErr);
+      }
 
       // 💾 Nếu đang dùng New address và user tick "Save as default"
       try {
@@ -409,6 +552,21 @@ const CheckoutPage = () => {
 
       setOrderCreated(order);
       window.scrollTo({ top: 0, behavior: "smooth" });
+
+      // 🔔 push in-app notification lên bell
+      try {
+        addNotification({
+          type: "order",
+          title: "Order placed successfully",
+          message: `Order ${order.displayCode || order._id || ""
+            } – total ${formatVND(total)}`,
+          link: order._id ? `/orders/${order._id}` : "/orders",
+        });
+      } catch (e) {
+        // nếu chưa bọc NotificationProvider thì cũng không crash
+        console.error("addNotification error:", e);
+      }
+
 
     } catch (err) {
       console.error(err);
@@ -973,6 +1131,83 @@ const CheckoutPage = () => {
                   {shippingFee === 0 ? "Free" : formatVND(shippingFee)}
                 </span>
               </div>
+              
+              {/* Discount code */}
+              <div className="checkout-summary-row">
+                <div className="checkout-summary-label">
+                  Discount code
+                  {voucherMessage && (
+                    <div className="checkout-summary-subtext">
+                      {voucherMessage}
+                    </div>
+                  )}
+                </div>
+                <div className="checkout-summary-control">
+                  <div className="checkout-voucher-row">
+                    <input
+                      type="text"
+                      value={voucherCode}
+                      onChange={(e) =>
+                        setVoucherCode(e.target.value.toUpperCase())
+                      }
+                      maxLength={5}
+                      placeholder="e.g. ABC12"
+                      className="checkout-voucher-input"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleApplyVoucher}
+                      className="checkout-voucher-apply-btn"
+                    >
+                      Apply
+                    </button>
+                  </div>
+                  {voucherDiscount > 0 && (
+                    <div className="checkout-summary-subtext">
+                      Discount: -{formatVND(voucherDiscount)}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+
+              {availablePoints > 0 && (
+                <div className="checkout-summary-row">
+                  <div className="checkout-summary-label">
+                    Loyalty points
+                    <div className="checkout-summary-subtext">
+                      Available: {availablePoints} pts (
+                      {formatVND(availablePoints * 1000)})
+                    </div>
+                  </div>
+                  <div className="checkout-summary-control">
+                    <input
+                      type="number"
+                      min={0}
+                      max={availablePoints}
+                      value={pointsToUse}
+                      onChange={(e) => {
+                        const raw = Number(e.target.value) || 0;
+                        // không cho âm, không cho vượt quá available
+                        let next = Math.max(0, Math.min(availablePoints, Math.floor(raw)));
+
+                        // tránh giảm quá total trước giảm giá
+                        const maxByOrder = Math.floor((subtotal + shippingFee) / 1000);
+                        next = Math.min(next, maxByOrder);
+
+                        setPointsToUse(next);
+                      }}
+                      className="checkout-points-input"
+                    />
+                    {pointsToUse > 0 && (
+                      <div className="checkout-summary-subtext">
+                        Discount: -{formatVND(loyaltyDiscount)}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               <div className="checkout-summary-total-row">
                 <span>Total</span>
                 <span>{formatVND(total)}</span>

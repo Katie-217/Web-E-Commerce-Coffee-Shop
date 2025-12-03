@@ -684,7 +684,14 @@ export default function AccountPage() {
             <div className="account-header-bottom">
               <div className="account-loyalty-pill">
                 <span className="tier">{tierLabel}</span>
-                <span className="points">{points} điểm tích lũy</span>
+                <span className="points">
+                  {points.toLocaleString('vi-VN')} điểm tích lũy
+                  {points > 0 && (
+                    <span style={{ fontSize: '0.85em', opacity: 0.8, marginLeft: '4px' }}>
+                      ({(points * 1000).toLocaleString('vi-VN')}₫)
+                    </span>
+                  )}
+                </span>
               </div>
               {lastAccrualText && (
                 <span className="account-loyalty-note">

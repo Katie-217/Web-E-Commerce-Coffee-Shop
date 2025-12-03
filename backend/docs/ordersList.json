@@ -20,6 +20,8 @@
     "total": 278000,
     "currency": "VND",
     "status": "delivered",
+    "pointsUsed": 0,
+    "pointsEarned": 27,
     "paymentStatus": "paid",
     "paymentMethod": "cod",
     "shippingAddress": {
@@ -748,7 +750,9 @@
         "time": "03:26 AM",
         "completed": true
       }
-    ]
+    ],
+    "pointsEarned": 424,
+    "pointsUsed": 0
   },
   {
     "_id": {
@@ -892,7 +896,9 @@
         "time": "10:30 PM",
         "completed": true
       }
-    ]
+    ],
+    "pointsEarned": 131,
+    "pointsUsed": 0
   },
   {
     "_id": {
@@ -1667,6 +1673,8 @@
     "total": 603451,
     "currency": "VND",
     "status": "delivered",
+    "pointsUsed": 0,
+    "pointsEarned": 60,
     "paymentStatus": "paid",
     "paymentMethod": "cod",
     "shippingAddress": {
@@ -1891,7 +1899,9 @@
         "time": "10:18 PM",
         "completed": true
       }
-    ]
+    ],
+    "pointsEarned": 170,
+    "pointsUsed": 0
   },
   {
     "_id": {
@@ -1973,7 +1983,9 @@
         "time": "03:37 PM",
         "completed": true
       }
-    ]
+    ],
+    "pointsEarned": 415,
+    "pointsUsed": 0
   },
   {
     "_id": {
@@ -2397,7 +2409,9 @@
         "time": "12:22 PM",
         "completed": true
       }
-    ]
+    ],
+    "pointsEarned": 221,
+    "pointsUsed": 0
   },
   {
     "_id": {
@@ -2479,7 +2493,9 @@
         "time": "12:54 PM",
         "completed": true
       }
-    ]
+    ],
+    "pointsEarned": 148,
+    "pointsUsed": 0
   },
   {
     "_id": {
@@ -3050,7 +3066,9 @@
         "time": "02:18 AM",
         "completed": true
       }
-    ]
+    ],
+    "pointsEarned": 105,
+    "pointsUsed": 0
   },
   {
     "_id": {
@@ -3290,6 +3308,8 @@
     "discount": 0,
     "total": 3018000,
     "currency": "VND",
+    "pointsUsed": 0,
+    "pointsEarned": 301,
     "status": "delivered",
     "paymentStatus": "paid",
     "paymentMethod": "cod",
@@ -3404,7 +3424,9 @@
         "time": "04:20 AM",
         "completed": true
       }
-    ]
+    ],
+    "pointsEarned": 33,
+    "pointsUsed": 0
   },
   {
     "_id": {
@@ -4018,7 +4040,9 @@
         "time": "03:45 PM",
         "completed": true
       }
-    ]
+    ],
+    "pointsEarned": 31,
+    "pointsUsed": 0
   },
   {
     "_id": {
@@ -4222,7 +4246,9 @@
         "time": "12:50 AM",
         "completed": true
       }
-    ]
+    ],
+    "pointsEarned": 108,
+    "pointsUsed": 0
   },
   {
     "_id": {
@@ -4608,7 +4634,9 @@
         "time": "04:10 PM",
         "completed": true
       }
-    ]
+    ],
+    "pointsEarned": 68,
+    "pointsUsed": 0
   },
   {
     "_id": {
@@ -5333,7 +5361,9 @@
         "time": "07:14 AM",
         "completed": true
       }
-    ]
+    ],
+    "pointsEarned": 66,
+    "pointsUsed": 0
   },
   {
     "_id": {
@@ -6026,7 +6056,9 @@
         "time": "05:13 PM",
         "completed": true
       }
-    ]
+    ],
+    "pointsEarned": 20,
+    "pointsUsed": 0
   },
   {
     "_id": {
@@ -6847,7 +6879,9 @@
         "time": "07:16 PM",
         "completed": true
       }
-    ]
+    ],
+    "pointsEarned": 381,
+    "pointsUsed": 0
   },
   {
     "_id": {
@@ -7020,6 +7054,8 @@
     "total": 1188000,
     "currency": "VND",
     "status": "delivered",
+    "pointsUsed": 0,
+    "pointsEarned": 118,
     "paymentStatus": "paid",
     "paymentMethod": "cod",
     "shippingAddress": {
@@ -7403,6 +7439,8 @@
         "time": "03:51 AM",
         "completed": true
       }
-    ]
+    ],
+    "pointsEarned": 268,
+    "pointsUsed": 0
   }
 ]

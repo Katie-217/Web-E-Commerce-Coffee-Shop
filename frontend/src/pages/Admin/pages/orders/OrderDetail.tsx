@@ -58,6 +58,7 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order, onBack, onRefresh }) =
   const [saving, setSaving] = useState(false);
   const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
   const statusDropdownRef = useRef<HTMLDivElement>(null);
+  const [customerData, setCustomerData] = useState<any>(order.customer || null);
 
   // Save state to sessionStorage whenever it changes
   useEffect(() => {
@@ -86,7 +87,16 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order, onBack, onRefresh }) =
   }, []);
 
   // Import shared utility for order display code
-  const getDisplayCode = (orderOrVal: any) => getOrderDisplayCode(orderOrVal);
+  const getOrderDisplayCodeFunc = (orderOrVal: any) => getOrderDisplayCode(orderOrVal);
+  
+  // Function to format customer ID (extract last 4 hex chars)
+  const getCustomerDisplayCode = (val: string | number | undefined | null) => {
+    const s = String(val || '');
+    if (!s) return '';
+    const hex = s.replace(/[^a-fA-F0-9]/g, '') || s;
+    const last4 = hex.slice(-4).padStart(4, '0');
+    return `#${last4}`;
+  };
 
   const formatAddress = (addr: any) => {
     if (!addr) return '';
@@ -116,10 +126,36 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order, onBack, onRefresh }) =
   };
   const shippingLines = addressLines(hydratedShipping);
 
+  // Fetch customer data if not available in order
+  useEffect(() => {
+    // If order already has customer object with ID, use it
+    if (order.customer?._id || order.customer?.id) {
+      setCustomerData(order.customer);
+      return;
+    }
+    
+    // If we already have customerData, don't fetch again
+    if (customerData?._id || customerData?.id) return;
+    
+    // Try to fetch customer by email or customerId
+    const key = (order as any)?.customerEmail || order.customer?.email || (order as any)?.customerId;
+    if (!key) return;
+    
+    (async () => {
+      try {
+        const res = await fetchCustomerById(String(key));
+        const c = res?.data || res;
+        if (c) {
+          setCustomerData(c);
+        }
+      } catch {}
+    })();
+  }, [order]);
+
   // Enrich from customer profile if order lacks address
   useEffect(() => {
     const needShipping = !shippingLines.length;
-    const key = (order as any)?.customer?.id || (order as any)?.customerEmail;
+    const key = (order as any)?.customer?.id || (order as any)?.customerEmail || customerData?.email;
     if (!key || !needShipping) return;
     (async () => {
       try {
@@ -141,7 +177,7 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order, onBack, onRefresh }) =
       } catch {}
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [order]);
+  }, [order, customerData]);
 
   const handleOpenEditModal = (index: number | null = null) => {
     if (index !== null) {
@@ -338,7 +374,7 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order, onBack, onRefresh }) =
             <BackButton onClick={onBack} label="Back to orders" className="mt-1" />
             <div>
               <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-2xl font-bold text-text-primary">Order {getDisplayCode(order)}</h1>
+                <h1 className="text-2xl font-bold text-text-primary">Order {getOrderDisplayCodeFunc(order)}</h1>
                 <Badge color={getPaymentStatusColor(order.paymentStatus || 'Pending')}>
                   {order.paymentStatus || 'Pending'}
                 </Badge>
@@ -369,10 +405,6 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order, onBack, onRefresh }) =
           <div className="bg-background-light p-6 rounded-lg shadow-lg">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold text-text-primary">Order details</h2>
-              <button className="text-primary hover:text-primary/80 flex items-center gap-2">
-                <Edit size={16} />
-                Edit
-              </button>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left">
@@ -413,16 +445,16 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order, onBack, onRefresh }) =
             </div>
             {(() => {
               // Logic Loyalty: 
-              // - Điểm tích = 10% giá trị đơn hàng (không tính phí khác như shipping)
+              // - Điểm tích = 10% giá trị đơn hàng / 1000 (1 point = 1,000 VND)
+              // - Ví dụ: 1,000,000 VND → 100 points (tương đương 100,000 VND)
               // - Giá trị đơn hàng = subtotal - discount (nếu có)
-              // - Mặc định 1 point ~ 1đ (dùng thẳng để giảm giá các đơn sau)
               const rawSubtotal = Number(order.subtotal) || 0;
               const rawDiscount = Number(order.discount) || 0;
 
-              // Điểm đã dùng (nếu backend có lưu) hoặc suy ra từ discount (1 point = 1đ)
+              // Điểm đã dùng (nếu backend có lưu) hoặc suy ra từ discount (1 point = 1,000 VND)
               const rawPointsUsed = Number((order as any).pointsUsed ?? 0);
               const inferredPointsFromDiscount =
-                rawDiscount !== 0 ? Math.round(Math.abs(rawDiscount)) : 0;
+                rawDiscount !== 0 ? Math.round(Math.abs(rawDiscount) / 1000) : 0;
               const pointsUsed = rawPointsUsed || inferredPointsFromDiscount;
 
               // Discount hiển thị: ưu tiên số tiền từ backend, nếu không có thì lấy theo pointsUsed
@@ -430,12 +462,12 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order, onBack, onRefresh }) =
                 rawDiscount !== 0
                   ? `-${formatVND(Math.abs(rawDiscount))}`
                   : pointsUsed > 0
-                    ? `-${formatVND(pointsUsed)}`
+                    ? `-${formatVND(pointsUsed * 1000)}`
                     : formatVND(0);
 
-              // Điểm tích được: 10% * total, 1 point = 1 VND
+              // Điểm tích được: (10% * total) / 1000, 1 point = 1,000 VND
               const orderTotal = Number(order.total) || 0;
-              const calculatedPointsEarned = Math.floor(orderTotal * 0.1); // 10%, 1 point = 1 VND
+              const calculatedPointsEarned = Math.floor((orderTotal * 0.1) / 1000); // 10% / 1000, 1 point = 1,000 VND
 
               // Nếu backend đã tính sẵn pointsEarned thì ưu tiên dùng, ngược lại dùng công thức trên
               const rawPointsEarned = Number((order as any).pointsEarned ?? 0);
@@ -455,7 +487,7 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order, onBack, onRefresh }) =
                       {pointsUsed} points
                       {pointsUsed > 0 && (
                         <span className="text-xs text-text-secondary ml-2 whitespace-nowrap">
-                          (giảm {formatVND(pointsUsed)})
+                          (giảm {formatVND(pointsUsed * 1000)})
                         </span>
                       )}
                     </span>
@@ -492,7 +524,7 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order, onBack, onRefresh }) =
                           +{effectivePointsEarned.toLocaleString('vi-VN')} points
                           {effectivePointsEarned > 0 && (
                             <span className="text-xs text-text-secondary ml-2 whitespace-nowrap">
-                              (trị giá {formatVND(effectivePointsEarned)})
+                              (trị giá {formatVND(effectivePointsEarned * 1000)})
                             </span>
                           )}
                         </span>
@@ -769,9 +801,9 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order, onBack, onRefresh }) =
                 alt={order.customer?.name || 'Customer'} 
                 className="w-20 h-20 rounded-xl mb-3"
               />
-              <p className="font-bold text-text-primary">{order.customer?.name || 'Customer'}</p>
-              {(order.customer?.id) && (
-                <p className="text-sm text-text-secondary">Customer ID: {getDisplayCode(order.customer.id)}</p>
+              <p className="font-bold text-text-primary">{order.customer?.name || customerData?.fullName || customerData?.name || 'Customer'}</p>
+              {(customerData?._id || customerData?.id || order.customer?.id || order.customer?._id || (order as any)?.customerId) && (
+                <p className="text-sm text-text-secondary">Customer ID: {getCustomerDisplayCode(customerData?._id || customerData?.id || (order as any)?.customerId || order.customer?.id || order.customer?._id)}</p>
               )}
               {!!order.customer?.totalOrders && (
                 <div className="flex items-center gap-2 mt-2 text-text-secondary">
@@ -790,20 +822,11 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order, onBack, onRefresh }) =
                 <p className="text-text-primary">{order.customer?.phone || '-'}</p>
               </div>
             </div>
-            <button className="mt-4 w-full text-primary hover:text-primary/80 flex items-center justify-center gap-2 border border-primary rounded-lg py-2">
-              <Edit size={16} />
-              Edit
-            </button>
           </div>
 
           {/* Shipping Address */}
           <div className="bg-background-light p-6 rounded-lg shadow-lg">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-text-primary">Shipping address</h2>
-              <button className="text-primary hover:text-primary/80">
-                <Edit size={16} />
-              </button>
-            </div>
+            <h2 className="text-xl font-bold text-text-primary mb-4">Shipping address</h2>
             <div className="text-sm text-text-secondary leading-relaxed">
               {shippingLines.length > 0 ? (
                 shippingLines.map((ln, i) => (

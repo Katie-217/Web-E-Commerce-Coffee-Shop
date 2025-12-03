@@ -175,21 +175,42 @@ const LoyaltyProgramCard: React.FC<LoyaltyProgramCardProps> = ({ loyalty = {}, o
       <div className="mb-2">
         <div className="flex items-center justify-between mb-1">
           <span className="text-xs text-text-secondary">Total earned points:</span>
-          <span className="text-sm font-semibold text-text-primary">{totalEarned.toLocaleString('vi-VN')}</span>
+          <span className="text-sm font-semibold text-text-primary">
+            {totalEarned.toLocaleString('vi-VN')} points
+            {totalEarned > 0 && (
+              <span className="text-xs text-text-secondary ml-1">
+                ({((totalEarned * 1000).toLocaleString('vi-VN'))}₫)
+              </span>
+            )}
+          </span>
         </div>
       </div>
 
       <div className="mb-2">
         <div className="flex items-center justify-between mb-1">
           <span className="text-xs text-text-secondary">Points used:</span>
-          <span className="text-sm font-semibold text-orange-400">{pointsUsed.toLocaleString('vi-VN')}</span>
+          <span className="text-sm font-semibold text-orange-400">
+            {pointsUsed.toLocaleString('vi-VN')} points
+            {pointsUsed > 0 && (
+              <span className="text-xs text-text-secondary ml-1">
+                ({((pointsUsed * 1000).toLocaleString('vi-VN'))}₫)
+              </span>
+            )}
+          </span>
         </div>
       </div>
 
       <div className="mb-2">
         <div className="flex items-center justify-between mb-1">
           <span className="text-xs text-text-secondary">Current available points:</span>
-          <span className="text-sm font-semibold text-green-400">{currentPoints.toLocaleString('vi-VN')}</span>
+          <span className="text-sm font-semibold text-green-400">
+            {currentPoints.toLocaleString('vi-VN')} points
+            {currentPoints > 0 && (
+              <span className="text-xs text-text-secondary ml-1">
+                ({((currentPoints * 1000).toLocaleString('vi-VN'))}₫)
+              </span>
+            )}
+          </span>
         </div>
       </div>
 

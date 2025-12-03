@@ -8,8 +8,8 @@ type AccountBalanceCardProps = {
 
 const AccountBalanceCard: React.FC<AccountBalanceCardProps> = ({ currentPoints = 0 }) => {
   const safePoints = Math.max(0, currentPoints);
-  // 1 point = 1 VND
-  const accountBalance = safePoints;
+  // 1 point = 1,000 VND
+  const accountBalance = safePoints * 1000;
 
   return (
     <div className="bg-background-light p-6 rounded-lg">

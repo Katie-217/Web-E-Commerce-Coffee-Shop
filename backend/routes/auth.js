@@ -129,11 +129,6 @@ router.post("/register", async (req, res) => {
 
     const hash = await bcrypt.hash(password, 10);
 
-      fullName,
-      email: normalizedEmail,
-      role: normalizedEmail === "admin@gmail.com" ? "admin" : "customer",
-    });
-
     const customer = await Customer.create({
       firstName,
       lastName,
@@ -155,9 +150,6 @@ router.post("/register", async (req, res) => {
       user: toUserPayload(customer),
     });
   } catch (err) {
-      name: err.name,
-      stack: err.stack,
-    });
     return res
       .status(500)
       .json({ message: "Register failed", error: err.message });

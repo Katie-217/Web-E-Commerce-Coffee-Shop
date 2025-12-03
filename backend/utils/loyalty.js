@@ -3,7 +3,8 @@
  * 
  * Logic:
  * - Customers earn 10% of order value as points for each successful order (delivered)
- * - 1 point = 1 VND
+ * - 1 point = 1,000 VND
+ * - Example: Order 1,000,000 VND → 100 points (equivalent to 100,000 VND)
  * - Points can be used immediately in the next order, không giới hạn
  * - Chỉ dùng ở đơn tiếp theo (không dùng ở cùng đơn)
  * - Không có hạn sử dụng
@@ -11,30 +12,31 @@
 
 /**
  * Calculate points earned from an order
- * Formula: pointsEarned = total * 10%
+ * Formula: pointsEarned = (orderTotal * 10%) / 1000 = orderTotal / 10000
  * Note: Calculate based on total (subtotal - discount + shippingFee)
  * 
  * @param {number} orderTotal - Order total amount
- * @returns {number} Points earned (1 point = 1 VND)
+ * @returns {number} Points earned (1 point = 1,000 VND)
  */
 function calculatePointsEarned(orderTotal) {
   if (!orderTotal || orderTotal <= 0) return 0;
-  // 10% of order total, 1 point = 1 VND
+  // 10% of order total, then divide by 1000 (1 point = 1,000 VND)
   // Example: orderTotal = 1,000,000 VND
-  // - 10% = 100,000 points
-  return Math.floor(orderTotal * 0.1);
+  // - 10% = 100,000 VND
+  // - 100,000 / 1000 = 100 points (equivalent to 100,000 VND)
+  return Math.floor((orderTotal * 0.1) / 1000);
 }
 
 /**
  * Calculate discount amount from points used
- * Formula: discount = pointsUsed (1 point = 1 VND)
+ * Formula: discount = pointsUsed * 1000 (1 point = 1,000 VND)
  * 
  * @param {number} pointsUsed - Number of points to use
  * @returns {number} Discount amount in VND
  */
 function calculateDiscountFromPoints(pointsUsed) {
   if (!pointsUsed || pointsUsed <= 0) return 0;
-  return pointsUsed; // 1 point = 1 VND
+  return pointsUsed * 1000; // 1 point = 1,000 VND
 }
 
 /**
@@ -53,16 +55,6 @@ function calculateMaxPointsUsable(availablePoints, orderTotal) {
   return availablePoints;
 }
 
-/**
- * Validate points usage
- * - Points can only be used in next order (not same order where earned)
- * - No expiration date
- * - No usage limit
- * 
- * @param {number} pointsToUse - Points customer wants to use
- * @param {number} availablePoints - Customer's current available points
- * @returns {object} { valid: boolean, error?: string }
- */
 function validatePointsUsage(pointsToUse, availablePoints) {
   if (!pointsToUse || pointsToUse <= 0) {
     return { valid: true }; // No points to use is valid
@@ -78,17 +70,10 @@ function validatePointsUsage(pointsToUse, availablePoints) {
   return { valid: true };
 }
 
-/**
- * Format points display message
- * Example: "Bạn nhận được 100 points (trị giá 100₫)."
- * 
- * @param {number} points - Points to display
- * @returns {string} Formatted message
- */
 function formatPointsEarnedMessage(points) {
   if (!points || points <= 0) return '';
-  const valueInVND = points; // 1 point = 1 VND
-  return `Bạn nhận được ${points} points (trị giá ${valueInVND.toLocaleString('vi-VN')}₫).`;
+  const valueInVND = points * 1000; // 1 point = 1,000 VND
+  return `You earned ${points} points (equivalent to ${valueInVND.toLocaleString('vi-VN')}₫).`;
 }
 
 module.exports = {

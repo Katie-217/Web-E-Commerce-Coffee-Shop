@@ -310,17 +310,17 @@
       "newsletterSubscribed": true
     },
     "loyalty": {
-      "totalEarned": 118800,
-      "currentPoints": 118800,
-      "tier": "platinum",
+      "totalEarned": 118,
+      "currentPoints": 118,
+      "tier": "bronze",
       "lastAccrualAt": "2025-10-21T11:13:17.892Z",
       "history": [
         {
           "orderId": "ORD-2025-0096",
           "orderDate": "2025-10-21T11:13:17.892Z",
           "type": "earned",
-          "points": 118800,
-          "description": "Earned 118800 points from order ORD-2025-0096",
+          "points": 118,
+          "description": "Earned 118 points from order ORD-2025-0096",
           "createdAt": "2025-10-21T11:13:17.892Z"
         }
       ]
@@ -586,25 +586,25 @@
       "newsletterSubscribed": false
     },
     "loyalty": {
-      "totalEarned": 362145,
-      "currentPoints": 362145,
-      "tier": "platinum",
+      "totalEarned": 361,
+      "currentPoints": 361,
+      "tier": "bronze",
       "lastAccrualAt": "2024-09-30T11:53:43.504Z",
       "history": [
         {
           "orderId": "ORD-2024-0024",
           "orderDate": "2024-06-16T12:51:53.508Z",
           "type": "earned",
-          "points": 60345,
-          "description": "Earned 60345 points from order ORD-2024-0024",
+          "points": 60,
+          "description": "Earned 60 points from order ORD-2024-0024",
           "createdAt": "2024-06-16T12:51:53.508Z"
         },
         {
           "orderId": "ORD-2024-0045",
           "orderDate": "2024-09-30T11:53:43.504Z",
           "type": "earned",
-          "points": 301800,
-          "description": "Earned 301800 points from order ORD-2024-0045",
+          "points": 301,
+          "description": "Earned 301 points from order ORD-2024-0045",
           "createdAt": "2024-09-30T11:53:43.504Z"
         }
       ]
@@ -677,17 +677,17 @@
       "newsletterSubscribed": true
     },
     "loyalty": {
-      "totalEarned": 268900,
-      "currentPoints": 268900,
-      "tier": "platinum",
+      "totalEarned": 268,
+      "currentPoints": 268,
+      "tier": "bronze",
       "lastAccrualAt": "2025-11-04T20:51:59.958Z",
       "history": [
         {
           "orderId": "ORD-2025-0100",
           "orderDate": "2025-11-04T20:51:59.958Z",
           "type": "earned",
-          "points": 268900,
-          "description": "Earned 268900 points from order ORD-2025-0100",
+          "points": 268,
+          "description": "Earned 268 points from order ORD-2025-0100",
           "createdAt": "2025-11-04T20:51:59.958Z"
         }
       ]
@@ -1201,17 +1201,17 @@
       "newsletterSubscribed": true
     },
     "loyalty": {
-      "totalEarned": 27800,
-      "currentPoints": 27800,
-      "tier": "platinum",
+      "totalEarned": 27,
+      "currentPoints": 27,
+      "tier": "bronze",
       "lastAccrualAt": "2024-01-10T01:48:58.762Z",
       "history": [
         {
           "orderId": "ORD-2024-0001",
           "orderDate": "2024-01-10T01:48:58.762Z",
           "type": "earned",
-          "points": 27800,
-          "description": "Earned 27800 points from order ORD-2024-0001",
+          "points": 27,
+          "description": "Earned 27 points from order ORD-2024-0001",
           "createdAt": "2024-01-10T01:48:58.762Z"
         }
       ]
@@ -1329,25 +1329,25 @@
       "newsletterSubscribed": true
     },
     "loyalty": {
-      "totalEarned": 129400,
-      "currentPoints": 129400,
-      "tier": "platinum",
+      "totalEarned": 128,
+      "currentPoints": 128,
+      "tier": "bronze",
       "lastAccrualAt": "2025-08-13T10:13:28.040Z",
       "history": [
         {
           "orderId": "ORD-2025-0058",
           "orderDate": "2025-01-23T17:50:05.122Z",
           "type": "earned",
-          "points": 108500,
-          "description": "Earned 108500 points from order ORD-2025-0058",
+          "points": 108,
+          "description": "Earned 108 points from order ORD-2025-0058",
           "createdAt": "2025-01-23T17:50:05.122Z"
         },
         {
           "orderId": "ORD-2025-0082",
           "orderDate": "2025-08-13T10:13:28.040Z",
           "type": "earned",
-          "points": 20900,
-          "description": "Earned 20900 points from order ORD-2025-0082",
+          "points": 20,
+          "description": "Earned 20 points from order ORD-2025-0082",
           "createdAt": "2025-08-13T10:13:28.040Z"
         }
       ]
@@ -1475,25 +1475,25 @@
       "newsletterSubscribed": true
     },
     "loyalty": {
-      "totalEarned": 319192,
-      "currentPoints": 319192,
-      "tier": "platinum",
+      "totalEarned": 318,
+      "currentPoints": 318,
+      "tier": "bronze",
       "lastAccrualAt": "2024-08-18T05:54:37.371Z",
       "history": [
         {
           "orderId": "ORD-2024-0026",
           "orderDate": "2024-06-25T15:18:08.483Z",
           "type": "earned",
-          "points": 170992,
-          "description": "Earned 170992 points from order ORD-2024-0026",
+          "points": 170,
+          "description": "Earned 170 points from order ORD-2024-0026",
           "createdAt": "2024-06-25T15:18:08.483Z"
         },
         {
           "orderId": "ORD-2024-0034",
           "orderDate": "2024-08-18T05:54:37.371Z",
           "type": "earned",
-          "points": 148200,
-          "description": "Earned 148200 points from order ORD-2024-0034",
+          "points": 148,
+          "description": "Earned 148 points from order ORD-2024-0034",
           "createdAt": "2024-08-18T05:54:37.371Z"
         }
       ]
@@ -1918,25 +1918,25 @@
       "newsletterSubscribed": true
     },
     "loyalty": {
-      "totalEarned": 138540,
-      "currentPoints": 138540,
-      "tier": "platinum",
+      "totalEarned": 138,
+      "currentPoints": 138,
+      "tier": "bronze",
       "lastAccrualAt": "2024-10-03T21:20:28.999Z",
       "history": [
         {
           "orderId": "ORD-2024-0041",
           "orderDate": "2024-09-15T19:18:34.774Z",
           "type": "earned",
-          "points": 105000,
-          "description": "Earned 105000 points from order ORD-2024-0041",
+          "points": 105,
+          "description": "Earned 105 points from order ORD-2024-0041",
           "createdAt": "2024-09-15T19:18:34.774Z"
         },
         {
           "orderId": "ORD-2024-0046",
           "orderDate": "2024-10-03T21:20:28.999Z",
           "type": "earned",
-          "points": 33540,
-          "description": "Earned 33540 points from order ORD-2024-0046",
+          "points": 33,
+          "description": "Earned 33 points from order ORD-2024-0046",
           "createdAt": "2024-10-03T21:20:28.999Z"
         }
       ]
@@ -2178,17 +2178,17 @@
       "newsletterSubscribed": false
     },
     "loyalty": {
-      "totalEarned": 131946,
-      "currentPoints": 131946,
-      "tier": "platinum",
+      "totalEarned": 131,
+      "currentPoints": 131,
+      "tier": "bronze",
       "lastAccrualAt": "2024-04-15T15:30:16.049Z",
       "history": [
         {
           "orderId": "ORD-2024-0013",
           "orderDate": "2024-04-15T15:30:16.049Z",
           "type": "earned",
-          "points": 131946,
-          "description": "Earned 131946 points from order ORD-2024-0013",
+          "points": 131,
+          "description": "Earned 131 points from order ORD-2024-0013",
           "createdAt": "2024-04-15T15:30:16.049Z"
         }
       ]
@@ -2311,17 +2311,17 @@
       "newsletterSubscribed": false
     },
     "loyalty": {
-      "totalEarned": 221300,
-      "currentPoints": 221300,
-      "tier": "platinum",
+      "totalEarned": 221,
+      "currentPoints": 221,
+      "tier": "bronze",
       "lastAccrualAt": "2024-08-05T05:22:55.212Z",
       "history": [
         {
           "orderId": "ORD-2024-0033",
           "orderDate": "2024-08-05T05:22:55.212Z",
           "type": "earned",
-          "points": 221300,
-          "description": "Earned 221300 points from order ORD-2024-0033",
+          "points": 221,
+          "description": "Earned 221 points from order ORD-2024-0033",
           "createdAt": "2024-08-05T05:22:55.212Z"
         }
       ]
@@ -2424,17 +2424,17 @@
       "newsletterSubscribed": true
     },
     "loyalty": {
-      "totalEarned": 68800,
-      "currentPoints": 68800,
-      "tier": "platinum",
+      "totalEarned": 68,
+      "currentPoints": 68,
+      "tier": "bronze",
       "lastAccrualAt": "2025-03-18T09:10:52.562Z",
       "history": [
         {
           "orderId": "ORD-2025-0063",
           "orderDate": "2025-03-18T09:10:52.562Z",
           "type": "earned",
-          "points": 68800,
-          "description": "Earned 68800 points from order ORD-2025-0063",
+          "points": 68,
+          "description": "Earned 68 points from order ORD-2025-0063",
           "createdAt": "2025-03-18T09:10:52.562Z"
         }
       ]
@@ -2646,17 +2646,17 @@
       "newsletterSubscribed": false
     },
     "loyalty": {
-      "totalEarned": 415000,
-      "currentPoints": 415000,
-      "tier": "platinum",
+      "totalEarned": 415,
+      "currentPoints": 415,
+      "tier": "bronze",
       "lastAccrualAt": "2024-07-01T08:37:52.864Z",
       "history": [
         {
           "orderId": "ORD-2024-0027",
           "orderDate": "2024-07-01T08:37:52.864Z",
           "type": "earned",
-          "points": 415000,
-          "description": "Earned 415000 points from order ORD-2024-0027",
+          "points": 415,
+          "description": "Earned 415 points from order ORD-2024-0027",
           "createdAt": "2024-07-01T08:37:52.864Z"
         }
       ]
@@ -2888,25 +2888,25 @@
       "newsletterSubscribed": true
     },
     "loyalty": {
-      "totalEarned": 455812,
-      "currentPoints": 455812,
-      "tier": "platinum",
+      "totalEarned": 455,
+      "currentPoints": 455,
+      "tier": "bronze",
       "lastAccrualAt": "2025-01-11T08:45:57.465Z",
       "history": [
         {
           "orderId": "ORD-2024-0011",
           "orderDate": "2024-04-09T20:26:41.484Z",
           "type": "earned",
-          "points": 424694,
-          "description": "Earned 424694 points from order ORD-2024-0011",
+          "points": 424,
+          "description": "Earned 424 points from order ORD-2024-0011",
           "createdAt": "2024-04-09T20:26:41.484Z"
         },
         {
           "orderId": "ORD-2025-0055",
           "orderDate": "2025-01-11T08:45:57.465Z",
           "type": "earned",
-          "points": 31118,
-          "description": "Earned 31118 points from order ORD-2025-0055",
+          "points": 31,
+          "description": "Earned 31 points from order ORD-2025-0055",
           "createdAt": "2025-01-11T08:45:57.465Z"
         }
       ]
@@ -3217,25 +3217,25 @@
       "newsletterSubscribed": true
     },
     "loyalty": {
-      "totalEarned": 448800,
-      "currentPoints": 448800,
-      "tier": "platinum",
+      "totalEarned": 447,
+      "currentPoints": 447,
+      "tier": "bronze",
       "lastAccrualAt": "2025-10-07T12:16:07.525Z",
       "history": [
         {
           "orderId": "ORD-2025-0073",
           "orderDate": "2025-06-06T00:14:32.974Z",
           "type": "earned",
-          "points": 66900,
-          "description": "Earned 66900 points from order ORD-2025-0073",
+          "points": 66,
+          "description": "Earned 66 points from order ORD-2025-0073",
           "createdAt": "2025-06-06T00:14:32.974Z"
         },
         {
           "orderId": "ORD-2025-0093",
           "orderDate": "2025-10-07T12:16:07.525Z",
           "type": "earned",
-          "points": 381900,
-          "description": "Earned 381900 points from order ORD-2025-0093",
+          "points": 381,
+          "description": "Earned 381 points from order ORD-2025-0093",
           "createdAt": "2025-10-07T12:16:07.525Z"
         }
       ]

@@ -423,20 +423,6 @@ router.get('/', async (req, res) => {
         totalPages: Math.ceil(total / limit),
       },
     });
-
-
-
-    res.json({
-      success: true,
-      data: transformed,
-      items: transformed, // backward compat
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
-    });
   } catch (err) {
     res.status(500).json({
       success: false,
@@ -662,8 +648,6 @@ router.get('/:id/orders', async (req, res) => {
           total = fbTotal;
         }
       } catch (err) {
-          err.message
-        );
       }
     }
 

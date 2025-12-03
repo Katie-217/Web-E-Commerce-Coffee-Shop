@@ -70,9 +70,16 @@ const AuthPage = ({ initialTab = "login" }) => {
     try {
       setLoading(true);
       setMessage("");
-      await login(loginData.email, loginData.password);
-      // login xong quay lại trang cũ (hoặc '/')
-      navigate(from, { replace: true });
+
+      const userData = await login(loginData.email, loginData.password);
+
+      // Kiểm tra role để redirect admin
+      if (userData && userData.role === "admin") {
+        navigate("/admin", { replace: true });
+      } else {
+        // login xong quay lại trang cũ (hoặc '/')
+        navigate(from, { replace: true });
+      }
     } catch (err) {
       setMessage(err.message || "Login failed.");
     } finally {
@@ -90,8 +97,6 @@ const AuthPage = ({ initialTab = "login" }) => {
       setMessage("");
 
       // Gửi đầy đủ info cho backend
-      // name + email + password vẫn như cũ
-      // thêm shippingAddress để backend push vào user.addresses[0]
       await register({
         name: registerData.name,
         email: registerData.email,
@@ -390,8 +395,7 @@ const AuthPage = ({ initialTab = "login" }) => {
                 If you don’t have an account, join us and start your journey.
               </p>
               <button className="ghost" onClick={() => setIsRegister(true)}>
-                Register
-              </button>
+                Register</button>
             </div>
           </div>
         </div>

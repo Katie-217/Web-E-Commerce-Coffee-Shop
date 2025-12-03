@@ -86,7 +86,6 @@ const AddProductPage: React.FC<AddProductProps> = ({ onBack, setActivePage }) =>
         throw new Error('Upload failed: Invalid response from server');
       }
     } catch (error: any) {
-      console.error('Error uploading image:', error);
       setDialog({
         title: 'Upload failed',
         message: error?.message || 'Failed to upload image. Please try again.',
@@ -224,7 +223,6 @@ const AddProductPage: React.FC<AddProductProps> = ({ onBack, setActivePage }) =>
         throw new Error(res?.message || 'Create failed: Invalid response from server');
       }
       } catch (e: any) {
-      console.error('Error creating product:', e);
       const errorMessage = e?.response?.data?.message || e?.message || 'Unknown error';
       setDialog({
         title: 'Failed to create product',
@@ -235,29 +233,6 @@ const AddProductPage: React.FC<AddProductProps> = ({ onBack, setActivePage }) =>
     }
   };
 
-  const handleDiscard = () => {
-    setDialog({
-      title: 'Discard changes',
-      message: 'Are you sure you want to discard all changes? This action cannot be undone.',
-      confirmLabel: 'Discard',
-      cancelLabel: 'Cancel',
-      variant: 'danger',
-      onConfirm: () => {
-        setDialog(null);
-        setFormData({
-          name: '',
-          sku: '',
-          description: '',
-          category: '',
-          price: '',
-          quantity: '',
-          status: 'Publish',
-          stock: true,
-        });
-        handleRemoveImage();
-      },
-    });
-  };
 
   useEffect(
     () => () => {
@@ -270,10 +245,11 @@ const AddProductPage: React.FC<AddProductProps> = ({ onBack, setActivePage }) =>
 
   return (
     <div className="space-y-6">
-      <AddProductHeader onBack={onBack} saving={saving} onDiscard={handleDiscard} onSubmit={handleSubmit} />
+      <AddProductHeader onBack={onBack} saving={saving} onSubmit={handleSubmit} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
+      <div className="overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <div className="grid grid-cols-3 gap-6 min-w-[1000px]">
+        <div className="col-span-2 space-y-6 min-w-0">
           <ProductInfoSection formData={formData} onChange={handleInputChange} onGenerateSKU={handleGenerateSKU} />
           <ImageUploadSection
             imagePreview={imagePreview}
@@ -295,6 +271,7 @@ const AddProductPage: React.FC<AddProductProps> = ({ onBack, setActivePage }) =>
         <div className="space-y-6">
           <PricingSection formData={formData} onChange={handleInputChange} onPriceChange={handlePriceInputChange} priceInputRef={priceInputRef} />
           <OrganizeSection formData={formData} onChange={handleInputChange} />
+        </div>
         </div>
       </div>
       <ModalDialog

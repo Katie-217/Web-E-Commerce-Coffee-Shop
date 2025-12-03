@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import Dashboard from './pages/dashboard/Dashboard';
@@ -13,10 +15,26 @@ import ProductDetail from './pages/products/ProductDetail/ProductDetail';
 import { Product } from './types';
 
 const App: React.FC = () => {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+
+  // Route protection: chỉ cho phép admin đã đăng nhập
+  useEffect(() => {
+    if (!loading) {
+      if (!user) {
+        // Chưa đăng nhập → redirect về login
+        navigate('/login', { state: { from: { pathname: '/admin' } } });
+      } else if (user.role !== 'admin') {
+        // Đã đăng nhập nhưng không phải admin → redirect về home
+        navigate('/');
+      }
+    }
+  }, [user, loading, navigate]);
   const [activePage, setActivePage] = useState('Dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | number | null>(null);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [selectedOrderData, setSelectedOrderData] = useState<any | null>(null);
   const [orderDetailFromCustomer, setOrderDetailFromCustomer] = useState(false);
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -75,14 +93,17 @@ const App: React.FC = () => {
         />;
       case 'Orders':
         return <Orders 
-          initialOrderId={selectedOrderId} 
+          initialOrderId={selectedOrderId}
+          initialOrderData={selectedOrderData}
           fromCustomer={orderDetailFromCustomer}
           onOrderClose={() => {
             setSelectedOrderId(null);
+            setSelectedOrderData(null);
             setOrderDetailFromCustomer(false);
           }}
           onBackToCustomer={() => {
             setSelectedOrderId(null);
+            setSelectedOrderData(null);
             setOrderDetailFromCustomer(false);
             setActivePage('Customer Detail');
           }}
@@ -107,8 +128,10 @@ const App: React.FC = () => {
             setSelectedCustomerId(null);
             setActivePage('Customers');
           }} 
-          onOrderClick={(orderId) => {
+          onOrderClick={(orderId, orderData) => {
+            // Set state ngay lập tức - pass orderData để tránh fetch lại
             setSelectedOrderId(orderId);
+            setSelectedOrderData(orderData || null);
             setOrderDetailFromCustomer(true);
             setActivePage('Orders');
           }}
@@ -146,6 +169,17 @@ const App: React.FC = () => {
     }
   };
 
+  // Hiển thị loading hoặc không hiển thị gì khi đang kiểm tra auth
+  if (loading || !user || user.role !== 'admin') {
+    return (
+      <div className="admin-panel-root flex min-h-screen bg-background-dark text-text-primary items-center justify-center">
+        <div className="text-center">
+          <p className="text-text-primary">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="admin-panel-root flex min-h-screen bg-background-dark text-text-primary relative">
       <Sidebar
@@ -153,16 +187,21 @@ const App: React.FC = () => {
         setActivePage={(page) => {
           setActivePage(page);
         }}
+        // Mobile / tablet dùng isSidebarOpen, desktop (lg+) luôn hiển thị sidebar như layout gốc
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
       />
       {/* Row 1: Header with logo and controls */}
-      <div className="fixed left-0 right-0 top-0 h-16 z-20">
-        <Header logoUrl="/images/logo.png" />
+      <div className="fixed left-0 right-0 top-0 h-14 md:h-16 z-50">
+        <Header
+          logoUrl="/images/logo.png"
+          onToggleSidebar={() => setIsSidebarOpen((o) => !o)}
+        />
       </div>
-      {/* Compact menu button under header */}
+      {/* Nút menu cố định dưới header, ngay trên menu option khi full màn (desktop) – tăng khoảng cách với header */}
       <button
-        className="fixed top-20 left-4 z-50 p-3 rounded-md bg-background-light border border-gray-700 hover:bg-gray-700 text-gray-300 hover:text-white"
+        className="hidden lg:flex fixed z-40 p-2 md:p-3 rounded-md bg-background-light border border-gray-700 hover:bg-gray-700 text-gray-300 hover:text-white transition-colors
+          top-16 md:top-20 left-4"
         aria-label="Toggle sidebar"
         onClick={(e) => {
           e.stopPropagation();
@@ -170,11 +209,30 @@ const App: React.FC = () => {
         }}
       >
         <span className="sr-only">Toggle menu</span>
-        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        <svg
+          className="w-4 h-4 md:w-5 md:h-5"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <line x1="3" y1="6" x2="21" y2="6" />
+          <line x1="3" y1="12" x2="21" y2="12" />
+          <line x1="3" y1="18" x2="21" y2="18" />
+        </svg>
       </button>
-      {/* Main content */}
-      <div className={`flex-1 flex flex-col pt-16 pl-72 pb-8`}>
-        <div className="flex-1 p-4 md:p-6 lg:p-8">
+      {/* Overlay khi sidebar mở - chỉ hiển thị trên mobile/tablet, desktop vẫn thấy nội dung bên phải */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+      {/* Main content - có padding trên desktop, không có padding trên mobile */}
+      <div className={`flex-1 flex flex-col pt-14 md:pt-16 pb-4 md:pb-8 lg:pl-72 overflow-x-hidden max-w-full`}>
+        <div className="flex-1 p-3 md:p-4 lg:p-6 xl:p-8 min-w-0 max-w-full overflow-x-hidden">
           {renderPage()}
         </div>
       </div>

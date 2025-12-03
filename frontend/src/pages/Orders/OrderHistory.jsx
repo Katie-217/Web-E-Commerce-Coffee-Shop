@@ -78,7 +78,6 @@ const OrderHistory = () => {
 
       if (!res.ok) {
         const text = await res.text();
-        console.error("OrderHistory ERROR response:", text);
         throw new Error(
           "Failed to fetch order list (status " + res.status + ")"
         );
@@ -87,7 +86,6 @@ const OrderHistory = () => {
       const contentType = res.headers.get("content-type") || "";
       if (!contentType.includes("application/json")) {
         const text = await res.text();
-        console.error("OrderHistory – non-JSON response:", text);
         throw new Error(
           "Server returned non-JSON data (often caused by calling the wrong API URL)."
         );
@@ -100,7 +98,6 @@ const OrderHistory = () => {
 
       setOrders(list);
     } catch (err) {
-      console.error(err);
       setError(err.message || "An error occurred while loading orders.");
     } finally {
       setLoading(false);

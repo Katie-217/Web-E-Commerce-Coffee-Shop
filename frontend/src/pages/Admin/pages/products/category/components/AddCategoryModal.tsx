@@ -42,7 +42,35 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
       <div className="bg-background-dark border border-gray-700 rounded-2xl w-full max-w-lg shadow-xl">
         <div className="flex items-center justify-between p-5 border-b border-gray-700">
           <h3 className="text-lg font-semibold text-text-primary">Add Category</h3>
-          <button className="text-text-secondary hover:text-text-primary" onClick={onClose} disabled={isSaving}>
+          <button 
+            className="text-text-secondary" 
+            onClick={onClose} 
+            disabled={isSaving}
+            style={{
+              transition: 'none !important',
+              boxShadow: 'none !important',
+              WebkitTransition: 'none !important',
+              MozTransition: 'none !important',
+              OTransition: 'none !important',
+              msTransition: 'none !important',
+              backgroundColor: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              color: 'rgb(156, 163, 175)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transition = 'none';
+              e.currentTarget.style.boxShadow = 'none';
+              e.currentTarget.style.backgroundColor = 'transparent';
+              e.currentTarget.style.color = 'rgb(229, 231, 235)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transition = 'none';
+              e.currentTarget.style.boxShadow = 'none';
+              e.currentTarget.style.backgroundColor = 'transparent';
+              e.currentTarget.style.color = 'rgb(156, 163, 175)';
+            }}
+          >
             ✕
           </button>
         </div>
@@ -115,16 +143,63 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
         </div>
         <div className="flex items-center justify-end gap-3 p-5 border-t border-gray-700">
           <button
-            className="px-4 py-2 rounded-lg border border-gray-700 text-text-secondary hover:text-text-primary hover:bg-background-light transition-colors"
+            className="px-4 py-2 rounded-lg border border-red-600 bg-red-600 text-white"
             onClick={onClose}
             disabled={isSaving}
+            style={{
+              transition: 'none !important',
+              boxShadow: 'none !important',
+              WebkitTransition: 'none !important',
+              MozTransition: 'none !important',
+              OTransition: 'none !important',
+              msTransition: 'none !important',
+              backgroundColor: 'rgb(220, 38, 38)',
+              borderColor: 'rgb(220, 38, 38)',
+              color: 'rgb(255, 255, 255)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transition = 'none';
+              e.currentTarget.style.boxShadow = 'none';
+              e.currentTarget.style.backgroundColor = 'rgb(220, 38, 38)';
+              e.currentTarget.style.borderColor = 'rgb(220, 38, 38)';
+              e.currentTarget.style.color = 'rgb(255, 255, 255)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transition = 'none';
+              e.currentTarget.style.boxShadow = 'none';
+              e.currentTarget.style.backgroundColor = 'rgb(220, 38, 38)';
+              e.currentTarget.style.borderColor = 'rgb(220, 38, 38)';
+              e.currentTarget.style.color = 'rgb(255, 255, 255)';
+            }}
           >
             Discard
           </button>
           <button
-            className="px-4 py-2 rounded-lg bg-primary text-white font-semibold hover:bg-primary/90 transition-colors disabled:opacity-60"
+            className="px-4 py-2 rounded-lg bg-primary text-white font-semibold"
             onClick={onSubmit}
             disabled={isSaving || !form.title.trim()}
+            style={{
+              transition: 'none !important',
+              boxShadow: 'none !important',
+              WebkitTransition: 'none !important',
+              MozTransition: 'none !important',
+              OTransition: 'none !important',
+              msTransition: 'none !important',
+              backgroundColor: 'rgb(124, 58, 237)',
+              color: 'rgb(255, 255, 255)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transition = 'none';
+              e.currentTarget.style.boxShadow = 'none';
+              e.currentTarget.style.backgroundColor = 'rgb(124, 58, 237)';
+              e.currentTarget.style.color = 'rgb(255, 255, 255)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transition = 'none';
+              e.currentTarget.style.boxShadow = 'none';
+              e.currentTarget.style.backgroundColor = 'rgb(124, 58, 237)';
+              e.currentTarget.style.color = 'rgb(255, 255, 255)';
+            }}
           >
             {isSaving ? 'Adding...' : 'Add'}
           </button>
@@ -135,6 +210,13 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
 };
 
 export default AddCategoryModal;
+
+
+
+
+
+
+
 
 
 

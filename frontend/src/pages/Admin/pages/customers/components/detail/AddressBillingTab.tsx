@@ -89,14 +89,8 @@ const AddressBillingTab: React.FC<{ customer: any; onCustomerUpdate?: (updatedCu
     // Ensure customerId is a string (backend will convert to ObjectId if needed)
     const customerId = String(customer._id || customer.id);
     
-    console.log('🔍 Customer ID for update:', customerId, 'Type:', typeof customerId);
-    console.log('🔍 Customer object:', { _id: customer._id, id: customer.id });
-    
     // Get existing addresses from current customer document
     const currentAddresses = Array.isArray(customer.addresses) ? [...customer.addresses] : [];
-    
-    console.log('🔍 Current addresses count:', currentAddresses.length);
-    console.log('🔍 Current addresses:', JSON.stringify(currentAddresses, null, 2));
     
     // Get country from customer or primary address
     const primaryAddress = customer.addresses?.find((a: any) => a.isDefault) || customer.addresses?.[0];
@@ -131,13 +125,6 @@ const AddressBillingTab: React.FC<{ customer: any; onCustomerUpdate?: (updatedCu
       // We need to use the index in the addresses array to identify them
       // addressId can be: "index-0", "_id string" (if exists), or other format
       const normalizedAddressId = addressId.toString();
-      console.log('🔍 Looking for address with ID:', normalizedAddressId);
-      console.log('🔍 Available addresses:', currentAddresses.map((a: any, idx: number) => ({
-        index: idx,
-        indexId: `index-${idx}`,
-        _id: a._id?.toString() || (a._id ? String(a._id) : 'NO_ID'),
-        city: a.city
-      })));
       
       let addressFound = false;
       let targetIndex: number | null = null;
@@ -147,7 +134,6 @@ const AddressBillingTab: React.FC<{ customer: any; onCustomerUpdate?: (updatedCu
         const indexMatch = normalizedAddressId.match(/^index-(\d+)$/);
         if (indexMatch) {
           targetIndex = parseInt(indexMatch[1], 10);
-          console.log('📍 Using index-based lookup. Target index:', targetIndex);
         }
       }
       
@@ -168,7 +154,6 @@ const AddressBillingTab: React.FC<{ customer: any; onCustomerUpdate?: (updatedCu
         }
         
         if (isMatch) {
-          console.log('✅ Found address to update at index', index, 'with data:', addressObj);
           addressFound = true;
           // Update the address - don't preserve _id since addresses don't have _id in schema
           return {
@@ -186,13 +171,6 @@ const AddressBillingTab: React.FC<{ customer: any; onCustomerUpdate?: (updatedCu
       
       // Verify that we actually found and updated an address
       if (!addressFound) {
-        console.error('❌ Address not found for update. addressId:', normalizedAddressId);
-        console.error('❌ Available addresses:', currentAddresses.map((a: any, idx: number) => ({
-          index: idx,
-          indexId: `index-${idx}`,
-          _id: a._id?.toString() || (a._id ? String(a._id) : 'NO_ID'),
-          city: a.city
-        })));
         throw new Error(`Address with ID ${normalizedAddressId} not found. Please refresh the page and try again.`);
       }
     } else {
@@ -213,33 +191,18 @@ const AddressBillingTab: React.FC<{ customer: any; onCustomerUpdate?: (updatedCu
 
     // IMPORTANT: This will UPDATE the existing customer document in MongoDB
     // It will NOT create a new document - backend uses findOneAndUpdate without upsert
-    console.log('📤 Sending update to backend.');
-    console.log('📤 Customer ID:', customerId);
-    console.log('📤 Updated addresses count:', updatedAddresses.length);
-    console.log('📤 Updated addresses:', JSON.stringify(updatedAddresses, null, 2));
-    
     const updatePayload = {
       addresses: updatedAddresses,
     };
     
-    console.log('📤 Update payload:', JSON.stringify(updatePayload, null, 2));
-    
     try {
-      console.log('📤 Making API call to update customer...');
       const response = await updateCustomer(customerId, updatePayload);
-
-      console.log('📥 Raw response from API:', response);
-      console.log('📥 Response type:', typeof response);
-      console.log('📥 Response.success:', response?.success);
-      console.log('📥 Response.data:', response?.data);
-      console.log('📥 Response.message:', response?.message);
 
       // API client uses fetch API, returns data directly (not response.data)
       // Response structure: { success: true, data: {...}, message: '...' }
       const isSuccess = response?.success === true;
       
       if (!isSuccess) {
-        console.error('❌ Update failed. Response:', JSON.stringify(response, null, 2));
         const errorMessage = response?.message || response?.error || 'Failed to update customer addresses';
         throw new Error(errorMessage);
       }
@@ -248,66 +211,36 @@ const AddressBillingTab: React.FC<{ customer: any; onCustomerUpdate?: (updatedCu
       // Response structure: { success: true, data: {...}, message: '...' }
       const updatedCustomerFromServer = response?.data || response;
       
-      console.log('✅ Update successful. Updated customer from server:', JSON.stringify(updatedCustomerFromServer, null, 2));
-      console.log('✅ Updated addresses in response:', JSON.stringify(updatedCustomerFromServer?.addresses, null, 2));
-      
       // CRITICAL: Always refresh from server to ensure we have the latest data from MongoDB
       try {
-        console.log('🔄 Refreshing customer data from server to verify update...');
         const refreshResponse = await fetchCustomerById(customerId);
-        console.log('🔄 Refresh response:', refreshResponse);
         
         if (refreshResponse && refreshResponse.success !== false) {
           const refreshedCustomer = refreshResponse?.data || refreshResponse;
           if (refreshedCustomer) {
-            console.log('✅ Refreshed customer data from server:', JSON.stringify(refreshedCustomer, null, 2));
-            console.log('✅ Refreshed addresses:', JSON.stringify(refreshedCustomer.addresses, null, 2));
-            
-            // Verify that addresses were actually updated in MongoDB
-            if (refreshedCustomer.addresses && refreshedCustomer.addresses.length > 0) {
-              const addressMatch = refreshedCustomer.addresses.some((addr: any) => 
-                addr.addressLine1 === addressObj.addressLine1
-              );
-              if (addressMatch) {
-                console.log('✅ Verified: Address was successfully updated in MongoDB');
-              } else {
-                console.warn('⚠️ Warning: Address may not have been updated in MongoDB');
-              }
-            }
-            
             // Call callback with refreshed data
             if (onCustomerUpdate) {
-              console.log('🔄 Calling onCustomerUpdate with refreshed data');
               onCustomerUpdate(refreshedCustomer);
-            } else {
-              console.warn('⚠️ onCustomerUpdate callback not provided');
             }
           } else {
-            console.warn('⚠️ Refresh response did not contain customer data');
             // Fallback to using response data
             if (onCustomerUpdate) {
               onCustomerUpdate(updatedCustomerFromServer);
             }
           }
         } else {
-          console.warn('⚠️ Refresh failed or returned error');
           // Fallback to using response data
           if (onCustomerUpdate) {
             onCustomerUpdate(updatedCustomerFromServer);
           }
         }
       } catch (refreshError: any) {
-        console.error('❌ Failed to refresh customer data:', refreshError);
-        console.error('❌ Refresh error message:', refreshError?.message);
         // Even if refresh fails, update UI with response data
         if (onCustomerUpdate) {
           onCustomerUpdate(updatedCustomerFromServer);
         }
       }
     } catch (error: any) {
-      console.error('❌ Error updating customer addresses:', error);
-      console.error('❌ Error message:', error?.message);
-      console.error('❌ Error stack:', error?.stack);
       throw error;
     }
   };
@@ -315,7 +248,6 @@ const AddressBillingTab: React.FC<{ customer: any; onCustomerUpdate?: (updatedCu
   const handleEditAddress = (id: string) => {
     const address = addresses.find((addr) => addr.id === id);
     if (address) {
-      console.log('Edit address clicked. id param:', id, 'address:', address);
       
       // CRITICAL: Addresses don't have _id (schema has { _id: false })
       // We need to use the index in the addresses array to identify the address
@@ -350,13 +282,11 @@ const AddressBillingTab: React.FC<{ customer: any; onCustomerUpdate?: (updatedCu
         }
       }
       
-      console.log('Using address ID for update:', actualId, 'address._index:', address._index, 'address._id:', address._id, 'address.id:', address.id);
       
       // Set editing address and open modal - pass the original address object and the identifier
       setEditingAddress({ address, id: actualId });
       setIsAddModalOpen(true);
     } else {
-      console.error('❌ Address not found for id:', id);
     }
   };
 
@@ -379,9 +309,6 @@ const AddressBillingTab: React.FC<{ customer: any; onCustomerUpdate?: (updatedCu
       const customerId = String(customer._id || customer.id);
       const currentAddresses = Array.isArray(customer.addresses) ? [...customer.addresses] : [];
       
-      console.log('🗑️ Deleting address with ID:', id);
-      console.log('🗑️ Current addresses count:', currentAddresses.length);
-      
       // Find the address to delete using the same logic as edit
       // Addresses don't have _id (schema has { _id: false }), so we use index
       const normalizedAddressId = id.toString();
@@ -392,7 +319,6 @@ const AddressBillingTab: React.FC<{ customer: any; onCustomerUpdate?: (updatedCu
         const indexMatch = normalizedAddressId.match(/^index-(\d+)$/);
         if (indexMatch) {
           targetIndex = parseInt(indexMatch[1], 10);
-          console.log('📍 Using index-based deletion. Target index:', targetIndex);
         }
       } else {
         // Try to find by _id if it exists (fallback)
@@ -406,12 +332,10 @@ const AddressBillingTab: React.FC<{ customer: any; onCustomerUpdate?: (updatedCu
         
         if (foundIndex >= 0) {
           targetIndex = foundIndex;
-          console.log('📍 Found address by _id at index:', targetIndex);
         }
       }
       
       if (targetIndex === null || targetIndex < 0 || targetIndex >= currentAddresses.length) {
-        console.error('❌ Address not found for deletion. ID:', normalizedAddressId);
         alert('Address not found. Please refresh the page and try again.');
         return;
       }
@@ -419,10 +343,6 @@ const AddressBillingTab: React.FC<{ customer: any; onCustomerUpdate?: (updatedCu
       // Get the address to be deleted (for checking if it's default)
       const deletedAddress = currentAddresses[targetIndex];
       const wasDefault = deletedAddress?.isDefault || false;
-      
-      console.log('🗑️ Deleting address at index:', targetIndex);
-      console.log('🗑️ Address to delete:', JSON.stringify(deletedAddress, null, 2));
-      console.log('🗑️ Was default:', wasDefault);
       
       // Filter out the address to delete using index
       const updatedAddresses = currentAddresses.filter((addr: any, index: number) => {
@@ -432,49 +352,35 @@ const AddressBillingTab: React.FC<{ customer: any; onCustomerUpdate?: (updatedCu
       // If we deleted the default address and there are other addresses, set the first one as default
       if (wasDefault && updatedAddresses.length > 0) {
         updatedAddresses[0].isDefault = true;
-        console.log('✅ Set first remaining address as default');
       }
 
-      console.log('🗑️ Updated addresses count:', updatedAddresses.length);
-      console.log('🗑️ Updated addresses:', JSON.stringify(updatedAddresses, null, 2));
 
       // Update customer in MongoDB
       const updatePayload = {
         addresses: updatedAddresses,
       };
       
-      console.log('📤 Sending delete request to backend...');
       const response = await updateCustomer(customerId, updatePayload);
-
-      console.log('📥 Delete response:', response);
       
       // API client returns data directly
       const isSuccess = response?.success === true;
       
       if (!isSuccess) {
-        console.error('❌ Delete failed. Response:', JSON.stringify(response, null, 2));
         throw new Error(response?.message || response?.error || 'Failed to delete address');
       }
 
       // CRITICAL: Always refresh from server to ensure we have the latest data from MongoDB
-      console.log('🔄 Refreshing customer data from server after deletion...');
       try {
         const refreshResponse = await fetchCustomerById(customerId);
-        console.log('🔄 Refresh response:', refreshResponse);
         
         if (refreshResponse && refreshResponse.success !== false) {
           const refreshedCustomer = refreshResponse?.data || refreshResponse;
           if (refreshedCustomer) {
-            console.log('✅ Refreshed customer data from server after deletion');
-            console.log('✅ Refreshed addresses:', JSON.stringify(refreshedCustomer.addresses, null, 2));
-            
             // Call callback with refreshed data
             if (onCustomerUpdate) {
-              console.log('🔄 Calling onCustomerUpdate with refreshed data');
               onCustomerUpdate(refreshedCustomer);
             }
           } else {
-            console.warn('⚠️ Refresh response did not contain customer data');
             // Fallback to using local updated data
             const updatedCustomer = {
               ...customer,
@@ -485,7 +391,6 @@ const AddressBillingTab: React.FC<{ customer: any; onCustomerUpdate?: (updatedCu
             }
           }
         } else {
-          console.warn('⚠️ Refresh failed or returned error');
           // Fallback to using local updated data
           const updatedCustomer = {
             ...customer,
@@ -496,7 +401,6 @@ const AddressBillingTab: React.FC<{ customer: any; onCustomerUpdate?: (updatedCu
           }
         }
       } catch (refreshError: any) {
-        console.error('❌ Failed to refresh customer data after deletion:', refreshError);
         // Even if refresh fails, update UI with local data
         const updatedCustomer = {
           ...customer,
@@ -507,7 +411,6 @@ const AddressBillingTab: React.FC<{ customer: any; onCustomerUpdate?: (updatedCu
         }
       }
     } catch (err: any) {
-      console.error('❌ Error deleting address:', err);
       alert(err?.message || 'Failed to delete address');
     }
   };
@@ -520,7 +423,25 @@ const AddressBillingTab: React.FC<{ customer: any; onCustomerUpdate?: (updatedCu
           <h4 className="text-lg font-semibold text-text-primary">Address Book</h4>
           <button
             onClick={handleAddAddress}
-            className="bg-background-light border border-gray-600 text-text-primary font-medium px-3 py-1.5 rounded-lg hover:bg-background-dark hover:border-gray-500 transition-all duration-200 flex items-center gap-1.5 text-sm"
+            className="bg-background-light border border-gray-600 text-text-primary font-medium px-3 py-1.5 rounded-lg flex items-center gap-1.5 text-sm"
+            style={{
+              transition: 'none !important',
+              boxShadow: 'none !important',
+              WebkitTransition: 'none !important',
+              MozTransition: 'none !important',
+              OTransition: 'none !important',
+              backgroundColor: 'rgb(39, 39, 42)', 
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transition = 'none';
+              e.currentTarget.style.boxShadow = 'none';
+              e.currentTarget.style.backgroundColor = 'rgb(39, 39, 42)'; // Giữ nguyên background
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transition = 'none';
+              e.currentTarget.style.boxShadow = 'none';
+              e.currentTarget.style.backgroundColor = 'rgb(39, 39, 42)'; // Giữ nguyên background
+            }}
           >
             <Plus size={14} />
             Add new address
@@ -536,7 +457,14 @@ const AddressBillingTab: React.FC<{ customer: any; onCustomerUpdate?: (updatedCu
             addresses.map((address) => (
               <div
                 key={address.id}
-                className="flex items-center justify-between p-4 bg-background-dark rounded-lg border border-gray-700 hover:border-gray-600 transition-colors"
+                className="flex items-center justify-between p-4 bg-background-dark rounded-lg border border-gray-700 shadow-none transition-none hover:opacity-100 hover:border-gray-700"
+                style={{
+                  transition: 'none !important',
+                  boxShadow: 'none !important',
+                  WebkitTransition: 'none !important',
+                  MozTransition: 'none !important',
+                  OTransition: 'none !important',
+                }}
               >
                 <div className="flex items-center gap-3 flex-1">
                   <ChevronRight size={16} className="text-text-secondary" />
@@ -560,17 +488,73 @@ const AddressBillingTab: React.FC<{ customer: any; onCustomerUpdate?: (updatedCu
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => handleEditAddress(address.id)}
-                    className="p-2 text-text-secondary hover:text-text-primary transition-colors"
+                    className="p-2 text-text-secondary"
                     aria-label="Edit address"
+                    style={{
+                      transition: 'none !important',
+                      boxShadow: 'none !important',
+                      WebkitTransition: 'none !important',
+                      MozTransition: 'none !important',
+                      OTransition: 'none !important',
+                      backgroundColor: 'transparent',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transition = 'none';
+                      e.currentTarget.style.boxShadow = 'none';
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                      const icon = e.currentTarget.querySelector('svg');
+                      if (icon) {
+                        icon.style.color = '#7c3aed';
+                        icon.style.transition = 'none';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transition = 'none';
+                      e.currentTarget.style.boxShadow = 'none';
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                      const icon = e.currentTarget.querySelector('svg');
+                      if (icon) {
+                        icon.style.color = 'rgb(156, 163, 175)';
+                        icon.style.transition = 'none';
+                      }
+                    }}
                   >
-                    <Edit size={16} />
+                    <Edit size={16} style={{ color: 'rgb(156, 163, 175)', transition: 'none' }} />
                   </button>
                   <button
                     onClick={() => handleDeleteAddress(address.id)}
-                    className="p-2 text-text-secondary hover:text-accent-red transition-colors"
+                    className="p-2 text-text-secondary"
                     aria-label="Delete address"
+                    style={{
+                      transition: 'none !important',
+                      boxShadow: 'none !important',
+                      WebkitTransition: 'none !important',
+                      MozTransition: 'none !important',
+                      OTransition: 'none !important',
+                      backgroundColor: 'transparent',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transition = 'none';
+                      e.currentTarget.style.boxShadow = 'none';
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                      const icon = e.currentTarget.querySelector('svg');
+                      if (icon) {
+                        icon.style.color = '#ef4444';
+                        icon.style.transition = 'none';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transition = 'none';
+                      e.currentTarget.style.boxShadow = 'none';
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                      const icon = e.currentTarget.querySelector('svg');
+                      if (icon) {
+                        icon.style.color = 'rgb(156, 163, 175)';
+                        icon.style.transition = 'none';
+                      }
+                    }}
                   >
-                    <Trash2 size={16} />
+                    <Trash2 size={16} style={{ color: 'rgb(156, 163, 175)', transition: 'none' }} />
                   </button>
                 </div>
               </div>
@@ -581,7 +565,7 @@ const AddressBillingTab: React.FC<{ customer: any; onCustomerUpdate?: (updatedCu
 
       {/* Add/Edit Address Modal */}
       <AddNewAddressModal
-        key={editingAddress?.id || 'add-mode'} // Force re-render when switching between add/edit
+        key={editingAddress?.id || 'add-mode'} 
         isOpen={isAddModalOpen}
         onClose={handleCloseAddModal}
         onSubmit={handleSubmitAddress}

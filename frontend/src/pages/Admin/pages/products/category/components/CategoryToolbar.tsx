@@ -8,21 +8,21 @@ type CategoryToolbarProps = {
 };
 
 const CategoryToolbar: React.FC<CategoryToolbarProps> = ({ onAddClick, searchValue, onSearchChange }) => (
-  <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-    <h2 className="text-2xl font-bold text-text-primary">Category List</h2>
-    <div className="flex items-center gap-2 w-full md:w-auto">
+  <div className="flex flex-row justify-between items-center mb-6 gap-4">
+    <h2 className="text-xl md:text-2xl font-bold text-text-primary">Category List</h2>
+    <div className="flex items-center gap-2">
       <input
         type="text"
         value={searchValue}
         onChange={(e) => onSearchChange(e.target.value)}
         placeholder="Search category..."
-        className="flex-1 md:flex-none bg-background-dark border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
+        className="bg-background-dark border border-gray-600 rounded-lg px-3 md:px-4 py-1.5 md:py-2 focus:outline-none focus:ring-2 focus:ring-primary w-48 md:w-64 text-sm md:text-base"
       />
       <button
-        className="bg-primary text-white font-semibold px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-primary/90 transition-colors"
+        className="bg-primary text-white font-semibold px-3 md:px-4 py-1.5 md:py-2 rounded-lg flex items-center gap-1.5 md:gap-2 hover:bg-primary/90 transition-colors whitespace-nowrap text-sm md:text-base"
         onClick={onAddClick}
       >
-        <Plus size={18} />
+        <Plus size={16} className="md:w-[18px] md:h-[18px]" />
         Add Category
       </button>
     </div>
@@ -30,6 +30,13 @@ const CategoryToolbar: React.FC<CategoryToolbarProps> = ({ onAddClick, searchVal
 );
 
 export default CategoryToolbar;
+
+
+
+
+
+
+
 
 
 

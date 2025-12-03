@@ -94,7 +94,6 @@ router.get('/countries', async (req, res) => {
       data: countries,
     });
   } catch (err) {
-    console.error('Error fetching countries:', err);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch countries from API',
@@ -147,7 +146,6 @@ router.get('/cities', async (req, res) => {
           });
         }
       } catch (err) {
-        console.error('Error fetching VN cities from GitHub API:', err);
         // Continue to Geonames fallback
       }
     }
@@ -162,7 +160,6 @@ router.get('/cities', async (req, res) => {
       
       // Check for API errors
       if (geonamesData.status && geonamesData.status.value !== 0) {
-        console.warn('Geonames API error:', geonamesData.status.message);
         throw new Error(geonamesData.status.message);
       }
       
@@ -182,7 +179,6 @@ router.get('/cities', async (req, res) => {
         });
       }
     } catch (err) {
-      console.error('Error fetching cities from Geonames:', err.message);
       // Continue to return empty array
     }
 
@@ -259,7 +255,6 @@ router.get('/districts', async (req, res) => {
           }
         }
       } catch (err) {
-        console.error('Error fetching VN districts from GitHub API:', err);
       }
     }
 
@@ -280,7 +275,6 @@ router.get('/districts', async (req, res) => {
             cityGeonameId = searchData.geonames[0].geonameId;
           }
         } catch (searchErr) {
-          console.warn('Could not find city geonameId:', searchErr.message);
         }
       }
       
@@ -291,7 +285,6 @@ router.get('/districts', async (req, res) => {
       
       // Check for API errors
       if (geonamesData.status && geonamesData.status.value !== 0) {
-        console.warn('Geonames API error:', geonamesData.status.message);
         throw new Error(geonamesData.status.message);
       }
       
@@ -340,7 +333,6 @@ router.get('/districts', async (req, res) => {
         }
       }
     } catch (err) {
-      console.error('Error fetching districts from Geonames:', err.message);
       // Continue to return empty array - this is normal for countries without districts
     }
 
@@ -453,7 +445,6 @@ router.get('/wards', async (req, res) => {
           }
         }
       } catch (err) {
-        console.error('Error fetching VN wards from GitHub API:', err);
       }
     }
 
@@ -474,7 +465,6 @@ router.get('/wards', async (req, res) => {
             parentGeonameId = searchData.geonames[0].geonameId;
           }
         } catch (searchErr) {
-          console.warn('Could not find parent geonameId:', searchErr.message);
         }
       }
       
@@ -485,7 +475,6 @@ router.get('/wards', async (req, res) => {
       
       // Check for API errors
       if (geonamesData.status && geonamesData.status.value !== 0) {
-        console.warn('Geonames API error:', geonamesData.status.message);
         throw new Error(geonamesData.status.message);
       }
       
@@ -532,7 +521,6 @@ router.get('/wards', async (req, res) => {
         }
       }
     } catch (err) {
-      console.error('Error fetching wards from Geonames:', err.message);
       // Continue to return empty array - this is normal for countries without wards
     }
 

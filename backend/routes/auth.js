@@ -7,7 +7,6 @@ const mailer = require("../config/mailer");
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || "dev-secret-key";
-const querystring = require("querystring");
 
 // Google OAuth config
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
@@ -31,6 +30,11 @@ function toUserPayload(doc) {
     plain.fullName ||
     [plain.firstName, plain.lastName].filter(Boolean).join(" ");
 
+  const normalizedEmail = String(plain.email || "").toLowerCase().trim();
+  const userRole =
+    plain.role ||
+    (normalizedEmail === "admin@gmail.com" ? "admin" : "customer");
+
   return {
     id: String(plain._id || plain.id),
     email: plain.email,
@@ -43,7 +47,6 @@ function toUserPayload(doc) {
     gender: plain.gender || null,
     dateOfBirth: plain.dateOfBirth || null,
 
-    // IMPORTANT: keep all related data for the client
     addresses: Array.isArray(plain.addresses) ? plain.addresses : [],
     paymentMethods: Array.isArray(plain.paymentMethods)
       ? plain.paymentMethods
@@ -55,6 +58,7 @@ function toUserPayload(doc) {
     consents: plain.consents || null,
     tags: Array.isArray(plain.tags) ? plain.tags : [],
     status: plain.status || "active",
+    role: userRole,
     createdAt: plain.createdAt,
     updatedAt: plain.updatedAt,
   };
@@ -116,7 +120,6 @@ async function sendTemporaryPasswordEmail(toEmail, tempPassword) {
   </html>
   `;
 
-  // FROM uses the same logic as your OTP mailer; reuse FROM_EMAIL / SMTP_USER, etc.
   const from =
     process.env.FROM_EMAIL ||
     process.env.MAIL_FROM ||
@@ -142,7 +145,6 @@ async function sendTemporaryPasswordEmail(toEmail, tempPassword) {
 
 async function sendResetOtpEmail(to, otp) {
   const from = process.env.FROM_EMAIL || "no-reply@example.com";
-  const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
 
   const html = `
     <div style="font-family:system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height:1.6; color:#111827;">
@@ -160,15 +162,13 @@ async function sendResetOtpEmail(to, otp) {
     </div>
   `;
 
-  const info = await mailer.sendMail({
+  await mailer.sendMail({
     from,
     to,
     subject: "Reset your password - Coffee Shop",
     text: `Your password reset OTP is ${otp} (valid for 10 minutes).`,
     html,
   });
-
-  console.log("📧 Reset OTP sent:", info.messageId, "=>", to);
 }
 
 // POST /api/auth/register
@@ -180,7 +180,7 @@ router.post("/register", async (req, res) => {
       lastName: bodyLastName,
       email,
       password,
-      address, 
+      address, // string address from form
       sendPasswordEmail,
     } = req.body || {};
     console.log("[auth/register] body =", req.body);
@@ -211,7 +211,6 @@ router.post("/register", async (req, res) => {
       const parts = fullName.split(/\s+/).filter(Boolean);
 
       if (parts.length === 1) {
-        // Example: "Ngwii" -> use same value for both fields
         firstName = parts[0];
         lastName = parts[0];
       } else if (parts.length > 1) {
@@ -220,11 +219,10 @@ router.post("/register", async (req, res) => {
       }
     }
 
-    // Final fallback
     if (!firstName) firstName = fullName;
     if (!lastName) lastName = fullName;
 
-        // Build default shipping address from the sign-up form
+    // Build default shipping address from the sign-up form
     const trimmedAddress =
       typeof address === "string" ? address.trim() : "";
 
@@ -235,7 +233,7 @@ router.post("/register", async (req, res) => {
             type: "shipping",
             recipientName: fullName,
             phone: "",
-            address: trimmedAddress, // nguyên chuỗi user nhập
+            address: trimmedAddress,
             ward: "",
             district: "",
             city: "",
@@ -243,7 +241,6 @@ router.post("/register", async (req, res) => {
           },
         ]
       : [];
-
 
     // Check if email already exists
     const existing = await Customer.findOne({
@@ -267,6 +264,8 @@ router.post("/register", async (req, res) => {
       password: hash,
       status: "active",
       provider: "local",
+      role: normalizedEmail === "admin@gmail.com" ? "admin" : "customer",
+      addresses: defaultAddresses,
     });
 
     // Auto-register from checkout -> optionally send temporary password email
@@ -302,7 +301,7 @@ router.post("/register", async (req, res) => {
           "[auth/register] sendTemporaryPasswordEmail error:",
           mailErr
         );
-        // Do not fail signup if email sending fails
+        // Không fail signup nếu gửi mail lỗi
       }
     } else {
       console.log(
@@ -319,7 +318,11 @@ router.post("/register", async (req, res) => {
       user: toUserPayload(customer),
     });
   } catch (err) {
-    console.error("[auth/register] error:", err);
+    console.error("[auth/register] error:", {
+      message: err.message,
+      stack: err.stack,
+      name: err.name,
+    });
     return res
       .status(500)
       .json({ message: "Register failed", error: err.message });
@@ -362,7 +365,6 @@ router.post("/login", async (req, res) => {
       user: toUserPayload(customer),
     });
   } catch (err) {
-    console.error("[auth/login] error:", err);
     return res
       .status(500)
       .json({ message: "Login failed", error: err.message });
@@ -375,7 +377,6 @@ router.get("/google", (req, res) => {
     return res.status(500).send("Google OAuth is not configured");
   }
 
-  // can be used later to redirect back to the original path
   const state = encodeURIComponent(req.query.state || "/");
 
   const params = new URLSearchParams({
@@ -383,7 +384,7 @@ router.get("/google", (req, res) => {
     redirect_uri: GOOGLE_REDIRECT_URI,
     response_type: "code",
     scope: "openid email profile",
-    prompt: "select_account", // always allow account selection
+    prompt: "select_account",
     access_type: "offline",
     state,
   });
@@ -401,7 +402,6 @@ router.get("/google/callback", async (req, res) => {
   }
 
   try {
-    // 1) Exchange code for access_token + id_token
     const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -416,13 +416,11 @@ router.get("/google/callback", async (req, res) => {
 
     const tokenJson = await tokenRes.json();
     if (!tokenRes.ok) {
-      console.error("[google/token] error:", tokenJson);
       return res.status(500).send("Google auth failed");
     }
 
     const { access_token } = tokenJson;
 
-    // 2) Get user profile from Google
     const profileRes = await fetch(
       "https://openidconnect.googleapis.com/v1/userinfo",
       {
@@ -439,7 +437,6 @@ router.get("/google/callback", async (req, res) => {
       return res.status(400).send("Google account has no email");
     }
 
-    // 3) Find or create Customer in DB
     let customer = await Customer.findOne({ email });
 
     if (!customer) {
@@ -460,9 +457,9 @@ router.get("/google/callback", async (req, res) => {
         avatarUrl: picture,
         status: "active",
         provider: "google",
+        role: email === "admin@gmail.com" ? "admin" : "customer",
       });
     } else {
-      // Lightly update profile if missing
       let changed = false;
       if (!customer.avatarUrl && picture) {
         customer.avatarUrl = picture;
@@ -475,12 +472,10 @@ router.get("/google/callback", async (req, res) => {
       if (changed) await customer.save();
     }
 
-    // 4) Create JWT similar to normal login
     const token = jwt.sign({ sub: customer._id.toString() }, JWT_SECRET, {
       expiresIn: "7d",
     });
 
-    // 5) Redirect back to frontend with token in query
     const redirectPath = state ? decodeURIComponent(state) : "/";
     const redirectUrl = `${FRONTEND_URL}/auth/google/callback?token=${token}&next=${encodeURIComponent(
       redirectPath
@@ -488,7 +483,6 @@ router.get("/google/callback", async (req, res) => {
 
     return res.redirect(redirectUrl);
   } catch (err) {
-    console.error("[auth/google/callback] error:", err);
     return res.status(500).send("Google auth error");
   }
 });
@@ -513,9 +507,8 @@ router.post("/forgot-password/request", async (req, res) => {
       });
     }
 
-    // Generate 6-digit OTP
     const otp = String(Math.floor(100000 + Math.random() * 900000));
-    const expires = new Date(Date.now() + 10 * 60 * 1000); // +10 minutes
+    const expires = new Date(Date.now() + 10 * 60 * 1000);
 
     customer.resetPasswordOtp = otp;
     customer.resetPasswordExpires = expires;
@@ -527,7 +520,6 @@ router.post("/forgot-password/request", async (req, res) => {
       message: "Verification code sent. Please check your email.",
     });
   } catch (err) {
-    console.error("[auth/forgot-password/request] error:", err);
     return res.status(500).json({
       message: "Unable to send verification code",
       error: err.message,
@@ -570,7 +562,6 @@ router.post("/forgot-password/verify", async (req, res) => {
       });
     }
 
-    // OK -> update password
     const hash = await bcrypt.hash(newPassword, 10);
     customer.password = hash;
     customer.resetPasswordOtp = undefined;
@@ -578,10 +569,10 @@ router.post("/forgot-password/verify", async (req, res) => {
     await customer.save();
 
     return res.json({
-      message: "Password reset successfully. Please log in with your new password.",
+      message:
+        "Password reset successfully. Please log in with your new password.",
     });
   } catch (err) {
-    console.error("[auth/forgot-password/verify] error:", err);
     return res.status(500).json({
       message: "Reset password failed",
       error: err.message,

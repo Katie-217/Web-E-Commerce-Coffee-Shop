@@ -75,7 +75,6 @@ router.post('/image', upload.single('image'), async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error uploading image:', error);
     res.status(500).json({
       success: false,
       message: 'Error uploading image',
@@ -116,7 +115,6 @@ router.post('/images', upload.array('images', 10), async (req, res) => {
       data: uploadedImages,
     });
   } catch (error) {
-    console.error('Error uploading images:', error);
     res.status(500).json({
       success: false,
       message: 'Error uploading images',

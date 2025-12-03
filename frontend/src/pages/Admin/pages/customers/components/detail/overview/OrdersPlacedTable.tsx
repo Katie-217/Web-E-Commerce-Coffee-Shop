@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React from 'react';
 import Badge from 'pages/Admin/components/Badge';
-import { Trash2, Edit2, CreditCard, Banknote, Smartphone, Building2, Wallet } from 'lucide-react';
+import { CreditCard, Banknote, Smartphone, Building2, Wallet } from 'lucide-react';
 import { formatVND } from 'utils/currency';
 import { getAvatarUrl } from 'utils/avatar';
 import { getOrderStatusColor, getPaymentStatusColor } from 'utils/statusColors';
@@ -104,19 +104,6 @@ const paymentStatusFrom = (paymentStatus: string | null | undefined): string => 
   return String(paymentStatus).charAt(0).toUpperCase() + String(paymentStatus).slice(1).toLowerCase();
 };
 
-const ORDER_STATUSES = [
-  'pending',
-  'processing',
-  'ready to pickup',
-  'dispatched',
-  'out for delivery',
-  'shipped',
-  'delivered',
-  'cancelled',
-  'refunded',
-  'returned'
-];
-
 type OrdersPlacedTableProps = {
   orders: any[];
   searchOrder: string;
@@ -124,7 +111,7 @@ type OrdersPlacedTableProps = {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
-  onOrderClick?: (orderId: string) => void;
+  onOrderClick?: (orderId: string, orderData?: any) => void;
   onDeleteOrder?: (orderId: string) => void;
   onUpdateOrderStatus?: (orderId: string, status: string) => void;
 };
@@ -141,21 +128,6 @@ const OrdersPlacedTable: React.FC<OrdersPlacedTableProps> = ({
   onUpdateOrderStatus,
 }) => {
   const ITEMS_PER_PAGE = 6;
-  const [editingStatusId, setEditingStatusId] = useState<string | null>(null);
-  const statusDropdownRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
-
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      Object.keys(statusDropdownRefs.current).forEach((orderId) => {
-        const ref = statusDropdownRefs.current[orderId];
-        if (ref && !ref.contains(e.target as Node)) {
-          setEditingStatusId(null);
-        }
-      });
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
   const handleDelete = (order: any, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -167,18 +139,10 @@ const OrdersPlacedTable: React.FC<OrdersPlacedTableProps> = ({
     }
   };
 
-  const handleStatusChange = (orderId: string, newStatus: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (onUpdateOrderStatus) {
-      onUpdateOrderStatus(orderId, newStatus);
-    }
-    setEditingStatusId(null);
-  };
-
   return (
     <div className="bg-background-light p-6 rounded-lg">
       <div className="flex items-center justify-between mb-4">
-        <h4 className="font-semibold text-text-primary">Orders placed</h4>
+        <h4 className="text-base font-semibold text-text-primary">Orders placed</h4>
         <input
           type="text"
           placeholder="Search order"
@@ -222,11 +186,18 @@ const OrdersPlacedTable: React.FC<OrdersPlacedTableProps> = ({
                 return (
                   <tr
                     key={orderId}
-                    className="border-b border-gray-700 hover:bg-gray-800/50 transition-colors cursor-pointer"
+                    className="border-b border-gray-700 shadow-none transition-none hover:opacity-100 hover:bg-transparent cursor-pointer"
                     onClick={() => {
                       if (onOrderClick) {
-                        onOrderClick(orderId);
+                        onOrderClick(orderId, o);
                       }
+                    }}
+                    style={{
+                      transition: 'none !important',
+                      boxShadow: 'none !important',
+                      WebkitTransition: 'none !important',
+                      MozTransition: 'none !important',
+                      OTransition: 'none !important',
                     }}
                   >
                     <td className="p-3 text-center" onClick={(e) => e.stopPropagation()}>
@@ -241,54 +212,21 @@ const OrdersPlacedTable: React.FC<OrdersPlacedTableProps> = ({
                       </span>
                     </td>
                     <td className="p-3 w-48 text-left pl-4 text-text-secondary">
-                      <span className="text-xs whitespace-nowrap">
+                      <span className="text-sm whitespace-nowrap">
                         {o.createdAt ? new Date(o.createdAt).toLocaleString() : ''}
                       </span>
                     </td>
-                    <td className="p-3 text-center" onClick={(e) => e.stopPropagation()}>
+                    <td className="p-3 text-center">
                       <div className="flex justify-center">
-                        <div className="relative inline-block" ref={(el) => {
-                          statusDropdownRefs.current[orderId] = el;
-                        }}>
-                          <button
-                            type="button"
-                            onClick={() => setEditingStatusId(editingStatusId === orderId ? null : orderId)}
-                            className="flex items-center gap-2 group"
-                          >
-                            <Badge color={getOrderStatusColor(o.status || 'Processing')}>
-                              {(() => {
-                                const status = o.status || 'Processing';
-                                return String(status)
-                                  .split(' ')
-                                  .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-                                  .join(' ');
-                              })()}
-                            </Badge>
-                            {onUpdateOrderStatus && (
-                              <Edit2 size={14} className="text-text-secondary opacity-0 group-hover:opacity-100 transition-opacity" />
-                            )}
-                          </button>
-                          {editingStatusId === orderId && onUpdateOrderStatus && (
-                            <div className="absolute left-0 top-full mt-2 z-30 bg-background-dark border border-gray-600 rounded-lg shadow-xl overflow-hidden min-w-[180px]">
-                              <div className="max-h-[160px] overflow-y-auto custom-scrollbar">
-                                {ORDER_STATUSES.map((status) => (
-                                  <button
-                                    key={status}
-                                    type="button"
-                                    onClick={(e) => handleStatusChange(orderId, status, e)}
-                                    className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
-                                      (o.status || '').toLowerCase() === status.toLowerCase()
-                                        ? 'bg-primary/20 text-primary font-semibold'
-                                        : 'text-text-primary hover:bg-background-light/50'
-                                    }`}
-                                  >
-                                    {status.charAt(0).toUpperCase() + status.slice(1)}
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </div>
+                        <Badge color={getOrderStatusColor(o.status || 'Processing')}>
+                          {(() => {
+                            const status = o.status || 'Processing';
+                            return String(status)
+                              .split(' ')
+                              .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                              .join(' ');
+                          })()}
+                        </Badge>
                       </div>
                     </td>
                     <td className="p-3 text-center">
@@ -307,7 +245,15 @@ const OrdersPlacedTable: React.FC<OrdersPlacedTableProps> = ({
                           return (
                             <>
                               <Icon size={20} className={colorClass} />
-                              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-10 border border-gray-700">
+                              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded whitespace-nowrap opacity-0 pointer-events-none shadow-none transition-none z-10 border border-gray-700"
+                                style={{
+                                  transition: 'none !important',
+                                  boxShadow: 'none !important',
+                                  WebkitTransition: 'none !important',
+                                  MozTransition: 'none !important',
+                                  OTransition: 'none !important',
+                                }}
+                              >
                                 {label}
                                 <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
                                   <div className="border-4 border-transparent border-t-gray-800"></div>
@@ -341,14 +287,64 @@ const OrdersPlacedTable: React.FC<OrdersPlacedTableProps> = ({
             <button
               onClick={() => onPageChange(1)}
               disabled={currentPage === 1}
-              className="px-2 py-1 rounded text-text-secondary hover:text-text-primary disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-2 py-1 rounded text-text-secondary shadow-none transition-none disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                transition: 'none !important',
+                boxShadow: 'none !important',
+                WebkitTransition: 'none !important',
+                MozTransition: 'none !important',
+                OTransition: 'none !important',
+                backgroundColor: 'transparent',
+                color: 'rgb(156, 163, 175)',
+              }}
+              onMouseEnter={(e) => {
+                if (currentPage !== 1) {
+                  e.currentTarget.style.transition = 'none';
+                  e.currentTarget.style.boxShadow = 'none';
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = 'rgb(156, 163, 175)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (currentPage !== 1) {
+                  e.currentTarget.style.transition = 'none';
+                  e.currentTarget.style.boxShadow = 'none';
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = 'rgb(156, 163, 175)';
+                }
+              }}
             >
               «
             </button>
             <button
               onClick={() => onPageChange(Math.max(1, currentPage - 1))}
               disabled={currentPage === 1}
-              className="px-2 py-1 rounded text-text-secondary hover:text-text-primary disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-2 py-1 rounded text-text-secondary shadow-none transition-none disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                transition: 'none !important',
+                boxShadow: 'none !important',
+                WebkitTransition: 'none !important',
+                MozTransition: 'none !important',
+                OTransition: 'none !important',
+                backgroundColor: 'transparent',
+                color: 'rgb(156, 163, 175)',
+              }}
+              onMouseEnter={(e) => {
+                if (currentPage !== 1) {
+                  e.currentTarget.style.transition = 'none';
+                  e.currentTarget.style.boxShadow = 'none';
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = 'rgb(156, 163, 175)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (currentPage !== 1) {
+                  e.currentTarget.style.transition = 'none';
+                  e.currentTarget.style.boxShadow = 'none';
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = 'rgb(156, 163, 175)';
+                }
+              }}
             >
               ‹
             </button>
@@ -363,15 +359,37 @@ const OrdersPlacedTable: React.FC<OrdersPlacedTableProps> = ({
               } else {
                 pageNum = currentPage - 2 + i;
               }
+              const isActive = currentPage === pageNum;
               return (
                 <button
                   key={pageNum}
                   onClick={() => onPageChange(pageNum)}
-                  className={`px-3 py-1 rounded ${
-                    currentPage === pageNum
+                  className={`px-3 py-1 rounded shadow-none transition-none ${
+                    isActive
                       ? 'bg-primary text-white'
-                      : 'text-text-secondary hover:text-text-primary'
+                      : 'text-text-secondary'
                   }`}
+                  style={{
+                    transition: 'none !important',
+                    boxShadow: 'none !important',
+                    WebkitTransition: 'none !important',
+                    MozTransition: 'none !important',
+                    OTransition: 'none !important',
+                    backgroundColor: isActive ? 'rgb(124, 58, 237)' : 'transparent',
+                    color: isActive ? 'rgb(255, 255, 255)' : 'rgb(156, 163, 175)',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transition = 'none';
+                    e.currentTarget.style.boxShadow = 'none';
+                    e.currentTarget.style.backgroundColor = isActive ? 'rgb(124, 58, 237)' : 'transparent';
+                    e.currentTarget.style.color = isActive ? 'rgb(255, 255, 255)' : 'rgb(156, 163, 175)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transition = 'none';
+                    e.currentTarget.style.boxShadow = 'none';
+                    e.currentTarget.style.backgroundColor = isActive ? 'rgb(124, 58, 237)' : 'transparent';
+                    e.currentTarget.style.color = isActive ? 'rgb(255, 255, 255)' : 'rgb(156, 163, 175)';
+                  }}
                 >
                   {pageNum}
                 </button>
@@ -383,7 +401,28 @@ const OrdersPlacedTable: React.FC<OrdersPlacedTableProps> = ({
             {totalPages > 5 && (
               <button
                 onClick={() => onPageChange(totalPages)}
-                className="px-3 py-1 rounded text-text-secondary hover:text-text-primary"
+                className="px-3 py-1 rounded text-text-secondary shadow-none transition-none"
+                style={{
+                  transition: 'none !important',
+                  boxShadow: 'none !important',
+                  WebkitTransition: 'none !important',
+                  MozTransition: 'none !important',
+                  OTransition: 'none !important',
+                  backgroundColor: 'transparent',
+                  color: 'rgb(156, 163, 175)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transition = 'none';
+                  e.currentTarget.style.boxShadow = 'none';
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = 'rgb(156, 163, 175)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transition = 'none';
+                  e.currentTarget.style.boxShadow = 'none';
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = 'rgb(156, 163, 175)';
+                }}
               >
                 {totalPages}
               </button>
@@ -391,14 +430,64 @@ const OrdersPlacedTable: React.FC<OrdersPlacedTableProps> = ({
             <button
               onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
               disabled={currentPage === totalPages}
-              className="px-2 py-1 rounded text-text-secondary hover:text-text-primary disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-2 py-1 rounded text-text-secondary shadow-none transition-none disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                transition: 'none !important',
+                boxShadow: 'none !important',
+                WebkitTransition: 'none !important',
+                MozTransition: 'none !important',
+                OTransition: 'none !important',
+                backgroundColor: 'transparent',
+                color: 'rgb(156, 163, 175)',
+              }}
+              onMouseEnter={(e) => {
+                if (currentPage !== totalPages) {
+                  e.currentTarget.style.transition = 'none';
+                  e.currentTarget.style.boxShadow = 'none';
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = 'rgb(156, 163, 175)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (currentPage !== totalPages) {
+                  e.currentTarget.style.transition = 'none';
+                  e.currentTarget.style.boxShadow = 'none';
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = 'rgb(156, 163, 175)';
+                }
+              }}
             >
               ›
             </button>
             <button
               onClick={() => onPageChange(totalPages)}
               disabled={currentPage === totalPages}
-              className="px-2 py-1 rounded text-text-secondary hover:text-text-primary disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-2 py-1 rounded text-text-secondary shadow-none transition-none disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                transition: 'none !important',
+                boxShadow: 'none !important',
+                WebkitTransition: 'none !important',
+                MozTransition: 'none !important',
+                OTransition: 'none !important',
+                backgroundColor: 'transparent',
+                color: 'rgb(156, 163, 175)',
+              }}
+              onMouseEnter={(e) => {
+                if (currentPage !== totalPages) {
+                  e.currentTarget.style.transition = 'none';
+                  e.currentTarget.style.boxShadow = 'none';
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = 'rgb(156, 163, 175)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (currentPage !== totalPages) {
+                  e.currentTarget.style.transition = 'none';
+                  e.currentTarget.style.boxShadow = 'none';
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = 'rgb(156, 163, 175)';
+                }
+              }}
             >
               »
             </button>

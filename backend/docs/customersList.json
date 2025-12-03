@@ -1,5 +1,34 @@
 [
   {
+    "firstName": "Admin",
+    "lastName": "Admin",
+    "fullName": "Admin",
+    "email": "admin@gmail.com",
+    "password": "$2b$10$sTmq9zUEoiLhDrP60R/mQuR4TvirhIygM9fNMfKNgTPWCt8BqxOI2",
+    "gender": "other",
+    "avatarUrl": "https://i.pravatar.cc/150?img=12",
+    "status": "active",
+    "role": "admin",
+    "provider": "local",
+    "loyalty": {
+      "totalEarned": 0,
+      "currentPoints": 0,
+      "tier": "bronze",
+      "lastAccrualAt": null,
+      "history": []
+    },
+    "addresses": [],
+    "paymentMethods": [],
+    "wishlist": [],
+    "createdAt": {
+      "$date": "2025-11-29T06:31:18.246Z"
+    },
+    "updatedAt": {
+      "$date": "2025-11-29T06:31:18.252Z"
+    },
+    "__v": 0
+  },
+  {
     "_id": {
       "$oid": "691c9a11caaa275d2c7303f4"
     },

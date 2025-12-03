@@ -56,7 +56,6 @@ const AddNewAddressModal: React.FC<AddNewAddressModalProps> = ({
       item.name === searchName || item.code === searchName
     );
     if (match) {
-      console.log(`✅ [${type}] Priority 1 - Exact match:`, searchName, '→', match.name);
       return match;
     }
 
@@ -67,7 +66,6 @@ const AddNewAddressModal: React.FC<AddNewAddressModalProps> = ({
       return itemNameLower === searchNameLower || itemCodeLower === searchNameLower;
     });
     if (match) {
-      console.log(`✅ [${type}] Priority 2 - Case-insensitive match:`, searchName, '→', match.name);
       return match;
     }
 
@@ -77,7 +75,6 @@ const AddNewAddressModal: React.FC<AddNewAddressModalProps> = ({
       return itemNameNormalized === searchNameNormalized;
     });
     if (match) {
-      console.log(`✅ [${type}] Priority 3 - Normalized match:`, searchName, '→', match.name);
       return match;
     }
 
@@ -135,7 +132,6 @@ const AddNewAddressModal: React.FC<AddNewAddressModalProps> = ({
       return false;
     });
     if (match) {
-      console.log(`✅ [${type}] Priority 4 - Prefix removed match:`, searchName, '→', match.name);
       return match;
     }
 
@@ -145,7 +141,6 @@ const AddNewAddressModal: React.FC<AddNewAddressModalProps> = ({
       return itemNameLower.startsWith(searchNameLower) || searchNameLower.startsWith(itemNameLower);
     });
     if (match) {
-      console.log(`✅ [${type}] Priority 5 - Starts with match:`, searchName, '→', match.name);
       return match;
     }
 
@@ -190,10 +185,6 @@ const AddNewAddressModal: React.FC<AddNewAddressModalProps> = ({
         const normalizedSearchWords = searchWords.map(w => normalizeString(w));
         const matchWords = match.name.toLowerCase().split(/\s+/).filter(w => w.length > 2);
         const normalizedMatchWords = matchWords.map(w => normalizeString(w));
-        const matchingWordsCount = normalizedSearchWords.filter(word => 
-          normalizedMatchWords.some(mWord => mWord.includes(word) || word.includes(mWord) || mWord === word)
-        ).length;
-        console.log(`✅ [${type}] Priority 6 - Contains match (${matchingWordsCount} words):`, searchName, '→', match.name);
         return match;
       }
     } else {
@@ -211,12 +202,10 @@ const AddNewAddressModal: React.FC<AddNewAddressModalProps> = ({
         match = matches.reduce((prev, curr) => 
           curr.name.length > prev.name.length ? curr : prev
         );
-        console.log(`✅ [${type}] Priority 6 - Single word contains match:`, searchName, '→', match.name);
         return match;
       }
     }
 
-    console.warn(`❌ [${type}] No match found for:`, searchName);
     return null;
   };
   
@@ -276,7 +265,6 @@ const AddNewAddressModal: React.FC<AddNewAddressModalProps> = ({
   // Pre-load all data when initialData is available (before modal opens)
   useEffect(() => {
     if (initialData && addressId) {
-      console.log('🔄 Pre-loading edit data - Full initialData:', JSON.stringify(initialData, null, 2));
       
       // Store original country value (could be code or name)
       const countryValue = initialData.country || '';
@@ -322,13 +310,9 @@ const AddNewAddressModal: React.FC<AddNewAddressModalProps> = ({
               });
               if (countryObj) {
                 countryCode = countryObj.code;
-                console.log('✅ Pre-loaded country code:', countryCode, 'for name:', countryValue);
               }
             } else {
               const countryObj = countriesData.find((c: any) => c.code === countryValue);
-              if (countryObj) {
-                console.log('✅ Pre-loaded country code verified:', countryCode);
-              }
             }
           }
           
@@ -349,9 +333,6 @@ const AddNewAddressModal: React.FC<AddNewAddressModalProps> = ({
               const cityObj = findBestMatch(cityName, citiesData, 'city');
               if (cityObj) {
                 cityCode = cityObj.code;
-                console.log('✅ Pre-loaded city code:', cityCode, 'for name:', cityName);
-              } else {
-                console.warn('⚠️ Pre-load: City not found:', cityName);
               }
             }
             
@@ -376,9 +357,6 @@ const AddNewAddressModal: React.FC<AddNewAddressModalProps> = ({
                 const districtObj = findBestMatch(districtName, districtsData, 'district');
                 if (districtObj) {
                   districtCode = districtObj.code;
-                  console.log('✅ Pre-loaded district code:', districtCode, 'for name:', districtName);
-                } else {
-                  console.warn('⚠️ Pre-load: District not found:', districtName, 'Available:', districtsData.map(d => d.name).slice(0, 5));
                 }
               }
               
@@ -400,11 +378,6 @@ const AddNewAddressModal: React.FC<AddNewAddressModalProps> = ({
                 // 8. Find and set ward code
                 if (wardsData.length > 0 && wardName) {
                   const wardObj = findBestMatch(wardName, wardsData, 'ward');
-                  if (wardObj) {
-                    console.log('✅ Pre-loaded ward code:', wardObj.code, 'for name:', wardName);
-                  } else {
-                    console.warn('⚠️ Pre-load: Ward not found:', wardName);
-                  }
                 }
               } else if (!districtName && cityCode) {
                 // Try to load wards directly from city if no district
@@ -422,10 +395,7 @@ const AddNewAddressModal: React.FC<AddNewAddressModalProps> = ({
               }
             }
           }
-          
-          console.log('✅ Pre-loading completed');
         } catch (err) {
-          console.error('❌ Error pre-loading data:', err);
         }
       };
       
@@ -436,7 +406,6 @@ const AddNewAddressModal: React.FC<AddNewAddressModalProps> = ({
   // Fill form with address data when modal opens or initialData changes (similar to EditUserInformationModal)
   useEffect(() => {
     if (initialData && isOpen && addressId) {
-      console.log('Loading edit data - Full initialData:', JSON.stringify(initialData, null, 2));
       
       // Store original country value (could be code or name)
       const countryValue = initialData.country || '';
@@ -450,20 +419,6 @@ const AddNewAddressModal: React.FC<AddNewAddressModalProps> = ({
       // label can be 'Home', 'home', 'Office', 'office', etc.
       const label = initialData.label || '';
       const addressType = label.toLowerCase() === 'home' ? 'home' : 'office';
-      
-      console.log('Extracted values:', {
-        countryValue,
-        cityName,
-        districtName,
-        wardName,
-        phone: initialData.phone,
-        addressLine1: initialData.addressLine1,
-        addressLine2: initialData.addressLine2,
-        notes: initialData.notes,
-        label: label,
-        addressType: addressType,
-        useAsBilling: initialData.type === 'billing',
-      });
       
       // Store original values for matching
       setEditModeNames({
@@ -543,7 +498,6 @@ const AddNewAddressModal: React.FC<AddNewAddressModalProps> = ({
         useAsBilling: initialData.type === 'billing',
       };
       
-      console.log('Setting formData with pre-loaded codes:', newFormData);
       setFormData(newFormData);
       setError(null);
     } else if (isOpen && !initialData) {
@@ -571,15 +525,12 @@ const AddNewAddressModal: React.FC<AddNewAddressModalProps> = ({
       setLoadingOptions((prev) => ({ ...prev, countries: true }));
       try {
         const response = await fetchCountries();
-        console.log('Countries API response:', response);
         // API client returns data directly, which is { success: true, data: [...] }
         let countriesData: Array<{ code: string; name: string }> = [];
         if (response?.success && response?.data && Array.isArray(response.data)) {
           countriesData = response.data;
         } else if (Array.isArray(response)) {
           countriesData = response;
-        } else {
-          console.warn('Unexpected countries response format:', response);
         }
         
         setCountries(countriesData);
@@ -607,23 +558,14 @@ const AddNewAddressModal: React.FC<AddNewAddressModalProps> = ({
             });
             
             if (countryObj) {
-              console.log('✅ Found country code:', countryObj.code, 'for name:', countryValue);
               setFormData((prev) => ({ ...prev, country: countryObj.code }));
-            } else {
-              console.warn('❌ Country not found:', countryValue, 'in countries:', countriesData.map(c => `${c.name} (${c.code})`));
             }
           } else {
             // It's already a code, verify it exists
             const countryObj = countriesData.find((c: any) => c.code === countryValue);
-            if (!countryObj) {
-              console.warn('❌ Country code not found:', countryValue, 'in countries');
-            } else {
-              console.log('✅ Country code verified:', countryValue, '=', countryObj.name);
-            }
           }
         }
       } catch (err) {
-        console.error('Failed to load countries:', err);
         setError('Failed to load countries. Please try again.');
         setCountries([]);
       } finally {
@@ -647,7 +589,6 @@ const AddNewAddressModal: React.FC<AddNewAddressModalProps> = ({
       setLoadingOptions((prev) => ({ ...prev, cities: true }));
       try {
         const response = await fetchCitiesByCountry(formData.country);
-        console.log('Cities API response:', response);
         let citiesData: Array<{ code: string; name: string; provinceCode?: string }> = [];
         if (response?.success && response?.data && Array.isArray(response.data)) {
           citiesData = response.data;
@@ -659,23 +600,19 @@ const AddNewAddressModal: React.FC<AddNewAddressModalProps> = ({
         
         // If in edit mode and we have a city name, find and set the city code
         if (isEditMode && editModeNames.city && citiesData.length > 0) {
-          console.log('🔍 Trying to match city:', editModeNames.city, 'with', citiesData.length, 'cities');
           const cityObj = findBestMatch(editModeNames.city, citiesData, 'city');
           
           if (cityObj) {
-            console.log('✅ City matched:', editModeNames.city, '→', cityObj.name, '(', cityObj.code, ')');
             setFormData((prev) => ({
               ...prev,
               city: cityObj.code,
             }));
           } else {
-            console.warn('❌ City not found:', editModeNames.city, 'in cities:', citiesData.map(c => `${c.name} (${c.code})`));
             // Keep city name in formData if no match found
             setFormData((prev) => ({ ...prev, city: editModeNames.city || '' }));
           }
         }
       } catch (err) {
-        console.error('Failed to load cities:', err);
         setCities([]);
       } finally {
         setLoadingOptions((prev) => ({ ...prev, cities: false }));
@@ -698,7 +635,6 @@ const AddNewAddressModal: React.FC<AddNewAddressModalProps> = ({
 
       // Wait for cities to load first
       if (cities.length === 0) {
-        console.log('Waiting for cities to load before fetching districts...');
         return;
       }
 
@@ -706,7 +642,6 @@ const AddNewAddressModal: React.FC<AddNewAddressModalProps> = ({
       const cityObj = cities.find(c => c.code === formData.city || c.name === formData.city);
       
       if (!cityObj) {
-        console.log('City not found in cities list, waiting...', formData.city);
         return;
       }
 
@@ -715,24 +650,19 @@ const AddNewAddressModal: React.FC<AddNewAddressModalProps> = ({
       
       // If city is still a name, wait for city code to be set by the match logic
       if (formData.city !== cityCode && formData.city === cityObj.name) {
-        console.log('City is still a name, waiting for code to be set...', formData.city, '->', cityCode);
         return;
       }
 
       // Verify we have a valid city code before proceeding
       if (!cityCode) {
-        console.warn('No city code found for:', formData.city);
         return;
       }
-
-      console.log('✅ Loading districts for city code:', cityCode, 'city name:', cityObj.name);
 
       // Show loading for all countries to check availability
       setLoadingOptions((prev) => ({ ...prev, districts: true }));
       
       try {
         const response = await fetchDistrictsByCity(formData.country, cityCode);
-        console.log('Districts API response:', response);
         let districtsData: Array<{ code: string; name: string }> = [];
         
         if (response?.success && response?.data && Array.isArray(response.data)) {
@@ -741,19 +671,15 @@ const AddNewAddressModal: React.FC<AddNewAddressModalProps> = ({
           districtsData = response;
         }
         
-        console.log('Districts data:', districtsData.length, 'districts found');
         setDistricts(districtsData);
         
         // If in edit mode and we have a district name, find and set the district code
         if (isEditMode && editModeNames.district && districtsData.length > 0) {
-          console.log('🔍 Trying to match district:', editModeNames.district, 'with', districtsData.length, 'districts');
           const districtObj = findBestMatch(editModeNames.district, districtsData, 'district');
           
           if (districtObj) {
-            console.log('✅ District matched:', editModeNames.district, '→', districtObj.name, '(', districtObj.code, ')');
             setFormData((prev) => ({ ...prev, district: districtObj.code }));
           } else {
-            console.warn('❌ District not found:', editModeNames.district, 'in districts:', districtsData.map(d => `${d.name} (${d.code})`));
             // Try to keep the district name in formData if no match found (user can see it)
             setFormData((prev) => ({ ...prev, district: editModeNames.district || '' }));
           }
@@ -761,7 +687,6 @@ const AddNewAddressModal: React.FC<AddNewAddressModalProps> = ({
         
         // If districts array is empty, disable districts and wards
         const hasDistricts = districtsData.length > 0;
-        console.log('Has districts:', hasDistricts);
         setFeaturesAvailable((prev) => ({ 
           ...prev, 
           districts: hasDistricts,
@@ -773,7 +698,6 @@ const AddNewAddressModal: React.FC<AddNewAddressModalProps> = ({
           setFormData((prev) => ({ ...prev, district: '', ward: '' }));
         }
       } catch (err) {
-        console.error('Failed to load districts:', err);
         setDistricts([]);
         setFeaturesAvailable((prev) => ({ ...prev, districts: false, wards: false }));
       } finally {
@@ -796,13 +720,11 @@ const AddNewAddressModal: React.FC<AddNewAddressModalProps> = ({
 
       // Wait for cities to load first and get city code
       if (cities.length === 0) {
-        console.log('Waiting for cities to load before fetching wards...');
         return;
       }
 
       const cityObj = cities.find(c => c.code === formData.city || c.name === formData.city);
       if (!cityObj || formData.city !== cityObj.code) {
-        console.log('Waiting for city code to be set before fetching wards...', formData.city);
         return;
       }
       const cityCode = cityObj.code;
@@ -820,14 +742,12 @@ const AddNewAddressModal: React.FC<AddNewAddressModalProps> = ({
       if (featuresAvailable.districts && formData.district) {
         // Wait for districts to load first
         if (districts.length === 0) {
-          console.log('Waiting for districts to load before fetching wards...');
           return;
         }
 
         const districtObj = districts.find(d => d.code === formData.district || d.name === formData.district);
         
         if (!districtObj) {
-          console.log('District not found in districts list, waiting...', formData.district);
           return;
         }
 
@@ -835,16 +755,12 @@ const AddNewAddressModal: React.FC<AddNewAddressModalProps> = ({
         
         // If district is still a name, wait for district code to be set
         if (formData.district !== districtCode && formData.district === districtObj.name) {
-          console.log('District is still a name, waiting for code to be set...', formData.district, '->', districtCode);
           return;
         }
 
         if (!districtCode) {
-          console.warn('No district code found for:', formData.district);
           return;
         }
-
-        console.log('✅ Loading wards for district code:', districtCode, 'district name:', districtObj.name);
       }
 
       // Show loading
@@ -862,7 +778,6 @@ const AddNewAddressModal: React.FC<AddNewAddressModalProps> = ({
           );
         } else {
           // If no districts, try to fetch wards directly from city
-          console.log('✅ Loading wards for city code:', cityCode, 'city name:', cityObj.name);
           response = await fetchWardsByDistrict(
             formData.country,
             cityCode,
@@ -881,14 +796,11 @@ const AddNewAddressModal: React.FC<AddNewAddressModalProps> = ({
         
         // If in edit mode and we have a ward name, find and set the ward code
         if (isEditMode && editModeNames.ward && wardsData.length > 0) {
-          console.log('🔍 Trying to match ward:', editModeNames.ward, 'with', wardsData.length, 'wards');
           const wardObj = findBestMatch(editModeNames.ward, wardsData, 'ward');
           
           if (wardObj) {
-            console.log('✅ Ward matched:', editModeNames.ward, '→', wardObj.name, '(', wardObj.code, ')');
             setFormData((prev) => ({ ...prev, ward: wardObj.code }));
           } else {
-            console.warn('❌ Ward not found:', editModeNames.ward, 'in wards:', wardsData.map(w => `${w.name} (${w.code})`));
             // Try to keep the ward name in formData if no match found (user can see it)
             setFormData((prev) => ({ ...prev, ward: editModeNames.ward || '' }));
           }
@@ -906,7 +818,6 @@ const AddNewAddressModal: React.FC<AddNewAddressModalProps> = ({
           setFormData((prev) => ({ ...prev, ward: '' }));
         }
       } catch (err) {
-        console.error('Failed to load wards:', err);
         setWards([]);
         // If no districts available, still enable wards field (user can enter manually)
         const shouldEnableWards = !featuresAvailable.districts;
@@ -927,22 +838,18 @@ const AddNewAddressModal: React.FC<AddNewAddressModalProps> = ({
       
       // If city is already a valid code, no need to re-match
       if (cityIsValidCode) {
-        console.log('✅ City is already a valid code:', formData.city);
         return;
       }
       
       // If city is not a valid code (could be name or invalid code), try to match it
-      console.log('🔄 Re-matching city. Current value:', formData.city, 'Original name:', editModeNames.city);
       const cityObj = findBestMatch(editModeNames.city, cities, 'city');
       
       if (cityObj) {
-        console.log('✅ Re-matched city:', editModeNames.city, '→', cityObj.name, '(', cityObj.code, ')');
         setFormData((prev) => ({
           ...prev,
           city: cityObj.code,
         }));
       } else {
-        console.warn('❌ Could not re-match city:', editModeNames.city, 'in cities:', cities.map(c => `${c.name} (${c.code})`));
         // Keep the original name if no match found
         if (formData.city !== editModeNames.city) {
           setFormData((prev) => ({
@@ -962,22 +869,18 @@ const AddNewAddressModal: React.FC<AddNewAddressModalProps> = ({
       
       // If district is already a valid code, no need to re-match
       if (districtIsValidCode) {
-        console.log('✅ District is already a valid code:', formData.district);
         return;
       }
       
       // If district is not a valid code (could be name or invalid code), try to match it
-      console.log('🔄 Re-matching district. Current value:', formData.district, 'Original name:', editModeNames.district);
       const districtObj = findBestMatch(editModeNames.district, districts, 'district');
       
       if (districtObj) {
-        console.log('✅ Re-matched district:', editModeNames.district, '→', districtObj.name, '(', districtObj.code, ')');
         setFormData((prev) => ({
           ...prev,
           district: districtObj.code,
         }));
       } else {
-        console.warn('❌ Could not re-match district:', editModeNames.district, 'in districts:', districts.map(d => `${d.name} (${d.code})`));
         // Keep the original name if no match found
         if (formData.district !== editModeNames.district) {
           setFormData((prev) => ({
@@ -997,22 +900,18 @@ const AddNewAddressModal: React.FC<AddNewAddressModalProps> = ({
       
       // If ward is already a valid code, no need to re-match
       if (wardIsValidCode) {
-        console.log('✅ Ward is already a valid code:', formData.ward);
         return;
       }
       
       // If ward is not a valid code (could be name or invalid code), try to match it
-      console.log('🔄 Re-matching ward. Current value:', formData.ward, 'Original name:', editModeNames.ward);
       const wardObj = findBestMatch(editModeNames.ward, wards, 'ward');
       
       if (wardObj) {
-        console.log('✅ Re-matched ward:', editModeNames.ward, '→', wardObj.name, '(', wardObj.code, ')');
         setFormData((prev) => ({
           ...prev,
           ward: wardObj.code,
         }));
       } else {
-        console.warn('❌ Could not re-match ward:', editModeNames.ward, 'in wards:', wards.map(w => `${w.name} (${w.code})`));
         // Keep the original name if no match found
         if (formData.ward !== editModeNames.ward) {
           setFormData((prev) => ({
@@ -1092,11 +991,7 @@ const AddNewAddressModal: React.FC<AddNewAddressModalProps> = ({
     e.preventDefault();
     e.stopPropagation();
     
-    console.log('🔵 Submit button clicked. Form data:', formData);
-    console.log('🔵 Loading state:', loading);
-    
     if (loading) {
-      console.warn('⚠️ Already submitting, ignoring click');
       return;
     }
     
@@ -1114,8 +1009,6 @@ const AddNewAddressModal: React.FC<AddNewAddressModalProps> = ({
         setLoading(false);
         return;
       }
-      
-      console.log('✅ Validation passed. Proceeding with submit...');
 
       // Helper to get name from code or keep name if already a name
       const getCountryName = () => {
@@ -1205,21 +1098,6 @@ const AddNewAddressModal: React.FC<AddNewAddressModalProps> = ({
         return;
       }
 
-      console.log('📝 Submitting address data:', {
-        original: {
-          country: formData.country,
-          city: formData.city,
-          district: formData.district,
-          ward: formData.ward,
-        },
-        resolved: {
-          country: countryName || formData.country,
-          city: cityName,
-          district: districtName,
-          ward: wardName,
-        },
-      });
-
       const addressData = {
         type: formData.type === 'home' ? 'shipping' : 'shipping', // Will be set to 'billing' if useAsBilling is true
         label: formData.type === 'home' ? 'Home' : 'Office',
@@ -1235,12 +1113,9 @@ const AddNewAddressModal: React.FC<AddNewAddressModalProps> = ({
         isDefault: isEditMode ? initialData?.isDefault : false, // Keep existing isDefault in edit mode
       };
 
-      console.log('📤 Calling onSubmit with:', { addressData, addressId });
       await onSubmit(addressData, addressId);
-      console.log('✅ onSubmit completed successfully');
       onClose();
     } catch (err: any) {
-      console.error('❌ Error in handleSubmit:', err);
       setError(err?.message || 'Failed to add address');
       setLoading(false);
     }
@@ -1263,8 +1138,26 @@ const AddNewAddressModal: React.FC<AddNewAddressModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="text-text-secondary hover:text-text-primary transition-colors"
+            className="text-text-secondary"
             aria-label="Close modal"
+            style={{
+              transition: 'none !important',
+              boxShadow: 'none !important',
+              WebkitTransition: 'none !important',
+              MozTransition: 'none !important',
+              OTransition: 'none !important',
+              backgroundColor: 'transparent',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transition = 'none';
+              e.currentTarget.style.boxShadow = 'none';
+              e.currentTarget.style.backgroundColor = 'transparent';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transition = 'none';
+              e.currentTarget.style.boxShadow = 'none';
+              e.currentTarget.style.backgroundColor = 'transparent';
+            }}
           >
             <X size={24} />
           </button>
@@ -1287,11 +1180,43 @@ const AddNewAddressModal: React.FC<AddNewAddressModalProps> = ({
               <button
                 type="button"
                 onClick={() => handleChange('type', 'home')}
-                className={`p-4 rounded-lg border-2 transition-all ${
+                className={`p-4 rounded-lg border-2 ${
                   formData.type === 'home'
                     ? 'border-primary bg-primary/10'
-                    : 'border-gray-600 bg-background-dark hover:border-gray-500'
+                    : 'border-gray-600 bg-background-dark'
                 }`}
+                style={{
+                  transition: 'none !important',
+                  boxShadow: 'none !important',
+                  WebkitTransition: 'none !important',
+                  MozTransition: 'none !important',
+                  OTransition: 'none !important',
+                  msTransition: 'none !important',
+                  backgroundColor: formData.type === 'home' ? 'rgba(124, 58, 237, 0.1)' : 'rgb(23, 23, 23)',
+                  borderColor: formData.type === 'home' ? '#7c3aed' : 'rgb(75, 85, 99)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transition = 'none';
+                  e.currentTarget.style.boxShadow = 'none';
+                  if (formData.type === 'home') {
+                    e.currentTarget.style.backgroundColor = 'rgba(124, 58, 237, 0.1)';
+                    e.currentTarget.style.borderColor = '#7c3aed';
+                  } else {
+                    e.currentTarget.style.backgroundColor = 'rgb(23, 23, 23)';
+                    e.currentTarget.style.borderColor = 'rgb(75, 85, 99)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transition = 'none';
+                  e.currentTarget.style.boxShadow = 'none';
+                  if (formData.type === 'home') {
+                    e.currentTarget.style.backgroundColor = 'rgba(124, 58, 237, 0.1)';
+                    e.currentTarget.style.borderColor = '#7c3aed';
+                  } else {
+                    e.currentTarget.style.backgroundColor = 'rgb(23, 23, 23)';
+                    e.currentTarget.style.borderColor = 'rgb(75, 85, 99)';
+                  }
+                }}
               >
                 <div className="flex items-center gap-3">
                   <div
@@ -1318,11 +1243,43 @@ const AddNewAddressModal: React.FC<AddNewAddressModalProps> = ({
               <button
                 type="button"
                 onClick={() => handleChange('type', 'office')}
-                className={`p-4 rounded-lg border-2 transition-all ${
+                className={`p-4 rounded-lg border-2 ${
                   formData.type === 'office'
                     ? 'border-primary bg-primary/10'
-                    : 'border-gray-600 bg-background-dark hover:border-gray-500'
+                    : 'border-gray-600 bg-background-dark'
                 }`}
+                style={{
+                  transition: 'none !important',
+                  boxShadow: 'none !important',
+                  WebkitTransition: 'none !important',
+                  MozTransition: 'none !important',
+                  OTransition: 'none !important',
+                  msTransition: 'none !important',
+                  backgroundColor: formData.type === 'office' ? 'rgba(124, 58, 237, 0.1)' : 'rgb(23, 23, 23)',
+                  borderColor: formData.type === 'office' ? '#7c3aed' : 'rgb(75, 85, 99)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transition = 'none';
+                  e.currentTarget.style.boxShadow = 'none';
+                  if (formData.type === 'office') {
+                    e.currentTarget.style.backgroundColor = 'rgba(124, 58, 237, 0.1)';
+                    e.currentTarget.style.borderColor = '#7c3aed';
+                  } else {
+                    e.currentTarget.style.backgroundColor = 'rgb(23, 23, 23)';
+                    e.currentTarget.style.borderColor = 'rgb(75, 85, 99)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transition = 'none';
+                  e.currentTarget.style.boxShadow = 'none';
+                  if (formData.type === 'office') {
+                    e.currentTarget.style.backgroundColor = 'rgba(124, 58, 237, 0.1)';
+                    e.currentTarget.style.borderColor = '#7c3aed';
+                  } else {
+                    e.currentTarget.style.backgroundColor = 'rgb(23, 23, 23)';
+                    e.currentTarget.style.borderColor = 'rgb(75, 85, 99)';
+                  }
+                }}
               >
                 <div className="flex items-center gap-3">
                   <div
@@ -1477,7 +1434,29 @@ const AddNewAddressModal: React.FC<AddNewAddressModalProps> = ({
             <button
               type="submit"
               disabled={loading}
-              className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-2 bg-primary text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                transition: 'none !important',
+                boxShadow: 'none !important',
+                WebkitTransition: 'none !important',
+                MozTransition: 'none !important',
+                OTransition: 'none !important',
+                msTransition: 'none !important',
+                backgroundColor: '#7c3aed',
+                color: 'rgb(255, 255, 255)',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transition = 'none';
+                e.currentTarget.style.boxShadow = 'none';
+                e.currentTarget.style.backgroundColor = '#7c3aed';
+                e.currentTarget.style.color = 'rgb(255, 255, 255)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transition = 'none';
+                e.currentTarget.style.boxShadow = 'none';
+                e.currentTarget.style.backgroundColor = '#7c3aed';
+                e.currentTarget.style.color = 'rgb(255, 255, 255)';
+              }}
             >
               {loading ? 'Submitting...' : 'Submit'}
             </button>
@@ -1485,7 +1464,29 @@ const AddNewAddressModal: React.FC<AddNewAddressModalProps> = ({
               type="button"
               onClick={onClose}
               disabled={loading}
-              className="px-6 py-2 bg-background-dark text-text-secondary rounded-lg hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-2 bg-background-dark text-text-secondary rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                transition: 'none !important',
+                boxShadow: 'none !important',
+                WebkitTransition: 'none !important',
+                MozTransition: 'none !important',
+                OTransition: 'none !important',
+                msTransition: 'none !important',
+                backgroundColor: 'rgb(23, 23, 23)',
+                color: 'rgb(156, 163, 175)',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transition = 'none';
+                e.currentTarget.style.boxShadow = 'none';
+                e.currentTarget.style.backgroundColor = 'rgb(23, 23, 23)';
+                e.currentTarget.style.color = 'rgb(156, 163, 175)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transition = 'none';
+                e.currentTarget.style.boxShadow = 'none';
+                e.currentTarget.style.backgroundColor = 'rgb(23, 23, 23)';
+                e.currentTarget.style.color = 'rgb(156, 163, 175)';
+              }}
             >
               Cancel
             </button>

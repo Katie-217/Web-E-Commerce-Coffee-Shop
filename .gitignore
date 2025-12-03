@@ -44,3 +44,4 @@ Thumbs.db
 
 # Misc
 *.tgz
+backend/.env.docker

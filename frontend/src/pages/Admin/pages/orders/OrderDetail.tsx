@@ -396,9 +396,9 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order, onBack, onRefresh }) =
                             )}
                           </div>
                         </td>
-                        <td className="p-3 text-text-secondary text-center">{formatVND(item.price || 0)}</td>
+                        <td className="p-3 text-text-secondary text-center whitespace-nowrap">{formatVND(item.price || 0)}</td>
                         <td className="p-3 text-text-secondary text-center">{item.quantity || 1}</td>
-                        <td className="p-3 text-text-secondary text-right">{formatVND((item.price || 0) * (item.quantity || 1))}</td>
+                        <td className="p-3 text-text-secondary text-right whitespace-nowrap">{formatVND((item.price || 0) * (item.quantity || 1))}</td>
                       </tr>
                     ))
                   ) : (
@@ -411,56 +411,96 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order, onBack, onRefresh }) =
                 </tbody>
               </table>
             </div>
-            <div className="mt-4 pt-4 border-t border-gray-700 space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-text-secondary">Subtotal:</span>
-                <span className="text-text-primary font-medium">{formatVND(order.subtotal || 0)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-text-secondary">Loyalty Points Used:</span>
-                <span className="text-text-primary font-medium">
-                  {(order.pointsUsed || 0)} points
-                  {order.pointsUsed > 0 && (
-                    <span className="text-xs text-text-secondary ml-2">
-                      (giảm {formatVND(order.pointsUsed * 1000)})
+            {(() => {
+              // Logic Loyalty: 
+              // - Điểm tích = 10% giá trị đơn hàng (không tính phí khác như shipping)
+              // - Giá trị đơn hàng = subtotal - discount (nếu có)
+              // - Mặc định 1 point ~ 1đ (dùng thẳng để giảm giá các đơn sau)
+              const rawSubtotal = Number(order.subtotal) || 0;
+              const rawDiscount = Number(order.discount) || 0;
+
+              // Điểm đã dùng (nếu backend có lưu) hoặc suy ra từ discount (1 point = 1đ)
+              const rawPointsUsed = Number((order as any).pointsUsed ?? 0);
+              const inferredPointsFromDiscount =
+                rawDiscount !== 0 ? Math.round(Math.abs(rawDiscount)) : 0;
+              const pointsUsed = rawPointsUsed || inferredPointsFromDiscount;
+
+              // Discount hiển thị: ưu tiên số tiền từ backend, nếu không có thì lấy theo pointsUsed
+              const displayDiscount =
+                rawDiscount !== 0
+                  ? `-${formatVND(Math.abs(rawDiscount))}`
+                  : pointsUsed > 0
+                    ? `-${formatVND(pointsUsed)}`
+                    : formatVND(0);
+
+              // Điểm tích được: 10% * total, 1 point = 1 VND
+              const orderTotal = Number(order.total) || 0;
+              const calculatedPointsEarned = Math.floor(orderTotal * 0.1); // 10%, 1 point = 1 VND
+
+              // Nếu backend đã tính sẵn pointsEarned thì ưu tiên dùng, ngược lại dùng công thức trên
+              const rawPointsEarned = Number((order as any).pointsEarned ?? 0);
+              const effectivePointsEarned = rawPointsEarned || calculatedPointsEarned;
+
+              return (
+                <div className="mt-4 pt-4 border-t border-gray-700 space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-text-secondary">Subtotal:</span>
+                    <span className="text-text-primary font-medium whitespace-nowrap">
+                      {formatVND(rawSubtotal)}
                     </span>
-                  )}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-text-secondary">Discount:</span>
-                <span className="text-text-primary font-medium">
-                  {order.discount > 0 ? `-${formatVND(Math.abs(order.discount))}` : formatVND(0)}
-                  {order.pointsUsed > 0 && order.discount > 0 && (
-                    <span className="text-xs text-text-secondary ml-2">
-                      (từ {order.pointsUsed} points)
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-text-secondary">Loyalty Points Used:</span>
+                    <span className="text-text-primary font-medium">
+                      {pointsUsed} points
+                      {pointsUsed > 0 && (
+                        <span className="text-xs text-text-secondary ml-2 whitespace-nowrap">
+                          (giảm {formatVND(pointsUsed)})
+                        </span>
+                      )}
                     </span>
-                  )}
-                </span>
-              </div>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-text-secondary">Discount:</span>
+                    <span className="text-text-primary font-medium whitespace-nowrap">
+                      {displayDiscount}
+                      {pointsUsed > 0 && (
+                        <span className="text-xs text-text-secondary ml-2">
+                          (từ {pointsUsed} points)
+                        </span>
+                      )}
+                    </span>
+                  </div>
               <div className="flex justify-between">
                 <span className="text-text-secondary">Shipping Fee:</span>
-                <span className="text-text-primary font-medium">{formatVND(order.shippingFee || 0)}</span>
+                <span className="text-text-primary font-medium whitespace-nowrap">
+                  {formatVND(order.shippingFee || 0)}
+                </span>
               </div>
-              <div className="flex justify-between pt-2 border-t border-gray-700 font-bold text-lg">
-                <span className="text-text-primary font-semibold">Total:</span>
-                <span className="text-text-primary font-medium">{formatVND(order.total || 0)}</span>
-              </div>
-              {/* Show Points Earned for paid orders (not just delivered) */}
-              {order.paymentStatus && (order.paymentStatus === 'Paid' || order.paymentStatus?.toLowerCase() === 'paid') && (
-                <div className="flex justify-between pt-2 border-t border-gray-700 mt-2">
-                  <span className="text-text-secondary">Points Earned:</span>
-                  <span className="text-green-400 font-medium">
-                    +{(order.pointsEarned || 0)} points
-                    {order.pointsEarned > 0 && (
-                      <span className="text-xs text-text-secondary ml-2">
-                        (trị giá {formatVND((order.pointsEarned || 0) * 1000)})
-                      </span>
+                  <div className="flex justify-between pt-2 border-t border-gray-700 font-bold text-lg">
+                    <span className="text-text-primary font-semibold">Total:</span>
+                    <span className="text-text-primary font-medium whitespace-nowrap">
+                      {formatVND(order.total || 0)}
+                    </span>
+                  </div>
+                  {/* Points Earned – chỉ hiển thị khi đơn hàng thành công (delivered) */}
+                  {order.status &&
+                    String(order.status).toLowerCase() === 'delivered' && (
+                      <div className="flex justify-between pt-2 border-t border-gray-700 mt-2">
+                        <span className="text-text-secondary">Points Earned:</span>
+                        <span className="text-green-400 font-medium">
+                          +{effectivePointsEarned.toLocaleString('vi-VN')} points
+                          {effectivePointsEarned > 0 && (
+                            <span className="text-xs text-text-secondary ml-2 whitespace-nowrap">
+                              (trị giá {formatVND(effectivePointsEarned)})
+                            </span>
+                          )}
+                        </span>
+                      </div>
                     )}
-                  </span>
                 </div>
-              )}
-            </div>
+              );
+            })()}
           </div>
 
           {/* Shipping Activity */}
@@ -779,25 +819,82 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order, onBack, onRefresh }) =
           <div className="bg-background-light p-6 rounded-lg shadow-lg">
             <h2 className="text-xl font-bold text-text-primary mb-1">Payment</h2>
             {(() => {
-              const pmType = String(((order as any).paymentType || order.paymentMethod?.type || '')).toLowerCase();
-              const pm: any = (order as any).paymentMethod || order.paymentMethod;
+              const rawPm: any =
+                (order as any).paymentMethod !== undefined
+                  ? (order as any).paymentMethod
+                  : order.paymentMethod;
+
+              // Chuẩn hoá type từ dữ liệu thực tế trong Mongo
+              let pmType = '';
+              if (typeof rawPm === 'string') {
+                pmType = rawPm.toLowerCase();
+              } else if (rawPm?.type) {
+                pmType = String(rawPm.type).toLowerCase();
+              } else if ((order as any).paymentType) {
+                pmType = String((order as any).paymentType).toLowerCase();
+              }
+
+              // Map ra label dễ đọc
+              const typeLabelMap: Record<string, string> = {
+                cod: 'Cash on delivery',
+                cash: 'Cash',
+                vnpay: 'VNPay / Internet Banking',
+                momo: 'MoMo',
+                zalopay: 'ZaloPay',
+                paypal: 'PayPal',
+                card: 'Card',
+                credit: 'Credit card',
+                debit: 'Debit card',
+                bank: 'Bank transfer',
+                banking: 'Bank transfer',
+                transfer: 'Bank transfer',
+              };
+
+              const normalizedType = pmType || (typeof rawPm === 'string' ? rawPm.toLowerCase() : '');
+              const displayLabel =
+                (normalizedType && typeLabelMap[normalizedType]) ||
+                (normalizedType ? normalizedType.toUpperCase() : '-');
+
+              const pm = typeof rawPm === 'string' ? { type: normalizedType } : rawPm || {};
+
               return (
                 <div className="space-y-1 text-sm text-text-secondary">
-                  <p>Payment Type: <span className="text-text-primary">{pmType || '-'}</span></p>
-                  {pmType === 'bank' && (
+                  <p>
+                    Method:{' '}
+                    <span className="text-text-primary">
+                      {displayLabel}
+                    </span>
+                  </p>
+
+                  {/* Thông tin chi tiết thêm cho một số loại thanh toán nếu có dữ liệu */}
+                  {['bank', 'banking', 'transfer'].includes(normalizedType) && (
                     <>
-                      <p>Linked Bank: <span className="text-text-primary">{pm?.provider || '-'}</span></p>
-                      <p>Card Number: <span className="text-text-primary">{pm?.last4 ? `******${pm.last4}` : '-'}</span></p>
+                      <p>
+                        Linked Bank:{' '}
+                        <span className="text-text-primary">{pm.provider || pm.bankName || '-'}</span>
+                      </p>
+                      <p>
+                        Account / Card:{' '}
+                        <span className="text-text-primary">
+                          {pm.last4 ? `******${pm.last4}` : pm.accountNumber || '-'}
+                        </span>
+                      </p>
                     </>
                   )}
-                  {pmType === 'card' && (
+
+                  {['card', 'credit', 'debit'].includes(normalizedType) && (
                     <>
-                      <p>Brand: <span className="text-text-primary">{pm?.brand || '-'}</span></p>
-                      <p>Card Number: <span className="text-text-primary">{pm?.last4 ? `******${pm.last4}` : '-'}</span></p>
+                      <p>
+                        Brand:{' '}
+                        <span className="text-text-primary">{pm.brand || '-'}</span>
+                      </p>
+                      <p>
+                        Card Number:{' '}
+                        <span className="text-text-primary">
+                          {pm.last4 ? `******${pm.last4}` : '-'}
+                        </span>
+                      </p>
                     </>
-                  )}
-                  {pmType === 'cash' && (
-                    <p>Method: <span className="text-text-primary">Cash</span></p>
                   )}
                 </div>
               );

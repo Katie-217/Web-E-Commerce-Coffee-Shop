@@ -1,0 +1,45 @@
+services:
+  mongo:
+    image: mongo:6
+    container_name: coffee-mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_DATABASE: CoffeeDB
+    volumes:
+      - mongo_data:/data/db
+    ports:
+      - "27017:27017"
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: coffee-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      MONGO_URI: mongodb://mongo:27017/CoffeeDB
+      FRONTEND_URL: http://localhost:3000
+      JWT_SECRET: dev-secret-key
+    depends_on:
+      - mongo
+    ports:
+      - "3001:3001"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: coffee-frontend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      REACT_APP_API_BASE_URL: http://localhost:3001
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"
+
+volumes:
+  mongo_data:

@@ -7,6 +7,7 @@ import { fetchCustomerById } from '../../../../api/customers';
 
 interface OrdersProps {
   initialOrderId?: string | null;
+  initialOrderData?: any | null;
   fromCustomer?: boolean;
   onOrderClose?: () => void;
   onBackToCustomer?: () => void;
@@ -174,12 +175,16 @@ const adaptOrderDetail = (o: any): OrderDetailType => {
   } as any;
 };
 
-const Orders: React.FC<OrdersProps> = ({ initialOrderId = null, fromCustomer = false, onOrderClose, onBackToCustomer }) => {
-  // Use useMemo to compute selectedOrder from initialOrderId
+const Orders: React.FC<OrdersProps> = ({ initialOrderId = null, initialOrderData = null, fromCustomer = false, onOrderClose, onBackToCustomer }) => {
+  // Use useMemo to compute selectedOrder from initialOrderId or initialOrderData
   const initialOrder = useMemo(() => {
-    // Will be loaded from API in useEffect
+    // If we have initialOrderData, adapt it immediately to avoid fetch
+    if (initialOrderData) {
+      return adaptOrderDetail(initialOrderData) as any;
+    }
+    // Otherwise, will be loaded from API in useEffect
     return null;
-  }, [initialOrderId]);
+  }, [initialOrderId, initialOrderData]);
 
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(initialOrderId);
   const [selectedOrder, setSelectedOrder] = useState<OrderDetailType | null>(initialOrder);
@@ -190,8 +195,13 @@ const Orders: React.FC<OrdersProps> = ({ initialOrderId = null, fromCustomer = f
       // Only reset if explicitly set to null (not just undefined)
       setSelectedOrder(null);
       setSelectedOrderId(null);
+    } else if (initialOrderData) {
+      // If we have initialOrderData, use it immediately
+      const adapted = adaptOrderDetail(initialOrderData) as any;
+      setSelectedOrder(adapted);
+      setSelectedOrderId(String(initialOrderId));
     }
-  }, [initialOrderId]);
+  }, [initialOrderId, initialOrderData]);
 
   useEffect(() => {
     const run = async () => {

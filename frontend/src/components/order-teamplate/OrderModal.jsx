@@ -1,5 +1,5 @@
 import React from "react";
-import "../../styles/order-teamplate/modal.css";
+import "./styles/modal.css";
 
 const OrderModal = ({
   selectedProduct,

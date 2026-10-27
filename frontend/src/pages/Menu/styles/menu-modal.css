@@ -1,0 +1,17 @@
+/* Modal styles mapped to OrderModal.jsx class names */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.modal-box { background: #fff; border-radius: 16px; max-width: 860px; width: 96%; padding: 20px; display: grid; grid-template-columns: 1fr 1.2fr; gap: 16px; }
+.modal-left { display: flex; align-items: center; justify-content: center; background: #faf7f2; border-radius: 12px; }
+.modal-left img { max-width: 100%; max-height: 320px; object-fit: contain; }
+.modal-right h2 { margin: 0 0 6px; font-size: 20px; }
+.modal-right .price { font-weight: 700; margin: 0 0 12px; }
+.option-block { margin: 12px 0; }
+.size-options { display: flex; gap: 8px; }
+.size-btn { border: 1px solid #e5e5e5; border-radius: 999px; padding: 6px 12px; cursor: pointer; user-select: none; }
+.size-btn input { display: none; }
+.size-btn.active { background: #111; color: #fff; border-color: #111; }
+.qty-actions { display: inline-flex; align-items: center; gap: 12px; border: 1px solid #e5e5e5; border-radius: 8px; padding: 6px 10px; }
+.qty-actions button { border: 0; background: #f3f3f3; width: 24px; height: 24px; border-radius: 6px; }
+.modal-actions { display: flex; gap: 10px; margin-top: 16px; }
+.modal-actions .btn-buy { background: #e11d48; color: #fff; border: 0; padding: 10px 14px; border-radius: 8px; }
+.modal-actions .btn-add { background: #111; color: #fff; border: 0; padding: 10px 14px; border-radius: 8px; }
